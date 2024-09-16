@@ -20,7 +20,9 @@ contract AnchorUnit is Test {
         assertEq(anchor.profileId(), _profileId);
     }
 
-    function test_ExecuteRevertWhen_CallerIsNotTheProfileIdOwner(address _target, uint256 _value, bytes memory _data) external {
+    function test_ExecuteRevertWhen_CallerIsNotTheProfileIdOwner(address _target, uint256 _value, bytes memory _data)
+        external
+    {
         // it should revert
         (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
 
@@ -82,11 +84,7 @@ contract AnchorUnit is Test {
             abi.encodeWithSelector(Registry.isOwnerOfProfile.selector, _profileId, profileOwner),
             abi.encode(true)
         );
-        vm.mockCallRevert(
-            _target,
-            _data,
-            ""
-        );
+        vm.mockCallRevert(_target, _data, "");
 
         vm.prank(profileOwner);
 
@@ -95,11 +93,12 @@ contract AnchorUnit is Test {
         _anchor.execute(_target, _value, _data);
     }
 
-    function test_ExecuteWhenTheCallTo_targetSucceeds(address _target, uint256 _value, bytes memory _data, bytes memory _returnedData)
-        external
-        whenCallerOwnsTheProfile
-        when_targetIsNotTheZeroAddress(_target)
-    {
+    function test_ExecuteWhenTheCallTo_targetSucceeds(
+        address _target,
+        uint256 _value,
+        bytes memory _data,
+        bytes memory _returnedData
+    ) external whenCallerOwnsTheProfile when_targetIsNotTheZeroAddress(_target) {
         // it should return the data returned by the call
         // it should call _target with _value and _data
         (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
@@ -112,12 +111,7 @@ contract AnchorUnit is Test {
             abi.encode(true)
         );
         // vm.etch(targetAddr, code);
-        vm.mockCall(
-            _target,
-            _value,
-            _data,
-            _returnedData
-        );
+        vm.mockCall(_target, _value, _data, _returnedData);
 
         vm.prank(profileOwner);
 
@@ -126,7 +120,7 @@ contract AnchorUnit is Test {
         vm.expectCall(_target, _value, _data);
 
         bytes memory returnedData = _anchor.execute(_target, _value, _data);
-    
+
         assertEq(returnedData, _returnedData);
     }
 
@@ -135,7 +129,7 @@ contract AnchorUnit is Test {
         (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
 
         assertEq(address(_anchor).balance, 0); // Check if the balance of the contract has been updated
-        
+
         hoax(makeAddr("funder"), _value);
 
         address(_anchor).call{value: _value}("");
@@ -143,7 +137,12 @@ contract AnchorUnit is Test {
         assertEq(address(_anchor).balance, _value); // Check if the balance of the contract has been updated
     }
 
-    function test_Erc721HolderShouldReturnTheOnERC721ReceivedSelector(address _operator, address _from, uint256 _tokenId, bytes memory _data) external {
+    function test_Erc721HolderShouldReturnTheOnERC721ReceivedSelector(
+        address _operator,
+        address _from,
+        uint256 _tokenId,
+        bytes memory _data
+    ) external {
         // it should return the onERC721Received selector
         (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
 
@@ -151,7 +150,13 @@ contract AnchorUnit is Test {
         assertEq(retval, IERC721Receiver.onERC721Received.selector);
     }
 
-    function test_Erc1155HolderShouldReturnTheOnERC1155ReceivedSelector(address _operator, address _from, uint256 _tokenId, uint256 _value, bytes memory _data) external {
+    function test_Erc1155HolderShouldReturnTheOnERC1155ReceivedSelector(
+        address _operator,
+        address _from,
+        uint256 _tokenId,
+        uint256 _value,
+        bytes memory _data
+    ) external {
         // it should return the onERC1155Received selector
         (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
 
@@ -159,7 +164,13 @@ contract AnchorUnit is Test {
         assertEq(retval, IERC1155Receiver.onERC1155Received.selector);
     }
 
-    function test_Erc1155HolderBatchShouldReturnTheOnERC1155BatchReceivedSelector(address _operator, address _from, uint256[] memory _tokenIds, uint256[] memory _values, bytes memory _data) external {
+    function test_Erc1155HolderBatchShouldReturnTheOnERC1155BatchReceivedSelector(
+        address _operator,
+        address _from,
+        uint256[] memory _tokenIds,
+        uint256[] memory _values,
+        bytes memory _data
+    ) external {
         // it should return the onERC1155BatchReceived selector
         (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
 
