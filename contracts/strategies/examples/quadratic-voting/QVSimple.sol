@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.19;
 
+// Internal Imports
 // Interfaces
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsExtension.sol";
@@ -130,9 +131,9 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
                 revert RECIPIENT_ERROR(recipientId);
             }
 
-            pool.token.transferAmount(recipient.recipientAddress, amount);
-
             paidOut[recipientId] = true;
+
+            pool.token.transferAmount(recipient.recipientAddress, amount);
 
             emit Distributed(recipientId, abi.encode(recipient.recipientAddress, amount, _sender));
         }
