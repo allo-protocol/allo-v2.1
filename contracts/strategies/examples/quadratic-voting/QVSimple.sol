@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.19;
 
+// Internal Imports
 // Interfaces
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsExtension.sol";
 // Contracts
 import {BaseStrategy} from "contracts/strategies/BaseStrategy.sol";
 import {RecipientsExtension} from "strategies/extensions/register/RecipientsExtension.sol";
+import {AllocatorsAllowlistExtension} from "strategies/extensions/allocate/AllocatorsAllowlistExtension.sol";
 // Internal Libraries
 import {Transfer} from "contracts/core/libraries/Transfer.sol";
 import {QVHelper} from "strategies/libraries/QVHelper.sol";
@@ -25,7 +27,7 @@ import {QVHelper} from "strategies/libraries/QVHelper.sol";
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣧⠀⠀⢸⣿⣿⣿⣗⠀⠀⠀⢸⣿⣿⣿⡯⠀⠀⠀⠀⠹⢿⣿⣿⣿⣿⣾⣾⣷⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠙⠋⠛⠙⠋⠛⠙⠋⠛⠙⠋⠃⠀⠀⠀⠀⠀⠀⠀⠀⠠⠿⠻⠟⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠟⠿⠟⠿⠆⠀⠸⠿⠿⠟⠯⠀⠀⠀⠸⠿⠿⠿⠏⠀⠀⠀⠀⠀⠈⠉⠻⠻⡿⣿⢿⡿⡿⠿⠛⠁⠀⠀⠀⠀⠀⠀
 //                    allo.gitcoin.co
-contract QVSimple is BaseStrategy, RecipientsExtension {
+contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExtension {
     using QVHelper for QVHelper.VotingState;
     using Transfer for address;
 
@@ -39,17 +41,8 @@ contract QVSimple is BaseStrategy, RecipientsExtension {
     /// @notice The maximum voice credits per allocator
     uint256 public maxVoiceCreditsPerAllocator;
 
-    /// @notice The start time for allocations
-    uint64 public allocationStartTime;
-    /// @notice The end time for allocations
-    uint64 public allocationEndTime;
-
     /// @notice Whether the distribution started or not
     bool public distributionStarted;
-
-    /// @notice The details of the allowed allocator
-    /// @dev allocator => bool
-    mapping(address => bool) public allowedAllocators;
 
     /// @notice The voice credits allocated for each allocator
     mapping(address => uint256) public voiceCreditsAllocated;
@@ -80,27 +73,17 @@ contract QVSimple is BaseStrategy, RecipientsExtension {
         ) = abi.decode(_data, (IRecipientsExtension.RecipientInitializeData, QVSimpleInitializeData));
 
         __RecipientsExtension_init(recipientInitializeData);
+        __AllocationExtension_init(
+            new address[](0),
+            qvSimpleInitializeData.allocationStartTime,
+            qvSimpleInitializeData.allocationEndTime,
+            qvSimpleInitializeData.isUsingAllocationMetadata
+        );
 
         maxVoiceCreditsPerAllocator = qvSimpleInitializeData.maxVoiceCreditsPerAllocator;
-        allocationStartTime = qvSimpleInitializeData.allocationStartTime;
-        allocationEndTime = qvSimpleInitializeData.allocationEndTime;
 
         emit Initialized(_poolId, _data);
     }
-
-    /// ======================
-    /// ======= Events =======
-    /// ======================
-
-    /// @notice Emitted when an allocator is added
-    /// @param allocator The allocator address
-    /// @param sender The sender of the transaction
-    event AllocatorAdded(address indexed allocator, address sender);
-
-    /// @notice Emitted when an allocator is removed
-    /// @param allocator The allocator address
-    /// @param sender The sender of the transaction
-    event AllocatorRemoved(address indexed allocator, address sender);
 
     /// ======================
     /// ======= Struct =======
@@ -110,49 +93,12 @@ contract QVSimple is BaseStrategy, RecipientsExtension {
     /// @param allocationStartTime The timestamp in seconds for the allocation start time.
     /// @param allocationEndTime The timestamp in seconds for the allocation end time.
     /// @param maxVoiceCreditsPerAllocator The maximumg amount of credits per allocator.
+    /// @param isUsingAllocationMetadata Whether the strategy is using allocation metadata.
     struct QVSimpleInitializeData {
         uint64 allocationStartTime;
         uint64 allocationEndTime;
         uint256 maxVoiceCreditsPerAllocator;
-    }
-
-    /// ================================
-    /// ========== Modifier ============
-    /// ================================
-
-    /// @notice Modifier to check if the allocation has ended
-    /// @dev Reverts if the allocation has not ended
-    modifier onlyAfterAllocation() {
-        _checkOnlyAfterAllocation();
-        _;
-    }
-
-    /// ====================================
-    /// ==== External/Public Functions =====
-    /// ====================================
-
-    /// @notice Add allocator
-    /// @dev Only the pool manager(s) can call this function and emits an `AllocatorAdded` event
-    /// @param _allocator The allocator address
-    function addAllocator(address _allocator) external onlyPoolManager(msg.sender) {
-        _addAllocator(_allocator);
-    }
-
-    /// @notice Remove allocator
-    /// @dev Only the pool manager(s) can call this function and emits an `AllocatorRemoved` event
-    /// @param _allocator The allocator address
-    function removeAllocator(address _allocator) external onlyPoolManager(msg.sender) {
-        _removeAllocator(_allocator);
-    }
-
-    /// ====================================
-    /// ============ Internal ==============
-    /// ====================================
-
-    /// @notice Check if the allocation has ended
-    /// @dev Reverts if the allocation has not ended
-    function _checkOnlyAfterAllocation() internal view virtual {
-        if (block.timestamp <= allocationEndTime) revert ALLOCATION_NOT_ENDED();
+        bool isUsingAllocationMetadata;
     }
 
     /// @notice Distribute the tokens to the recipients
@@ -185,9 +131,9 @@ contract QVSimple is BaseStrategy, RecipientsExtension {
                 revert RECIPIENT_ERROR(recipientId);
             }
 
-            pool.token.transferAmount(recipient.recipientAddress, amount);
-
             paidOut[recipientId] = true;
+
+            pool.token.transferAmount(recipient.recipientAddress, amount);
 
             emit Distributed(recipientId, abi.encode(recipient.recipientAddress, amount, _sender));
         }
@@ -228,36 +174,11 @@ contract QVSimple is BaseStrategy, RecipientsExtension {
         voiceCreditsAllocated[_sender] += voiceCreditsToAllocate;
     }
 
-    /// @notice Add allocator
-    /// @dev Only the pool manager(s) can call this function and emits an `AllocatorAdded` event
-    /// @param _allocator The allocator address
-    function _addAllocator(address _allocator) internal virtual {
-        allowedAllocators[_allocator] = true;
-
-        emit AllocatorAdded(_allocator, msg.sender);
-    }
-
-    /// @notice Remove allocator
-    /// @dev Only the pool manager(s) can call this function and emits an `AllocatorRemoved` event
-    /// @param _allocator The allocator address
-    function _removeAllocator(address _allocator) internal virtual {
-        allowedAllocators[_allocator] = false;
-
-        emit AllocatorRemoved(_allocator, msg.sender);
-    }
-
     /// @notice Returns if the recipient is accepted
     /// @param _recipientId The recipient id
     /// @return true if the recipient is accepted
     function _isAcceptedRecipient(address _recipientId) internal view returns (bool) {
         return _getRecipientStatus(_recipientId) == Status.Accepted;
-    }
-
-    /// @notice Checks if the allocator is valid
-    /// @param _allocator The allocator address
-    /// @return true if the allocator is valid
-    function _isValidAllocator(address _allocator) internal view returns (bool) {
-        return allowedAllocators[_allocator];
     }
 
     /// @notice Checks if the allocator has voice credits left

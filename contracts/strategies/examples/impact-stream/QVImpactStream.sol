@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.19;
 
-// External Libraries
+// External Imports
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+// Internal Imports
 // Interfaces
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 // Core Contracts
@@ -82,26 +83,6 @@ contract QVImpactStream is QVSimple {
     /// ====================================
     /// ==== External/Public Functions =====
     /// ====================================
-
-    /// @notice Add allocator array
-    /// @dev Only the pool manager(s) can call this function and emits an `AllocatorAdded` event
-    /// @param _allocators The allocator address array
-    function batchAddAllocator(address[] memory _allocators) external onlyPoolManager(msg.sender) {
-        uint256 length = _allocators.length;
-        for (uint256 i = 0; i < length; ++i) {
-            _addAllocator(_allocators[i]);
-        }
-    }
-
-    /// @notice Remove allocator array
-    /// @dev Only the pool manager(s) can call this function and emits an `AllocatorRemoved` event
-    /// @param _allocators The allocators address array
-    function batchRemoveAllocator(address[] memory _allocators) external onlyPoolManager(msg.sender) {
-        uint256 length = _allocators.length;
-        for (uint256 i = 0; i < length; ++i) {
-            _removeAllocator(_allocators[i]);
-        }
-    }
 
     /// @notice Set the payouts to distribute
     /// @dev Only the pool manager(s) can call this function
