@@ -2,7 +2,7 @@
 
 # Function to dynamically map chains to variables
 # Relevant issue that would deprecate this script if solved: https://github.com/foundry-rs/foundry/issues/7726
-deploy() {
+runScript() {
   chain=$1
   scriptName=$2
   case "$chain" in
@@ -114,4 +114,4 @@ fi
 source .env
 
 # Call the deploy function with the provided chain argument
-deploy "$1"
+runScript "$1" "$2"
