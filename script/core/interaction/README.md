@@ -9,7 +9,7 @@ bun run interaction <CHAIN> <SCRIPT_NAME>
 ```
 For example:
 ```
-bun run deploy-allo-v2.1 sepolia CreateProfile
+bun run interaction sepolia CreateProfile
 ```
 
 ### Supported scripts
