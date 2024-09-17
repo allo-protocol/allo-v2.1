@@ -84,4 +84,12 @@ contract MockBaseStrategy is BaseStrategy {
         virtual
         override
     {}
+
+    function set__poolId(uint256 _poolId) external {
+        poolId = _poolId;
+    }
+
+    function set__poolAmount(uint256 _poolAmount) external {
+        poolAmount = _poolAmount;
+    }
 }

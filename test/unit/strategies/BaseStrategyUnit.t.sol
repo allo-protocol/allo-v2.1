@@ -2,50 +2,93 @@
 pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
+import {MockMockBaseStrategy} from "test/smock/MockMockBaseStrategy.sol";
+import {IBaseStrategy} from "strategies/IBaseStrategy.sol";
 
 contract BaseStrategy is Test {
+    MockMockBaseStrategy baseStrategy;
+
     function setUp() public {
-        //
+        baseStrategy = new MockMockBaseStrategy(address(0));
     }
 
-    function test___BaseStrategy_initShouldCallOnlyAllo() external {
+    function test___BaseStrategy_initShouldCallOnlyAllo(uint256 _poolId) external {
+        vm.assume(_poolId != 0);
+        baseStrategy.mock_call__checkOnlyAllo();
+
         // It should call onlyAllo
-        vm.skip(true);
+        baseStrategy.expectCall__checkOnlyAllo();
+
+        baseStrategy.call___BaseStrategy_init(_poolId);
     }
 
-    function test___BaseStrategy_initRevertWhen_PoolIdIsZero() external {
+    function test___BaseStrategy_initRevertWhen_PoolIdIsZero(uint256 _currentPoolId, uint256 _poolId) external {
+        vm.assume(_currentPoolId != 0);
+        baseStrategy.mock_call__checkOnlyAllo();
+
+        baseStrategy.set__poolId(_currentPoolId);
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_ALREADY_INITIALIZED.selector);
+
+        baseStrategy.call___BaseStrategy_init(_poolId);
     }
 
     function test___BaseStrategy_initRevertWhen_PoolIdArgumentIsZero() external {
+        baseStrategy.mock_call__checkOnlyAllo();
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_INVALID_POOL_ID.selector);
+
+        baseStrategy.call___BaseStrategy_init(0);
     }
 
-    function test___BaseStrategy_initShouldSetPoolId() external {
+    function test___BaseStrategy_initShouldSetPoolId(uint256 _poolId) external {
+        vm.assume(_poolId != 0);
+        baseStrategy.mock_call__checkOnlyAllo();
+
+        baseStrategy.call___BaseStrategy_init(_poolId);
+
         // It should set poolId
-        vm.skip(true);
+        assertEq(baseStrategy.getPoolId(), _poolId);
     }
 
-    function test_IncreasePoolAmountShouldCallOnlyAllo() external {
+    function test_IncreasePoolAmountShouldCallOnlyAllo(uint256 _amount) external {
+        baseStrategy.mock_call__checkOnlyAllo();
+
         // It should call onlyAllo
-        vm.skip(true);
+        baseStrategy.expectCall__checkOnlyAllo();
+
+        baseStrategy.increasePoolAmount(_amount);
     }
 
-    function test_IncreasePoolAmountShouldCall_beforeIncreasePoolAmount() external {
+    function test_IncreasePoolAmountShouldCall_beforeIncreasePoolAmount(uint256 _amount) external {
+        baseStrategy.mock_call__checkOnlyAllo();
+
         // It should call _beforeIncreasePoolAmount
-        vm.skip(true);
+        baseStrategy.expectCall__beforeIncreasePoolAmount(_amount);
+
+        baseStrategy.increasePoolAmount(_amount);
     }
 
-    function test_IncreasePoolAmountShouldAddAmountToPoolAmount() external {
+    function test_IncreasePoolAmountShouldAddAmountToPoolAmount(uint256 _previousAmount, uint256 _amount) external {
+        vm.assume(_amount < type(uint256).max - _previousAmount);
+        baseStrategy.mock_call__checkOnlyAllo();
+        baseStrategy.set__poolAmount(_previousAmount);
+
+        baseStrategy.increasePoolAmount(_amount);
+
         // It should add amount to poolAmount
-        vm.skip(true);
+        assertEq(baseStrategy.getPoolAmount(), _previousAmount + _amount);
     }
 
-    function test_IncreasePoolAmountShouldCall_afterIncreasePoolAmount() external {
+    function test_IncreasePoolAmountShouldCall_afterIncreasePoolAmount(uint256 _amount) external {
+        baseStrategy.mock_call__checkOnlyAllo();
+
         // It should call _afterIncreasePoolAmount
-        vm.skip(true);
+        baseStrategy.expectCall__afterIncreasePoolAmount(_amount);
+
+        baseStrategy.increasePoolAmount(_amount);
     }
 
     function test_WithdrawShouldCallOnlyPoolManager() external {
