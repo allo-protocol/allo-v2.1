@@ -60,10 +60,6 @@ contract AnchorUnit is Test {
         _anchor.execute(address(0), _value, _data);
     }
 
-    modifier whenCallerOwnsTheProfile() {
-        _;
-    }
-
     modifier whenTargetIsNotTheZeroAddress(address _target) {
         vm.assume(_target != address(0));
         _;
@@ -71,7 +67,6 @@ contract AnchorUnit is Test {
 
     function test_ExecuteRevertWhen_TheCallToTargetFails(address _target, uint256 _value, bytes memory _data)
         external
-        whenCallerOwnsTheProfile
         whenTargetIsNotTheZeroAddress(_target)
     {
         // it should revert
@@ -98,7 +93,7 @@ contract AnchorUnit is Test {
         uint256 _value,
         bytes memory _data,
         bytes memory _returnedData
-    ) external whenCallerOwnsTheProfile whenTargetIsNotTheZeroAddress(_target) {
+    ) external whenTargetIsNotTheZeroAddress(_target) {
         // it should return the data returned by the call
         // it should call target with value and data
         (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
