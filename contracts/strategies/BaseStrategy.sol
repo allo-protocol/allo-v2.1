@@ -173,7 +173,7 @@ abstract contract BaseStrategy is IBaseStrategy {
 
     /// @notice Checks if the 'msg.sender' is the Allo contract.
     /// @dev Reverts if the 'msg.sender' is not the Allo contract.
-    function _checkOnlyAllo() internal view {
+    function _checkOnlyAllo() internal view virtual {
         if (msg.sender != address(allo)) revert BaseStrategy_UNAUTHORIZED();
     }
 
