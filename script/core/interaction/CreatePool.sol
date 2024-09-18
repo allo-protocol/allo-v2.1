@@ -23,7 +23,7 @@ contract CreatePool is Script {
         uint256 poolId = _createPool();
         vm.stopBroadcast();
 
-        console.log("New profile created with id: %s", poolId);
+        console.log("New pool created with id: %s", poolId);
     }
 
     function _createPool() internal returns (uint256 poolId) {
