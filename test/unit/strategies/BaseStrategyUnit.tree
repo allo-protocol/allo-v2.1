@@ -13,33 +13,37 @@ BaseStrategy::increasePoolAmount
 └── It should call _afterIncreasePoolAmount
 
 BaseStrategy::withdraw
-├── It should call onlyPoolManager
-├── It should call _beforeWithdraw
-├── It should call balanceOf at token
-├── When amount is greater than poolAmount
-│   └── It should revert
-├── It should call transfer at token
-├── It should call _afterWithdraw
-└── It should emit event
+├── When parameters are valid
+│   ├── It should call onlyPoolManager
+│   ├── It should call _beforeWithdraw
+│   ├── It should call balanceOf at token
+│   ├── It should call transfer at token
+│   ├── It should call _afterWithdraw
+│   └── It should emit event
+└── When amount is greater than poolAmount
+    └── It should revert
 
 BaseStrategy::register
-├── It should call onlyAllo
-├── It should call _beforeRegisterRecipient
-├── It should call _register
-├── It should call _afterRegisterRecipient
-└── It should return _recipientIds
+└── When parameters are valid
+    ├── It should call onlyAllo
+    ├── It should call _beforeRegisterRecipient
+    ├── It should call _register
+    ├── It should call _afterRegisterRecipient
+    └── It should return _recipientIds
 
 BaseStrategy::allocate
-├── It should call onlyAllo
-├── It should call _beforeAllocate
-├── It should call _allocate
-└── It should call _afterAllocate
+└── When parameters are valid
+    ├── It should call onlyAllo
+    ├── It should call _beforeAllocate
+    ├── It should call _allocate
+    └── It should call _afterAllocate
 
 BaseStrategy::distribute
-├── It should call onlyAllo
-├── It should call _beforeDistribute
-├── It should call _distribute
-└── It should call _afterDistribute
+└── When parameters are valid
+    ├── It should call onlyAllo
+    ├── It should call _beforeDistribute
+    ├── It should call _distribute
+    └── It should call _afterDistribute
 
 BaseStrategy::_checkOnlyAllo
 └── When caller is not allo
