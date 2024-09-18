@@ -105,7 +105,7 @@ contract AnchorUnit is Test {
             abi.encodeWithSelector(Registry.isOwnerOfProfile.selector, _profileId, profileOwner),
             abi.encode(true)
         );
-        // vm.etch(targetAddr, code);
+
         vm.mockCall(_target, _value, _data, _returnedData);
 
         vm.prank(profileOwner);
