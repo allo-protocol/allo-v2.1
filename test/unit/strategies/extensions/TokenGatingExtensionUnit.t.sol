@@ -46,4 +46,20 @@ contract TokenGatingExtensionUnit is Test {
 
         tokenGatingExtension.call__checkOnlyWithToken(_token, _amount, _actor);
     }
+
+    function test_WhenParametersAreValid(
+        address _token,
+        uint256 _amount,
+        uint256 _balance,
+        address _actor
+    ) external {
+        vm.assume(_token != address(0));
+        vm.assume(_actor != address(0));
+        vm.assume(_balance > _amount);
+
+        vm.mockCall(address(_token), abi.encodeWithSelector(IERC20.balanceOf.selector, _actor), abi.encode(_balance));
+
+        // It should execute successfully
+        tokenGatingExtension.call__checkOnlyWithToken(_token, _amount, _actor);
+    }
 }

@@ -3,5 +3,7 @@ TokenGatingExtension::_checkOnlyWithToken
 │   └── It should revert
 ├── When actor address is zero
 │   └── It should revert
-└── When actor balance is less than amount
-    └── It should revert
+├── When actor balance is less than amount
+│   └── It should revert
+└── When parameters are valid
+    └── It should execute successfully
