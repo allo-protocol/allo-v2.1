@@ -78,4 +78,8 @@ contract MockMilestonesExtension is BaseStrategy, IMilestonesExtension, Mileston
             milestones[_index] = Milestone(0, Metadata(0, ""), MilestoneStatus.None);
         }
     }
+
+    function set__maxBid(uint256 _maxBid) external {
+        maxBid = _maxBid;
+    }
 }

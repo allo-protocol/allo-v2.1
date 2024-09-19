@@ -103,6 +103,8 @@ contract MilestonesExtensionUnit is Test {
 
     modifier whenParametersAreValid(uint8 _milestoneStatus) {
         vm.assume(_milestoneStatus < 7);
+        IMilestonesExtension.MilestoneStatus milestoneStatus = IMilestonesExtension.MilestoneStatus(_milestoneStatus);
+        milestonesExtension.mock_call__validateReviewMilestone(address(this), milestoneStatus);
         _;
     }
 
@@ -112,7 +114,6 @@ contract MilestonesExtensionUnit is Test {
     {
         IMilestonesExtension.MilestoneStatus milestoneStatus = IMilestonesExtension.MilestoneStatus(_milestoneStatus);
         uint256 upcomingMilestone = milestonesExtension.upcomingMilestone();
-        milestonesExtension.mock_call__validateReviewMilestone(address(this), milestoneStatus);
         milestonesExtension.set__milestones(upcomingMilestone);
 
         // It should call _validateReviewMilestone
@@ -128,32 +129,63 @@ contract MilestonesExtensionUnit is Test {
         assertEq(uint256(milestonesExtension.getMilestone(upcomingMilestone).status), uint256(milestoneStatus));
     }
 
-    function test_ReviewMilestoneWhenMilestoneStatusIsEqualToAccepted(uint8 _milestoneStatus)
+    function test_ReviewMilestoneWhenMilestoneStatusIsEqualToAccepted()
         external
-        whenParametersAreValid(_milestoneStatus)
+        whenParametersAreValid(uint8(2)) // IMilestonesExtension.MilestoneStatus.Accepted
     {
+        uint256 upcomingMilestone = milestonesExtension.upcomingMilestone();
+        milestonesExtension.set__milestones(upcomingMilestone);
+
+        milestonesExtension.reviewMilestone(IMilestonesExtension.MilestoneStatus.Accepted);
+
         // It should increase upcomingMilestone
-        vm.skip(true);
+        assertEq(milestonesExtension.upcomingMilestone(), upcomingMilestone + 1);
     }
 
-    function test__setProposalBidRevertWhen_ProposalBidParameterIsBiggerThanMaxBid() external {
+    function test__setProposalBidRevertWhen_ProposalBidParameterIsBiggerThanMaxBid(
+        address _bidderId,
+        uint256 _proposalBid
+    ) external {
+        vm.assume(_proposalBid > milestonesExtension.maxBid()); // maxBid is 0
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.EXCEEDING_MAX_BID.selector);
+
+        milestonesExtension.call__setProposalBid(_bidderId, _proposalBid);
     }
 
-    modifier whenParametersOfTheFunctionAreValid() {
+    modifier whenParametersOfTheFunctionAreValid(uint256 _proposalBid) {
+        milestonesExtension.set__maxBid(type(uint256).max);
+        vm.assume(_proposalBid < milestonesExtension.maxBid());
         _;
     }
 
-    function test__setProposalBidWhenParametersAreValid() external whenParametersOfTheFunctionAreValid {
-        // It should set the _proposalBid at bids mapping
+    function test__setProposalBidWhenParametersAreValid(address _bidderId, uint256 _proposalBid)
+        external
+        whenParametersOfTheFunctionAreValid(_proposalBid)
+    {
+        vm.assume(_proposalBid > 0);
+
         // It should emit event
-        vm.skip(true);
+        vm.expectEmit();
+        emit IMilestonesExtension.SetBid(_bidderId, _proposalBid);
+
+        milestonesExtension.call__setProposalBid(_bidderId, _proposalBid);
+
+        // It should set the _proposalBid at bids mapping
+        assertEq(milestonesExtension.bids(_bidderId), _proposalBid);
     }
 
-    function test__setProposalBidWhenProposalBidIsEqualTo0() external whenParametersOfTheFunctionAreValid {
+    function test__setProposalBidWhenProposalBidIsEqualTo0(address _bidderId, uint256 _proposalBid)
+        external
+        whenParametersOfTheFunctionAreValid(_proposalBid)
+    {
+        _proposalBid = 0;
+
+        milestonesExtension.call__setProposalBid(_bidderId, _proposalBid);
+
         // It should set the _proposalBid to maxBid
-        vm.skip(true);
+        assertEq(milestonesExtension.bids(_bidderId), type(uint256).max);
     }
 
     function test__validateSetMilestonesShouldCall_checkOnlyPoolManager() external {
