@@ -3,6 +3,8 @@ pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
 import {MockMockMilestonesExtension} from "test/smock/MockMockMilestonesExtension.sol";
+import {IMilestonesExtension} from "contracts/strategies/extensions/milestones/IMilestonesExtension.sol";
+import {Metadata} from "contracts/core/libraries/Metadata.sol";
 
 contract MilestonesExtensionUnit is Test {
     MockMockMilestonesExtension milestonesExtension;
@@ -33,11 +35,28 @@ contract MilestonesExtensionUnit is Test {
         milestonesExtension.increaseMaxBid(_maxBid);
     }
 
+    // IMilestonesExtension.Milestone[] memory _milestones
     function test_SetMilestonesWhenParametersAreValid() external {
-        // It should call _validateSetMilestones
-        // It should set the milestones
-        // It should emit event
         vm.skip(true);
+
+        // milestonesExtension.mock_call__validateSetMilestones(address(this));
+
+        // // It should call _validateSetMilestones
+        // milestonesExtension.expectCall__validateSetMilestones(address(this));
+
+        // // It should emit event
+        // vm.expectEmit();
+        // emit IMilestonesExtension.MilestonesSet(_milestones.length);
+
+        // milestonesExtension.setMilestones(_milestones);
+
+        // // It should set the milestones
+        // for (uint256 i = 0; i < _milestones.length; i++) {
+        //     // assertEq(milestonesExtension.getMilestone(i).amountPercentage, _milestones[i].amountPercentage);
+        //     // assertEq(milestonesExtension.getMilestone(i).metadata.protocol, _milestones[i].metadata.protocol);
+        //     // assertEq(milestonesExtension.getMilestone(i).metadata.pointer, _milestones[i].metadata.pointer);
+        //     // assertEq(uint(milestonesExtension.getMilestone(i).status), uint(_milestones[i].status));
+        // }
     }
 
     function test_SetMilestonesRevertWhen_AmountPercentageIsZero() external {
@@ -50,26 +69,69 @@ contract MilestonesExtensionUnit is Test {
         vm.skip(true);
     }
 
-    function test_SubmitUpcomingMilestoneWhenParametersAreValid() external {
+    function test_SubmitUpcomingMilestoneWhenParametersAreValid(address _recipientId, Metadata memory _metadata)
+        external
+    {
+        milestonesExtension.mock_call__validateSubmitUpcomingMilestone(_recipientId, address(this));
+        milestonesExtension.set__milestones(0);
+
         // It should call _validateSubmitUpcomingMilestone
-        // It should set the milestone metadata
-        // It should set the milestone status
+        milestonesExtension.expectCall__validateSubmitUpcomingMilestone(_recipientId, address(this));
+
         // It should emit event
-        vm.skip(true);
+        vm.expectEmit();
+        emit IMilestonesExtension.MilestoneSubmitted(milestonesExtension.upcomingMilestone());
+
+        milestonesExtension.submitUpcomingMilestone(_recipientId, _metadata);
+
+        // It should set the milestone metadata
+        assertEq(
+            milestonesExtension.getMilestone(milestonesExtension.upcomingMilestone()).metadata.protocol,
+            _metadata.protocol
+        );
+        assertEq(
+            milestonesExtension.getMilestone(milestonesExtension.upcomingMilestone()).metadata.pointer,
+            _metadata.pointer
+        );
+
+        // It should set the milestone status
+        assertEq(
+            uint256(milestonesExtension.getMilestone(milestonesExtension.upcomingMilestone()).status),
+            uint256(IMilestonesExtension.MilestoneStatus.Pending)
+        );
     }
 
-    modifier whenParametersAreValid() {
+    modifier whenParametersAreValid(uint8 _milestoneStatus) {
+        vm.assume(_milestoneStatus < 7);
         _;
     }
 
-    function test_ReviewMilestoneWhenParametersAreValid() external whenParametersAreValid {
+    function test_ReviewMilestoneWhenParametersAreValid(uint8 _milestoneStatus)
+        external
+        whenParametersAreValid(_milestoneStatus)
+    {
+        IMilestonesExtension.MilestoneStatus milestoneStatus = IMilestonesExtension.MilestoneStatus(_milestoneStatus);
+        uint256 upcomingMilestone = milestonesExtension.upcomingMilestone();
+        milestonesExtension.mock_call__validateReviewMilestone(address(this), milestoneStatus);
+        milestonesExtension.set__milestones(upcomingMilestone);
+
         // It should call _validateReviewMilestone
-        // It should set the milestone status
+        milestonesExtension.expectCall__validateReviewMilestone(address(this), milestoneStatus);
+
         // It should emit event
-        vm.skip(true);
+        vm.expectEmit();
+        emit IMilestonesExtension.MilestoneStatusChanged(upcomingMilestone, milestoneStatus);
+
+        milestonesExtension.reviewMilestone(milestoneStatus);
+
+        // It should set the milestone status
+        assertEq(uint256(milestonesExtension.getMilestone(upcomingMilestone).status), uint256(milestoneStatus));
     }
 
-    function test_ReviewMilestoneWhenMilestoneStatusIsEqualToAccepted() external whenParametersAreValid {
+    function test_ReviewMilestoneWhenMilestoneStatusIsEqualToAccepted(uint8 _milestoneStatus)
+        external
+        whenParametersAreValid(_milestoneStatus)
+    {
         // It should increase upcomingMilestone
         vm.skip(true);
     }
@@ -79,13 +141,17 @@ contract MilestonesExtensionUnit is Test {
         vm.skip(true);
     }
 
-    function test__setProposalBidWhenParametersAreValid() external whenParametersAreValid {
+    modifier whenParametersOfTheFunctionAreValid() {
+        _;
+    }
+
+    function test__setProposalBidWhenParametersAreValid() external whenParametersOfTheFunctionAreValid {
         // It should set the _proposalBid at bids mapping
         // It should emit event
         vm.skip(true);
     }
 
-    function test__setProposalBidWhenProposalBidIsEqualTo0() external whenParametersAreValid {
+    function test__setProposalBidWhenProposalBidIsEqualTo0() external whenParametersOfTheFunctionAreValid {
         // It should set the _proposalBid to maxBid
         vm.skip(true);
     }

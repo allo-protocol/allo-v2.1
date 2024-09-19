@@ -34,7 +34,7 @@ MilestonesExtension::reviewMilestone
 MilestonesExtension::_setProposalBid
 ├── When proposalBid parameter is bigger than maxBid
 │   └── It should revert
-└── When parameters are valid
+└── When parameters of the function are valid
     ├── When proposalBid is equal to 0
     │   └── It should set the _proposalBid to maxBid
     ├── It should set the _proposalBid at bids mapping

@@ -2,10 +2,12 @@
 pragma solidity ^0.8.19;
 
 import {MilestonesExtension} from "strategies/extensions/milestones/MilestonesExtension.sol";
+import {IMilestonesExtension} from "strategies/extensions/milestones/IMilestonesExtension.sol";
 import {BaseStrategy} from "strategies/BaseStrategy.sol";
+import {Metadata} from "contracts/core/libraries/Metadata.sol";
 
 /// @dev This mock allows smock to override the functions of MilestonesExtension abstract contract
-contract MockMilestonesExtension is BaseStrategy, MilestonesExtension {
+contract MockMilestonesExtension is BaseStrategy, IMilestonesExtension, MilestonesExtension {
     address public acceptedRecipientId;
 
     constructor(address _allo) BaseStrategy(_allo) {}
@@ -56,7 +58,24 @@ contract MockMilestonesExtension is BaseStrategy, MilestonesExtension {
         return _recipientId == acceptedRecipientId;
     }
 
+    function _validateSetMilestones(address _sender) internal virtual override {
+        super._validateSetMilestones(_sender);
+    }
+
     function _checkOnlyPoolManager(address _sender) internal view virtual override {
         super._checkOnlyPoolManager(_sender);
+    }
+
+    function _validateReviewMilestone(address _sender, MilestoneStatus _milestoneStatus) internal virtual override {
+        super._validateReviewMilestone(_sender, _milestoneStatus);
+    }
+
+    /// @dev This function will set an empty milestone at desired index
+    function set__milestones(uint256 _index) external {
+        if (milestones.length == 0) {
+            milestones.push(Milestone(0, Metadata(0, ""), MilestoneStatus.None));
+        } else {
+            milestones[_index] = Milestone(0, Metadata(0, ""), MilestoneStatus.None);
+        }
     }
 }
