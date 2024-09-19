@@ -48,7 +48,15 @@ contract MockMilestonesExtension is BaseStrategy, MilestonesExtension {
         super._setProposalBid(_bidderId, _proposalBid);
     }
 
+    function _increaseMaxBid(uint256 _maxBid) internal virtual override {
+        super._increaseMaxBid(_maxBid);
+    }
+
     function _isAcceptedRecipient(address _recipientId) internal view virtual override returns (bool) {
         return _recipientId == acceptedRecipientId;
+    }
+
+    function _checkOnlyPoolManager(address _sender) internal view virtual override {
+        super._checkOnlyPoolManager(_sender);
     }
 }

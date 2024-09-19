@@ -2,16 +2,35 @@
 pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
+import {MockMockMilestonesExtension} from "test/smock/MockMockMilestonesExtension.sol";
 
 contract MilestonesExtensionUnit is Test {
-    function test___MilestonesExtension_initShouldCall_increaseMaxBid() external {
-        // It should call _increaseMaxBid
-        vm.skip(true);
+    MockMockMilestonesExtension milestonesExtension;
+
+    function setUp() public {
+        milestonesExtension = new MockMockMilestonesExtension(address(0));
     }
 
-    function test_IncreaseMaxBidShouldCall_increaseMaxBid() external {
+    function test___MilestonesExtension_initShouldCall_increaseMaxBid(uint256 _maxBid) external {
+        milestonesExtension.mock_call__increaseMaxBid(_maxBid);
+
         // It should call _increaseMaxBid
-        vm.skip(true);
+        milestonesExtension.expectCall__increaseMaxBid(_maxBid);
+
+        milestonesExtension.call___MilestonesExtension_init(_maxBid);
+    }
+
+    function test_IncreaseMaxBidWhenParametersAreValid(uint256 _maxBid) external {
+        milestonesExtension.mock_call__increaseMaxBid(_maxBid);
+        milestonesExtension.mock_call__checkOnlyPoolManager(address(this));
+
+        // It should call _checkOnlyPoolManager
+        milestonesExtension.expectCall__checkOnlyPoolManager(address(this));
+
+        // It should call _increaseMaxBid
+        milestonesExtension.expectCall__increaseMaxBid(_maxBid);
+
+        milestonesExtension.increaseMaxBid(_maxBid);
     }
 
     function test_SetMilestonesWhenParametersAreValid() external {

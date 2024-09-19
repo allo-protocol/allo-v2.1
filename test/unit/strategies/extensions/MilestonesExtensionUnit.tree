@@ -2,7 +2,9 @@ MilestonesExtension::__MilestonesExtension_init
 └── It should call _increaseMaxBid
 
 MilestonesExtension::increaseMaxBid
-└── It should call _increaseMaxBid
+└── When parameters are valid
+    ├── It should call _checkOnlyPoolManager
+    └── It should call _increaseMaxBid
 
 MilestonesExtension::setMilestones
 ├── When parameters are valid
