@@ -40,4 +40,14 @@ contract NFTGatingExtensionUnit is Test {
 
         nftGatingExtension.call__checkOnlyWithNFT(_nft, _actor);
     }
+
+    function test_WhenParametersAreValid(address _nft, address _actor) external {
+        vm.assume(_nft != address(0));
+        vm.assume(_actor != address(0));
+
+        vm.mockCall(address(_nft), abi.encodeWithSelector(IERC721.balanceOf.selector, _actor), abi.encode(uint256(1)));
+
+        // It should execute successfully
+        nftGatingExtension.call__checkOnlyWithNFT(_nft, _actor);
+    }
 }
