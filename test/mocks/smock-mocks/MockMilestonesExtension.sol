@@ -70,16 +70,33 @@ contract MockMilestonesExtension is BaseStrategy, IMilestonesExtension, Mileston
         super._validateReviewMilestone(_sender, _milestoneStatus);
     }
 
-    /// @dev This function will set an empty milestone at desired index
-    function set__milestones(uint256 _index) external {
+    function _getMilestonePayout(address _recipientId, uint256 _milestoneId)
+        internal
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        return super._getMilestonePayout(_recipientId, _milestoneId);
+    }
+
+    function set__milestones(uint256 _index, Milestone memory _milestone) external {
         if (milestones.length == 0) {
-            milestones.push(Milestone(0, Metadata(0, ""), MilestoneStatus.None));
+            milestones.push(_milestone);
         } else {
-            milestones[_index] = Milestone(0, Metadata(0, ""), MilestoneStatus.None);
+            milestones[_index] = _milestone;
         }
     }
 
     function set__maxBid(uint256 _maxBid) external {
         maxBid = _maxBid;
+    }
+
+    function set__bid(address _recipientId, uint256 _proposalBid) external {
+        bids[_recipientId] = _proposalBid;
+    }
+
+    function get__milestones() external view returns (Milestone[] memory) {
+        return milestones;
     }
 }

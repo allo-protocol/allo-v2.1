@@ -73,7 +73,9 @@ contract MilestonesExtensionUnit is Test {
         external
     {
         milestonesExtension.mock_call__validateSubmitUpcomingMilestone(_recipientId, address(this));
-        milestonesExtension.set__milestones(0);
+        milestonesExtension.set__milestones(
+            0, IMilestonesExtension.Milestone(0, Metadata(0, ""), IMilestonesExtension.MilestoneStatus.None)
+        );
 
         // It should call _validateSubmitUpcomingMilestone
         milestonesExtension.expectCall__validateSubmitUpcomingMilestone(_recipientId, address(this));
@@ -114,7 +116,10 @@ contract MilestonesExtensionUnit is Test {
     {
         IMilestonesExtension.MilestoneStatus milestoneStatus = IMilestonesExtension.MilestoneStatus(_milestoneStatus);
         uint256 upcomingMilestone = milestonesExtension.upcomingMilestone();
-        milestonesExtension.set__milestones(upcomingMilestone);
+        milestonesExtension.set__milestones(
+            upcomingMilestone,
+            IMilestonesExtension.Milestone(0, Metadata(0, ""), IMilestonesExtension.MilestoneStatus.None)
+        );
 
         // It should call _validateReviewMilestone
         milestonesExtension.expectCall__validateReviewMilestone(address(this), milestoneStatus);
@@ -134,7 +139,10 @@ contract MilestonesExtensionUnit is Test {
         whenParametersAreValid(uint8(2)) // IMilestonesExtension.MilestoneStatus.Accepted
     {
         uint256 upcomingMilestone = milestonesExtension.upcomingMilestone();
-        milestonesExtension.set__milestones(upcomingMilestone);
+        milestonesExtension.set__milestones(
+            upcomingMilestone,
+            IMilestonesExtension.Milestone(0, Metadata(0, ""), IMilestonesExtension.MilestoneStatus.None)
+        );
 
         milestonesExtension.reviewMilestone(IMilestonesExtension.MilestoneStatus.Accepted);
 
@@ -189,75 +197,178 @@ contract MilestonesExtensionUnit is Test {
     }
 
     function test__validateSetMilestonesShouldCall_checkOnlyPoolManager() external {
+        milestonesExtension.mock_call__checkOnlyPoolManager(address(this));
+
         // It should call _checkOnlyPoolManager
-        vm.skip(true);
+        milestonesExtension.expectCall__checkOnlyPoolManager(address(this));
+
+        milestonesExtension.call__validateSetMilestones(address(this));
     }
 
     modifier whenArrayLengthIsMoreThanZero() {
+        milestonesExtension.mock_call__checkOnlyPoolManager(address(this));
+        milestonesExtension.set__milestones(
+            0, IMilestonesExtension.Milestone(0, Metadata(0, ""), IMilestonesExtension.MilestoneStatus.None)
+        );
         _;
     }
 
     function test__validateSetMilestonesWhenArrayLengthIsMoreThanZero() external whenArrayLengthIsMoreThanZero {
+        milestonesExtension.call__validateSetMilestones(address(this));
+
         // It should delete milestones array
-        vm.skip(true);
+        assertEq(milestonesExtension.get__milestones().length, 0);
     }
 
     function test__validateSetMilestonesRevertWhen_FirstMilestoneStatusIsDifferentFromNone()
         external
         whenArrayLengthIsMoreThanZero
     {
+        milestonesExtension.set__milestones(
+            0, IMilestonesExtension.Milestone(0, Metadata(0, ""), IMilestonesExtension.MilestoneStatus.Pending)
+        );
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.MILESTONES_ALREADY_SET.selector);
+
+        milestonesExtension.call__validateSetMilestones(address(this));
     }
 
-    function test__validateSubmitUpcomingMilestoneRevertWhen_RecipientIsNotAccepted() external {
+    function test__validateSubmitUpcomingMilestoneRevertWhen_RecipientIsNotAccepted(
+        address _recipientId,
+        address _sender
+    ) external {
+        milestonesExtension.mock_call__isAcceptedRecipient(_recipientId, false);
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.INVALID_RECIPIENT.selector);
+
+        milestonesExtension.call__validateSubmitUpcomingMilestone(_recipientId, _sender);
     }
 
-    function test__validateSubmitUpcomingMilestoneRevertWhen_SenderIsDifferentFromRecipientId() external {
+    function test__validateSubmitUpcomingMilestoneRevertWhen_SenderIsDifferentFromRecipientId(
+        address _recipientId,
+        address _sender
+    ) external {
+        vm.assume(_recipientId != _sender);
+        milestonesExtension.mock_call__isAcceptedRecipient(_recipientId, true);
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.INVALID_SUBMITTER.selector);
+
+        milestonesExtension.call__validateSubmitUpcomingMilestone(_recipientId, _sender);
     }
 
-    function test__validateSubmitUpcomingMilestoneRevertWhen_MilestoneStatusIsPending() external {
+    function test__validateSubmitUpcomingMilestoneRevertWhen_MilestoneStatusIsPending(address _recipientId) external {
+        milestonesExtension.mock_call__isAcceptedRecipient(_recipientId, true);
+        milestonesExtension.set__milestones(
+            0, IMilestonesExtension.Milestone(0, Metadata(0, ""), IMilestonesExtension.MilestoneStatus.Pending)
+        );
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.MILESTONE_PENDING.selector);
+
+        milestonesExtension.call__validateSubmitUpcomingMilestone(_recipientId, _recipientId);
     }
 
     function test__validateReviewMilestoneShouldCall_checkOnlyPoolManager() external {
+        milestonesExtension.mock_call__checkOnlyPoolManager(address(this));
+        milestonesExtension.set__milestones(
+            0, IMilestonesExtension.Milestone(0, Metadata(0, ""), IMilestonesExtension.MilestoneStatus.Pending)
+        );
+
         // It should call _checkOnlyPoolManager
-        vm.skip(true);
+        milestonesExtension.expectCall__checkOnlyPoolManager(address(this));
+
+        milestonesExtension.call__validateReviewMilestone(address(this), IMilestonesExtension.MilestoneStatus.Accepted);
     }
 
     function test__validateReviewMilestoneRevertWhen_ProvidedMilestoneStatusIsNone() external {
+        milestonesExtension.mock_call__checkOnlyPoolManager(address(this));
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.INVALID_MILESTONE_STATUS.selector);
+
+        milestonesExtension.call__validateReviewMilestone(address(this), IMilestonesExtension.MilestoneStatus.None);
     }
 
     function test__validateReviewMilestoneRevertWhen_UpcomingMilestoneStatusIsDifferentFromPending() external {
+        milestonesExtension.mock_call__checkOnlyPoolManager(address(this));
+        milestonesExtension.set__milestones(
+            0, IMilestonesExtension.Milestone(0, Metadata(0, ""), IMilestonesExtension.MilestoneStatus.None)
+        );
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.MILESTONE_NOT_PENDING.selector);
+
+        milestonesExtension.call__validateReviewMilestone(address(this), IMilestonesExtension.MilestoneStatus.Accepted);
     }
 
-    function test__increaseMaxBidRevertWhen_ProvidedMaxBidIsBiggerThanMaxBid() external {
+    function test__increaseMaxBidRevertWhen_ProvidedMaxBidIsBiggerThanMaxBid(uint256 _maxBid, uint256 _currentMaxBid)
+        external
+    {
+        vm.assume(_maxBid < _currentMaxBid);
+        milestonesExtension.set__maxBid(_currentMaxBid);
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.AMOUNT_TOO_LOW.selector);
+
+        milestonesExtension.call__increaseMaxBid(_maxBid);
     }
 
-    function test__increaseMaxBidWhenParametersAreValid() external {
-        // It should set the maxBid
+    function test__increaseMaxBidWhenParametersAreValid(uint256 _maxBid, uint256 _currentMaxBid) external {
+        vm.assume(_maxBid > _currentMaxBid);
+        milestonesExtension.set__maxBid(_currentMaxBid);
+
         // It should emit event
-        vm.skip(true);
+        vm.expectEmit();
+        emit IMilestonesExtension.MaxBidIncreased(_maxBid);
+
+        milestonesExtension.call__increaseMaxBid(_maxBid);
+
+        // It should set the maxBid
+        assertEq(milestonesExtension.maxBid(), _maxBid);
     }
 
-    function test__getMilestonePayoutRevertWhen_RecipientIsNotAccepted() external {
+    function test__getMilestonePayoutRevertWhen_RecipientIsNotAccepted(address _recipientId, uint256 _milestoneId)
+        external
+    {
+        milestonesExtension.mock_call__isAcceptedRecipient(_recipientId, false);
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.INVALID_RECIPIENT.selector);
+
+        milestonesExtension.call__getMilestonePayout(_recipientId, _milestoneId);
     }
 
-    function test__getMilestonePayoutWhenRecipientIsAccepted() external {
+    function test__getMilestonePayoutWhenRecipientIsAccepted(
+        address _recipientId,
+        uint256 _bid,
+        uint256 _amountPercentage
+    ) external {
+        _bid = bound(_bid, 1, 1e18);
+        _amountPercentage = bound(_amountPercentage, 1, 1e18);
+        vm.assume(_bid < type(uint256).max / _amountPercentage);
+        vm.assume(_bid * _amountPercentage >= 1e18);
+
+        uint256 _milestoneId = 0;
+
+        milestonesExtension.set__milestones(
+            _milestoneId,
+            IMilestonesExtension.Milestone(
+                _amountPercentage, Metadata(0, ""), IMilestonesExtension.MilestoneStatus.None
+            )
+        );
+        milestonesExtension.set__bid(_recipientId, _bid);
+        milestonesExtension.mock_call__isAcceptedRecipient(_recipientId, true);
+
+        uint256 payout = milestonesExtension.call__getMilestonePayout(_recipientId, _milestoneId);
+
         // It should return the milestone payout
-        vm.skip(true);
+        assertEq(
+            payout,
+            (milestonesExtension.bids(_recipientId) * milestonesExtension.getMilestone(_milestoneId).amountPercentage)
+                / 1e18
+        );
     }
 }
