@@ -9,6 +9,25 @@ import {Metadata} from "contracts/core/libraries/Metadata.sol";
 contract MilestonesExtensionUnit is Test {
     MockMockMilestonesExtension milestonesExtension;
 
+    struct MilestoneWithoutEnums {
+        uint256 amountPercentage;
+        Metadata metadata;
+        uint8 status;
+    }
+
+    function _parseMilestones(MilestoneWithoutEnums[] memory _rawMilestones)
+        internal
+        view
+        returns (IMilestonesExtension.Milestone[] memory _milestones)
+    {
+        _milestones = new IMilestonesExtension.Milestone[](_rawMilestones.length);
+        for (uint256 i = 0; i < _milestones.length; i++) {
+            _milestones[i].amountPercentage = bound(_rawMilestones[i].amountPercentage, 1, type(uint128).max);
+            _milestones[i].metadata = _rawMilestones[i].metadata;
+            _milestones[i].status = IMilestonesExtension.MilestoneStatus(bound(uint256(_rawMilestones[i].status), 0, 6));
+        }
+    }
+
     function setUp() public {
         milestonesExtension = new MockMockMilestonesExtension(address(0));
     }
@@ -35,38 +54,69 @@ contract MilestonesExtensionUnit is Test {
         milestonesExtension.increaseMaxBid(_maxBid);
     }
 
-    // IMilestonesExtension.Milestone[] memory _milestones
-    function test_SetMilestonesWhenParametersAreValid() external {
-        vm.skip(true);
+    function test_SetMilestonesWhenParametersAreValid(MilestoneWithoutEnums[] memory _rawMilestones) external {
+        vm.assume(_rawMilestones.length > 0);
+        IMilestonesExtension.Milestone[] memory _milestones = _parseMilestones(_rawMilestones);
+        uint256 _requiredSum = 1e18;
+        for (uint256 i = 0; i < _milestones.length - 1; i++) {
+            _milestones[i].amountPercentage =
+                bound(_milestones[i].amountPercentage, 1, _requiredSum + i - _milestones.length);
+            _requiredSum -= _milestones[i].amountPercentage;
+        }
+        _milestones[_milestones.length - 1].amountPercentage = _requiredSum;
 
-        // milestonesExtension.mock_call__validateSetMilestones(address(this));
+        milestonesExtension.mock_call__validateSetMilestones(address(this));
 
-        // // It should call _validateSetMilestones
-        // milestonesExtension.expectCall__validateSetMilestones(address(this));
+        // It should call _validateSetMilestones
+        milestonesExtension.expectCall__validateSetMilestones(address(this));
 
-        // // It should emit event
-        // vm.expectEmit();
-        // emit IMilestonesExtension.MilestonesSet(_milestones.length);
+        // It should emit event
+        vm.expectEmit();
+        emit IMilestonesExtension.MilestonesSet(_milestones.length);
 
-        // milestonesExtension.setMilestones(_milestones);
+        milestonesExtension.setMilestones(_milestones);
 
-        // // It should set the milestones
-        // for (uint256 i = 0; i < _milestones.length; i++) {
-        //     // assertEq(milestonesExtension.getMilestone(i).amountPercentage, _milestones[i].amountPercentage);
-        //     // assertEq(milestonesExtension.getMilestone(i).metadata.protocol, _milestones[i].metadata.protocol);
-        //     // assertEq(milestonesExtension.getMilestone(i).metadata.pointer, _milestones[i].metadata.pointer);
-        //     // assertEq(uint(milestonesExtension.getMilestone(i).status), uint(_milestones[i].status));
-        // }
+        // It should set the milestones
+        for (uint256 i = 0; i < _milestones.length; i++) {
+            assertEq(milestonesExtension.getMilestone(i).amountPercentage, _milestones[i].amountPercentage);
+            assertEq(milestonesExtension.getMilestone(i).metadata.protocol, _milestones[i].metadata.protocol);
+            assertEq(milestonesExtension.getMilestone(i).metadata.pointer, _milestones[i].metadata.pointer);
+            assertEq(uint8(milestonesExtension.getMilestone(i).status), uint8(0));
+        }
     }
 
-    function test_SetMilestonesRevertWhen_AmountPercentageIsZero() external {
+    function test_SetMilestonesRevertWhen_AmountPercentageIsZero(
+        MilestoneWithoutEnums[] memory _rawMilestones,
+        uint256 _zeroPercentageIndex
+    ) external {
+        vm.assume(_rawMilestones.length > 0);
+        IMilestonesExtension.Milestone[] memory _milestones = _parseMilestones(_rawMilestones);
+        _zeroPercentageIndex = bound(_zeroPercentageIndex, 0, _milestones.length - 1);
+        _milestones[_zeroPercentageIndex].amountPercentage = 0;
+        milestonesExtension.mock_call__validateSetMilestones(address(this));
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.INVALID_MILESTONE.selector);
+
+        milestonesExtension.setMilestones(_milestones);
     }
 
-    function test_SetMilestonesRevertWhen_TotalAmountPercentageIsDifferentFrom1e18() external {
+    function test_SetMilestonesRevertWhen_TotalAmountPercentageIsDifferentFrom1e18(
+        MilestoneWithoutEnums[] memory _rawMilestones
+    ) external {
+        vm.assume(_rawMilestones.length > 0);
+        IMilestonesExtension.Milestone[] memory _milestones = _parseMilestones(_rawMilestones);
+        uint256 _sum;
+        for (uint256 i = 0; i < _milestones.length; i++) {
+            _sum += _milestones[i].amountPercentage;
+        }
+        if (_sum == 1e18) _milestones[0].amountPercentage += 1;
+        milestonesExtension.mock_call__validateSetMilestones(address(this));
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(IMilestonesExtension.INVALID_MILESTONE.selector);
+
+        milestonesExtension.setMilestones(_milestones);
     }
 
     function test_SubmitUpcomingMilestoneWhenParametersAreValid(address _recipientId, Metadata memory _metadata)
