@@ -6,6 +6,7 @@ import {MockMockBaseStrategy} from "test/smock/MockMockBaseStrategy.sol";
 import {IBaseStrategy} from "strategies/IBaseStrategy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
+import {Metadata} from "contracts/core/libraries/Metadata.sol";
 
 contract BaseStrategy is Test {
     MockMockBaseStrategy baseStrategy;
@@ -94,15 +95,32 @@ contract BaseStrategy is Test {
         baseStrategy.increasePoolAmount(_amount);
     }
 
-    function test_WithdrawWhenParametersAreValid(address _token, uint256 _amount, address _recipient) external {
-        // TODO: Fix the bug and fix this test
-        vm.skip(true);
-
+    function test_WithdrawWhenTokenIsNotPoolToken(
+        address _poolToken,
+        address _token,
+        uint256 _amount,
+        address _recipient
+    ) external {
         vm.assume(_token != NATIVE);
+        vm.assume(_token != _poolToken);
+
         baseStrategy.mock_call__checkOnlyPoolManager(address(this));
 
-        vm.mockCall(_token, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(type(uint256).max));
-        vm.mockCall(_token, abi.encodeWithSelector(IERC20.transfer.selector), abi.encode(true));
+        vm.mockCall(_token, abi.encodeWithSelector(IERC20.transfer.selector, _recipient, _amount), abi.encode(true));
+        vm.mockCall(
+            address(0),
+            abi.encodeWithSelector(IAllo.getPool.selector, 0),
+            abi.encode(
+                IAllo.Pool({
+                    profileId: bytes32(0),
+                    strategy: IBaseStrategy(address(0)),
+                    token: _poolToken,
+                    metadata: Metadata({protocol: 0, pointer: ""}),
+                    managerRole: bytes32(0),
+                    adminRole: bytes32(0)
+                })
+            )
+        );
 
         // It should call onlyPoolManager
         baseStrategy.expectCall__checkOnlyPoolManager(address(this));
@@ -110,8 +128,8 @@ contract BaseStrategy is Test {
         // It should call _beforeWithdraw
         baseStrategy.expectCall__beforeWithdraw(_token, _amount, _recipient);
 
-        // It should call balanceOf at token
-        vm.expectCall(_token, abi.encodeWithSelector(IERC20.balanceOf.selector, address(baseStrategy)));
+        // It should call getPool at allo
+        vm.expectCall(address(0), abi.encodeWithSelector(IAllo.getPool.selector, 0));
 
         // It should call transfer at token
         vm.expectCall(_token, abi.encodeWithSelector(IERC20.transfer.selector, _recipient, _amount));
@@ -126,21 +144,62 @@ contract BaseStrategy is Test {
         baseStrategy.withdraw(_token, _amount, _recipient);
     }
 
-    function test_WithdrawRevertWhen_AmountIsGreaterThanPoolAmount(
-        uint256 _poolAmount,
+    modifier whenTokenIsPoolToken(address _token, uint256 _amount, address _recipient, uint256 _contractBalance) {
+        vm.assume(_token != NATIVE);
+
+        baseStrategy.mock_call__checkOnlyPoolManager(address(this));
+
+        vm.mockCall(
+            _token,
+            abi.encodeWithSelector(IERC20.balanceOf.selector, address(baseStrategy)),
+            abi.encode(_contractBalance)
+        );
+        vm.mockCall(_token, abi.encodeWithSelector(IERC20.transfer.selector, _recipient, _amount), abi.encode(true));
+        vm.mockCall(
+            address(0),
+            abi.encodeWithSelector(IAllo.getPool.selector, 0),
+            abi.encode(
+                IAllo.Pool({
+                    profileId: bytes32(0),
+                    strategy: IBaseStrategy(address(0)),
+                    token: _token,
+                    metadata: Metadata({protocol: 0, pointer: ""}),
+                    managerRole: bytes32(0),
+                    adminRole: bytes32(0)
+                })
+            )
+        );
+        _;
+    }
+
+    function test_WithdrawWhenTokenIsPoolToken(
         address _token,
         uint256 _amount,
-        address _recipient
-    ) external {
-        // TODO: Fix the bug and fix this test
-        vm.skip(true);
+        address _recipient,
+        uint256 _contractBalance,
+        uint256 _poolAmount
+    ) external whenTokenIsPoolToken(_token, _amount, _recipient, _contractBalance) {
+        vm.assume(_contractBalance > _amount);
 
-        vm.assume(_token != NATIVE);
-        vm.assume(_amount > _poolAmount);
-        baseStrategy.mock_call__checkOnlyPoolManager(address(this));
+        _poolAmount = bound(_poolAmount, 0, _contractBalance - _amount);
         baseStrategy.set__poolAmount(_poolAmount);
 
-        vm.mockCall(_token, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(_poolAmount));
+        // It should call balanceOf at token
+        vm.expectCall(_token, abi.encodeWithSelector(IERC20.balanceOf.selector, address(baseStrategy)));
+
+        baseStrategy.withdraw(_token, _amount, _recipient);
+    }
+
+    function test_WithdrawRevertWhen_AmountIsGreaterThanPoolAmount(
+        address _token,
+        uint256 _amount,
+        address _recipient,
+        uint256 _contractBalance
+    ) external whenTokenIsPoolToken(_token, _amount, _recipient, _contractBalance) {
+        vm.assume(_amount > 0);
+        vm.assume(_contractBalance > _amount);
+
+        baseStrategy.set__poolAmount(_contractBalance);
 
         // It should revert
         vm.expectRevert(IBaseStrategy.BaseStrategy_WITHDRAW_MORE_THAN_POOL_AMOUNT.selector);
