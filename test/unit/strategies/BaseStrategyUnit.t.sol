@@ -146,6 +146,7 @@ contract BaseStrategy is Test {
 
     modifier whenTokenIsPoolToken(address _token, uint256 _amount, address _recipient, uint256 _contractBalance) {
         vm.assume(_token != NATIVE);
+        vm.assume(_token != address(vm));
 
         baseStrategy.mock_call__checkOnlyPoolManager(address(this));
 
