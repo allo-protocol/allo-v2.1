@@ -63,7 +63,7 @@ MilestonesExtension::_validateReviewMilestone
     └── It should revert
 
 MilestonesExtension::_increaseMaxBid
-├── When provided maxBid is bigger than maxBid
+├── When provided maxBid is smaller than maxBid
 │   └── It should revert
 └── When parameters are valid
     ├── It should set the maxBid

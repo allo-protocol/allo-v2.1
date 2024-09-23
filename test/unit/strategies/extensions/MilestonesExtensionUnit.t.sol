@@ -354,7 +354,7 @@ contract MilestonesExtensionUnit is Test {
         milestonesExtension.call__validateReviewMilestone(address(this), IMilestonesExtension.MilestoneStatus.Accepted);
     }
 
-    function test__increaseMaxBidRevertWhen_ProvidedMaxBidIsBiggerThanMaxBid(uint256 _maxBid, uint256 _currentMaxBid)
+    function test__increaseMaxBidRevertWhen_ProvidedMaxBidIsSmallerThanMaxBid(uint256 _maxBid, uint256 _currentMaxBid)
         external
     {
         vm.assume(_maxBid < _currentMaxBid);
