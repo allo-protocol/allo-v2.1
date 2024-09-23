@@ -13,7 +13,7 @@ contract CreateProfile is Script {
     string public name = "";
     Metadata public metadata = Metadata({protocol: uint256(0), pointer: ""});
     address public owner = address(0);
-    address[] public members = new address[](0);
+    address[] public members;
 
     function run() public {
         vm.startBroadcast();
