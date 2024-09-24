@@ -2,33 +2,103 @@
 pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
+import {IRecipientsExtension} from "contracts/strategies/extensions/register/IRecipientsExtension.sol";
+import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
+import {IAllo} from "contracts/core/interfaces/IAllo.sol";
+import {MockMockRecipientsExtension} from "test/smock/MockMockRecipientsExtension.sol";
 
-contract RecipientsExtension is Test {
-    function test___RecipientsExtension_initWhenParametersAreValid() external {
-        // It should set metadataRequired
+contract RecipientsExtensionUnit is Test {
+    MockMockRecipientsExtension recipientsExtension;
+
+    function setUp() public {
+        recipientsExtension = new MockMockRecipientsExtension(address(0), true);
+    }
+
+    function test___RecipientsExtension_initWhenParametersAreValid(
+        IRecipientsExtension.RecipientInitializeData memory _initData
+    ) external {
+        recipientsExtension.mock_call__updatePoolTimestamps(
+            _initData.registrationStartTime, _initData.registrationEndTime
+        );
+
         // It should call _updatePoolTimestamps
+        recipientsExtension.expectCall__updatePoolTimestamps(
+            _initData.registrationStartTime, _initData.registrationEndTime
+        );
+
+        recipientsExtension.call___RecipientsExtension_init(_initData);
+
+        // It should set metadataRequired
+        assertEq(recipientsExtension.metadataRequired(), _initData.metadataRequired);
+
         // It should set recipientsCounter to 1
-        vm.skip(true);
+        assertEq(recipientsExtension.recipientsCounter(), 1);
     }
 
-    function test_GetRecipientWhenParametersAreValid() external {
+    function test_GetRecipientWhenParametersAreValid(
+        address _recipientId,
+        IRecipientsExtension.Recipient memory _recipient
+    ) external {
+        recipientsExtension.mock_call__getRecipient(_recipientId, _recipient);
+
         // It should call _getRecipient
+        recipientsExtension.expectCall__getRecipient(_recipientId);
+
         // It should return the recipient
-        vm.skip(true);
+        IRecipientsExtension.Recipient memory recipient = recipientsExtension.call__getRecipient(_recipientId);
+        assertEq(recipient.useRegistryAnchor, _recipient.useRegistryAnchor);
+        assertEq(recipient.recipientAddress, _recipient.recipientAddress);
+        assertEq(recipient.statusIndex, _recipient.statusIndex);
+        assertEq(recipient.metadata.protocol, _recipient.metadata.protocol);
+        assertEq(recipient.metadata.pointer, _recipient.metadata.pointer);
     }
 
-    function test__getRecipientStatusWhenParametersAreValid() external {
+    function test__getRecipientStatusWhenParametersAreValid(address _recipientId, uint8 _statusRawEnum) external {
+        vm.assume(_statusRawEnum <= 6);
+        recipientsExtension.mock_call__getUintRecipientStatus(_recipientId, _statusRawEnum);
+
         // It should call _getUintRecipientStatus
+        recipientsExtension.expectCall__getUintRecipientStatus(_recipientId);
+
         // It should return the recipient status
-        vm.skip(true);
+        IRecipientsExtension.Status status = recipientsExtension.call__getRecipientStatus(_recipientId);
+        assertEq(uint8(status), _statusRawEnum);
     }
 
-    function test__isProfileMemberWhenParametersAreValid() external {
+    function test__isProfileMemberWhenParametersAreValid(
+        address _anchor,
+        address _sender,
+        bool _result,
+        address _registry,
+        IRegistry.Profile memory _profile
+    ) external {
+        vm.assume(_registry != address(0));
+        vm.assume(_registry != address(vm));
+
+        vm.mockCall(address(0), abi.encodeWithSelector(IAllo.getRegistry.selector), abi.encode(_registry));
+        vm.mockCall(
+            _registry, abi.encodeWithSelector(IRegistry.getProfileByAnchor.selector, _anchor), abi.encode(_profile)
+        );
+        vm.mockCall(
+            _registry,
+            abi.encodeWithSelector(IRegistry.isOwnerOrMemberOfProfile.selector, _profile.id, _sender),
+            abi.encode(_result)
+        );
+
         // It should call getRegistry on allo
+        vm.expectCall(address(0), abi.encodeWithSelector(IAllo.getRegistry.selector));
+
         // It should call getProfileByAnchor on registry
+        vm.expectCall(_registry, abi.encodeWithSelector(IRegistry.getProfileByAnchor.selector, _anchor));
+
         // It should call isOwnerOrMemberOfProfile on registry
+        vm.expectCall(
+            _registry, abi.encodeWithSelector(IRegistry.isOwnerOrMemberOfProfile.selector, _profile.id, _sender)
+        );
+
         // It should return the result
-        vm.skip(true);
+        bool isProfileMember = recipientsExtension.call__isProfileMember(_anchor, _sender);
+        assertEq(isProfileMember, _result);
     }
 
     function test_ReviewRecipientsWhenParametersAreValid() external {
@@ -36,7 +106,6 @@ contract RecipientsExtension is Test {
         // It should call _processStatusRow on each status
         // It should update the statusesBitMap
         // It should emit the event
-        vm.skip(true);
     }
 
     function test_ReviewRecipientsRevertWhen_RefRecipientsCounterIsDifferentFromRecipientsCounter() external {
@@ -44,18 +113,43 @@ contract RecipientsExtension is Test {
         vm.skip(true);
     }
 
-    function test_UpdatePoolTimestampsWhenParametersAreValid() external {
+    function test_UpdatePoolTimestampsWhenParametersAreValid(uint64 _registrationStartTime, uint64 _registrationEndTime)
+        external
+    {
+        recipientsExtension.mock_call__checkOnlyPoolManager(address(this));
+        recipientsExtension.mock_call__updatePoolTimestamps(_registrationStartTime, _registrationEndTime);
+
         // It should call _checkOnlyPoolManager
+        recipientsExtension.expectCall__checkOnlyPoolManager(address(this));
+
         // It should call _updatePoolTimestamps
-        vm.skip(true);
+        recipientsExtension.expectCall__updatePoolTimestamps(_registrationStartTime, _registrationEndTime);
+
+        recipientsExtension.updatePoolTimestamps(_registrationStartTime, _registrationEndTime);
     }
 
-    function test__updatePoolTimestampsWhenParametersAreValid() external {
+    function test__updatePoolTimestampsWhenParametersAreValid(
+        uint64 _registrationStartTime,
+        uint64 _registrationEndTime
+    ) external {
+        recipientsExtension.mock_call__isPoolTimestampValid(_registrationStartTime, _registrationEndTime);
+
         // It should call _isPoolTimestampValid
-        // It should set registrationStartTime
-        // It should set registrationEndTime
+        recipientsExtension.expectCall__isPoolTimestampValid(_registrationStartTime, _registrationEndTime);
+
         // It should emit event
-        vm.skip(true);
+        vm.expectEmit();
+        emit IRecipientsExtension.RegistrationTimestampsUpdated(
+            _registrationStartTime, _registrationEndTime, address(this)
+        );
+
+        recipientsExtension.call__updatePoolTimestamps(_registrationStartTime, _registrationEndTime);
+
+        // It should set registrationStartTime
+        assertEq(recipientsExtension.registrationStartTime(), _registrationStartTime);
+
+        // It should set registrationEndTime
+        assertEq(recipientsExtension.registrationEndTime(), _registrationEndTime);
     }
 
     function test__checkOnlyActiveRegistrationWhenParametersAreCorrect() external {
