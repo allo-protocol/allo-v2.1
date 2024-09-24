@@ -145,6 +145,10 @@ contract MockRecipientsExtension is BaseStrategy, RecipientsExtension {
         super._checkOnlyPoolManager(_sender);
     }
 
+    function _validateReviewRecipients(address _sender) internal virtual override {
+        super._validateReviewRecipients(_sender);
+    }
+
     function set_recipientsCounter(uint256 _recipientsCounter) public {
         recipientsCounter = _recipientsCounter;
     }

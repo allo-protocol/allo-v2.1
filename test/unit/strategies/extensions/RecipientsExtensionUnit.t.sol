@@ -6,6 +6,7 @@ import {IRecipientsExtension} from "contracts/strategies/extensions/register/IRe
 import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {MockMockRecipientsExtension} from "test/smock/MockMockRecipientsExtension.sol";
+import {Errors} from "contracts/core/libraries/Errors.sol";
 
 contract RecipientsExtensionUnit is Test {
     MockMockRecipientsExtension recipientsExtension;
@@ -152,41 +153,107 @@ contract RecipientsExtensionUnit is Test {
         assertEq(recipientsExtension.registrationEndTime(), _registrationEndTime);
     }
 
-    function test__checkOnlyActiveRegistrationWhenParametersAreCorrect() external {
+    function test__checkOnlyActiveRegistrationWhenParametersAreCorrect(
+        uint64 _registrationStartTime,
+        uint64 _registrationEndTime,
+        uint64 _blockTimestamp
+    ) external {
+        vm.assume(_registrationStartTime < _registrationEndTime);
+        vm.assume(_registrationStartTime < _blockTimestamp);
+        vm.assume(_registrationEndTime > _blockTimestamp);
+        recipientsExtension.set_registrationStartTime(_registrationStartTime);
+        recipientsExtension.set_registrationEndTime(_registrationEndTime);
+        vm.warp(_blockTimestamp);
+
         // It should execute successfully
-        vm.skip(true);
+        recipientsExtension.call__checkOnlyActiveRegistration();
     }
 
-    function test__checkOnlyActiveRegistrationRevertWhen_RegistrationStartTimeIsMoreThanBlockTimestamp() external {
+    function test__checkOnlyActiveRegistrationRevertWhen_RegistrationStartTimeIsMoreThanBlockTimestamp(
+        uint64 _registrationStartTime,
+        uint64 _registrationEndTime,
+        uint64 _blockTimestamp
+    ) external {
+        vm.assume(_registrationStartTime < _registrationEndTime);
+        vm.assume(_registrationStartTime > _blockTimestamp);
+        recipientsExtension.set_registrationStartTime(_registrationStartTime);
+        recipientsExtension.set_registrationEndTime(_registrationEndTime);
+        vm.warp(_blockTimestamp);
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
+
+        recipientsExtension.call__checkOnlyActiveRegistration();
     }
 
-    function test__checkOnlyActiveRegistrationRevertWhen_RegistrationEndTimeIsLessThanBlockTimestamp() external {
+    function test__checkOnlyActiveRegistrationRevertWhen_RegistrationEndTimeIsLessThanBlockTimestamp(
+        uint64 _registrationStartTime,
+        uint64 _registrationEndTime,
+        uint64 _blockTimestamp
+    ) external {
+        vm.assume(_registrationStartTime < _registrationEndTime);
+        vm.assume(_registrationEndTime < _blockTimestamp);
+        recipientsExtension.set_registrationStartTime(_registrationStartTime);
+        recipientsExtension.set_registrationEndTime(_registrationEndTime);
+        vm.warp(_blockTimestamp);
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
+
+        recipientsExtension.call__checkOnlyActiveRegistration();
     }
 
-    function test__isPoolTimestampValidWhenParametersAreRight() external {
+    function test__isPoolTimestampValidWhenParametersAreRight(
+        uint64 _registrationStartTime,
+        uint64 _registrationEndTime
+    ) external {
+        vm.assume(_registrationStartTime < _registrationEndTime);
+
         // It should execute successfully
-        vm.skip(true);
+        recipientsExtension.call__isPoolTimestampValid(_registrationStartTime, _registrationEndTime);
     }
 
-    function test__isPoolTimestampValidRevertWhen_RegistrationStartTimeIsMoreThanRegistrationEndTime() external {
+    function test__isPoolTimestampValidRevertWhen_RegistrationStartTimeIsMoreThanRegistrationEndTime(
+        uint64 _registrationStartTime,
+        uint64 _registrationEndTime
+    ) external {
+        vm.assume(_registrationStartTime > _registrationEndTime);
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(Errors.INVALID.selector);
+
+        recipientsExtension.call__isPoolTimestampValid(_registrationStartTime, _registrationEndTime);
     }
 
-    function test__isPoolActiveWhenCurrentTimestampIsBetweenRegistrationStartTimeAndRegistrationEndTime() external {
+    function test__isPoolActiveWhenCurrentTimestampIsBetweenRegistrationStartTimeAndRegistrationEndTime(
+        uint64 _registrationStartTime,
+        uint64 _registrationEndTime,
+        uint64 _blockTimestamp
+    ) external {
+        vm.assume(_registrationStartTime < _registrationEndTime);
+        vm.assume(_registrationStartTime < _blockTimestamp);
+        vm.assume(_registrationEndTime > _blockTimestamp);
+        recipientsExtension.set_registrationStartTime(_registrationStartTime);
+        recipientsExtension.set_registrationEndTime(_registrationEndTime);
+        vm.warp(_blockTimestamp);
+
         // It should return true
-        vm.skip(true);
+        assertTrue(recipientsExtension.call__isPoolActive());
     }
 
-    function test__isPoolActiveWhenCurrentTimestampIsLessThanRegistrationStartTimeOrMoreThanRegistrationEndTime()
-        external
-    {
+    function test__isPoolActiveWhenCurrentTimestampIsLessThanRegistrationStartTimeOrMoreThanRegistrationEndTime(
+        uint64 _registrationStartTime,
+        uint64 _registrationEndTime,
+        uint64 _blockTimestamp
+    ) external {
+        vm.assume(_registrationStartTime < _registrationEndTime);
+        vm.assume(_blockTimestamp < _registrationStartTime || _blockTimestamp > _registrationEndTime);
+        recipientsExtension.set_registrationStartTime(_registrationStartTime);
+        recipientsExtension.set_registrationEndTime(_registrationEndTime);
+        vm.warp(_blockTimestamp);
+
         // It should return false
-        vm.skip(true);
+        assertFalse(recipientsExtension.call__isPoolActive());
     }
 
     function test__registerWhenParametersAreValid() external {
@@ -294,9 +361,19 @@ contract RecipientsExtensionUnit is Test {
         vm.skip(true);
     }
 
-    function test__getRecipientShouldReturnTheRecipient() external {
+    function test__getRecipientShouldReturnTheRecipient(
+        address _recipientId,
+        IRecipientsExtension.Recipient memory _recipient
+    ) external {
+        recipientsExtension.set__recipients(_recipientId, _recipient);
+
         // It should return the recipient
-        vm.skip(true);
+        IRecipientsExtension.Recipient memory recipient = recipientsExtension.call__getRecipient(_recipientId);
+        assertEq(recipient.useRegistryAnchor, _recipient.useRegistryAnchor);
+        assertEq(recipient.recipientAddress, _recipient.recipientAddress);
+        assertEq(recipient.statusIndex, _recipient.statusIndex);
+        assertEq(recipient.metadata.protocol, _recipient.metadata.protocol);
+        assertEq(recipient.metadata.pointer, _recipient.metadata.pointer);
     }
 
     function test__setRecipientStatusWhenParametersAreValid() external {
@@ -341,14 +418,31 @@ contract RecipientsExtensionUnit is Test {
         vm.skip(true);
     }
 
-    function test__validateReviewRecipientsWhenParametersAreValid() external {
+    function test__validateReviewRecipientsWhenParametersAreValid(address _sender) external {
+        recipientsExtension.mock_call__checkOnlyPoolManager(_sender);
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
+
         // It should call _checkOnlyActiveRegistration
+        recipientsExtension.expectCall__checkOnlyActiveRegistration();
+
         // It should call _checkOnlyPoolManager
-        vm.skip(true);
+        recipientsExtension.expectCall__checkOnlyPoolManager(_sender);
+
+        recipientsExtension.call__validateReviewRecipients(_sender);
     }
 
-    function test__reviewRecipientStatusShouldReturnTheNewStatusAs_reviewedStatus() external {
+    function test__reviewRecipientStatusShouldReturnTheNewStatusAs_reviewedStatus(
+        uint8 _newStatus,
+        uint8 _oldStatus,
+        uint256 _recipientIndex
+    ) external {
+        vm.assume(_newStatus <= 6);
+        vm.assume(_oldStatus <= 6);
+
         // It should return the newStatus as _reviewedStatus
-        vm.skip(true);
+        IRecipientsExtension.Status status = recipientsExtension.call__reviewRecipientStatus(
+            IRecipientsExtension.Status(_newStatus), IRecipientsExtension.Status(_oldStatus), _recipientIndex
+        );
+        assertEq(uint8(status), _newStatus);
     }
 }
