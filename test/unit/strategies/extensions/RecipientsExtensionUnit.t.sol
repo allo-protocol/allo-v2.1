@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {IRecipientsExtension} from "contracts/strategies/extensions/register/IRecipientsExtension.sol";
 import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
+import {Metadata} from "contracts/core/libraries/Metadata.sol";
 import {MockMockRecipientsExtension} from "test/smock/MockMockRecipientsExtension.sol";
 import {Errors} from "contracts/core/libraries/Errors.sol";
 
@@ -13,6 +14,29 @@ contract RecipientsExtensionUnit is Test {
 
     function setUp() public {
         recipientsExtension = new MockMockRecipientsExtension(address(0), true);
+    }
+
+    function _boundStatuses(IRecipientsExtension.ApplicationStatus[] memory _statuses)
+        internal
+        view
+        returns (IRecipientsExtension.ApplicationStatus[] memory)
+    {
+        // prevent duplicates on the indexes and bound Status to 6
+        for (uint256 i = 0; i < _statuses.length; i++) {
+            _statuses[i].index = i;
+            uint256 fullRow = _statuses[i].statusRow;
+
+            for (uint256 col = 0; col < 64; col++) {
+                uint256 colIndex = col << 2; // col * 4
+                uint8 newStatus = uint8((fullRow >> colIndex) & 0xF);
+                newStatus = uint8(bound(newStatus, 0, 6)); // max enum value = 6
+
+                uint256 reviewedRow = fullRow & ~(0xF << colIndex);
+                fullRow = reviewedRow | (uint256(newStatus) << colIndex);
+            }
+            _statuses[i].statusRow = fullRow;
+        }
+        return _statuses;
     }
 
     function test___RecipientsExtension_initWhenParametersAreValid(
@@ -102,16 +126,49 @@ contract RecipientsExtensionUnit is Test {
         assertEq(isProfileMember, _result);
     }
 
-    function test_ReviewRecipientsWhenParametersAreValid() external {
+    function test_ReviewRecipientsWhenParametersAreValid(IRecipientsExtension.ApplicationStatus[] memory _statuses)
+        external
+    {
+        _statuses = _boundStatuses(_statuses);
+        recipientsExtension.mock_call__validateReviewRecipients(address(this));
+        for (uint256 i = 0; i < _statuses.length; i++) {
+            recipientsExtension.mock_call__processStatusRow(
+                _statuses[i].index, _statuses[i].statusRow, _statuses[i].statusRow
+            );
+        }
+
         // It should call _validateReviewRecipients
+        recipientsExtension.expectCall__validateReviewRecipients(address(this));
+
         // It should call _processStatusRow on each status
-        // It should update the statusesBitMap
+        for (uint256 i = 0; i < _statuses.length; i++) {
+            recipientsExtension.expectCall__processStatusRow(_statuses[i].index, _statuses[i].statusRow);
+        }
+
         // It should emit the event
+        for (uint256 i = 0; i < _statuses.length; i++) {
+            vm.expectEmit();
+            emit IRecipientsExtension.RecipientStatusUpdated(_statuses[i].index, _statuses[i].statusRow, address(this));
+        }
+
+        recipientsExtension.reviewRecipients(_statuses, recipientsExtension.recipientsCounter());
+
+        // It should update the statusesBitMap
+        for (uint256 i = 0; i < _statuses.length; i++) {
+            assertEq(recipientsExtension.statusesBitMap(_statuses[i].index), _statuses[i].statusRow);
+        }
     }
 
-    function test_ReviewRecipientsRevertWhen_RefRecipientsCounterIsDifferentFromRecipientsCounter() external {
+    function test_ReviewRecipientsRevertWhen_RefRecipientsCounterIsDifferentFromRecipientsCounter(
+        uint256 _refRecipientsCounter
+    ) external {
+        vm.assume(_refRecipientsCounter != recipientsExtension.recipientsCounter());
+        recipientsExtension.mock_call__validateReviewRecipients(address(this));
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(Errors.INVALID.selector);
+
+        recipientsExtension.reviewRecipients(new IRecipientsExtension.ApplicationStatus[](0), _refRecipientsCounter);
     }
 
     function test_UpdatePoolTimestampsWhenParametersAreValid(uint64 _registrationStartTime, uint64 _registrationEndTime)
@@ -328,37 +385,79 @@ contract RecipientsExtensionUnit is Test {
         vm.skip(true);
     }
 
-    function test__extractRecipientAndMetadataWhenParametersAreValid() external {
+    function test__extractRecipientAndMetadataWhenParametersAreValid(
+        address _recipientIdOrRegistryAnchor,
+        address _sender,
+        Metadata memory _metadata
+    ) external {
+        bytes memory _data = abi.encode(_recipientIdOrRegistryAnchor, _metadata, bytes(""));
+        recipientsExtension.mock_call__isProfileMember(_recipientIdOrRegistryAnchor, _sender, true);
+
+        (,, Metadata memory __metadata, bytes memory _extraData) =
+            recipientsExtension.call__extractRecipientAndMetadata(_data, _sender);
+
         // It should return metadata
+        assertEq(__metadata.pointer, _metadata.pointer);
+        assertEq(__metadata.protocol, _metadata.protocol);
+
         // It should return extraData
-        vm.skip(true);
+        assertEq(_extraData.length, 0);
     }
 
-    modifier whenDecoded_recipientIdOrRegistryAnchorIsEqualZero() {
+    struct _extractRecipientAndMetadataParam {
+        address recipientIdOrRegistryAnchor;
+    }
+
+    modifier whenDecoded_recipientIdOrRegistryAnchorIsNotZero(_extractRecipientAndMetadataParam memory _param) {
+        vm.assume(_param.recipientIdOrRegistryAnchor != address(0));
         _;
     }
 
-    function test__extractRecipientAndMetadataWhenDecoded_recipientIdOrRegistryAnchorIsEqualZero()
-        external
-        whenDecoded_recipientIdOrRegistryAnchorIsEqualZero
-    {
+    function test__extractRecipientAndMetadataWhenDecoded_recipientIdOrRegistryAnchorIsNotZero(
+        address _sender,
+        Metadata memory _metadata,
+        _extractRecipientAndMetadataParam memory _param
+    ) external whenDecoded_recipientIdOrRegistryAnchorIsNotZero(_param) {
+        bytes memory _data = abi.encode(_param.recipientIdOrRegistryAnchor, _metadata, bytes(""));
+        recipientsExtension.mock_call__isProfileMember(_param.recipientIdOrRegistryAnchor, _sender, true);
+
         // It should call _isProfileMember
+        recipientsExtension.expectCall__isProfileMember(_param.recipientIdOrRegistryAnchor, _sender);
+
+        (address recipientId, bool isUsingRegistryAnchor,,) =
+            recipientsExtension.call__extractRecipientAndMetadata(_data, _sender);
+
         // It should set isUsingRegistryAnchor as true
+        assertTrue(isUsingRegistryAnchor);
+
         // It should set recipientId as _recipientIdOrRegistryAnchor
-        vm.skip(true);
+        assertEq(recipientId, _param.recipientIdOrRegistryAnchor);
     }
 
-    function test__extractRecipientAndMetadataRevertWhen_IsNotAProfileMember()
-        external
-        whenDecoded_recipientIdOrRegistryAnchorIsEqualZero
-    {
+    function test__extractRecipientAndMetadataRevertWhen_IsNotAProfileMember(
+        address _recipientIdOrRegistryAnchor,
+        address _sender,
+        Metadata memory _metadata,
+        _extractRecipientAndMetadataParam memory _param
+    ) external whenDecoded_recipientIdOrRegistryAnchorIsNotZero(_param) {
+        bytes memory _data = abi.encode(_param.recipientIdOrRegistryAnchor, _metadata, bytes(""));
+        recipientsExtension.mock_call__isProfileMember(_param.recipientIdOrRegistryAnchor, _sender, false);
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(Errors.UNAUTHORIZED.selector);
+
+        recipientsExtension.call__extractRecipientAndMetadata(_data, _sender);
     }
 
-    function test__extractRecipientAndMetadataWhenDecoded_recipientIdOrRegistryAnchorIsDifferentFromZero() external {
+    function test__extractRecipientAndMetadataWhenDecoded_recipientIdOrRegistryAnchorIsEqualZero(
+        address _sender,
+        Metadata memory _metadata
+    ) external {
+        bytes memory _data = abi.encode(address(0), _metadata, bytes(""));
+        (address recipientId,,,) = recipientsExtension.call__extractRecipientAndMetadata(_data, _sender);
+
         // It should set recipientId as sender
-        vm.skip(true);
+        assertEq(recipientId, _sender);
     }
 
     function test__getRecipientShouldReturnTheRecipient(
@@ -376,26 +475,67 @@ contract RecipientsExtensionUnit is Test {
         assertEq(recipient.metadata.pointer, _recipient.metadata.pointer);
     }
 
-    function test__setRecipientStatusWhenParametersAreValid() external {
+    function test__setRecipientStatusWhenParametersAreValid(
+        address _recipientId,
+        uint256 _status,
+        uint256 _rowIndex,
+        uint256 _colIndex,
+        uint256 _currentRow
+    ) external {
+        recipientsExtension.mock_call__getStatusRowColumn(_recipientId, _rowIndex, _colIndex, _currentRow);
+
         // It should call _getStatusRowColumn
+        recipientsExtension.expectCall__getStatusRowColumn(_recipientId);
+
+        recipientsExtension.call__setRecipientStatus(_recipientId, _status);
+
+        uint256 newRow = _currentRow & ~(15 << _colIndex);
+
         // It should set statusesBitMap
-        vm.skip(true);
+        assertEq(recipientsExtension.statusesBitMap(_rowIndex), newRow | (_status << _colIndex));
     }
 
-    function test__getUintRecipientStatusWhenParametersAreValid() external {
+    function test__getUintRecipientStatusWhenParametersAreValid(
+        address _recipient,
+        uint256 _colIndex,
+        uint256 _currentRow
+    ) external {
+        recipientsExtension.set_recipientToStatusIndexes(_recipient, 1); // force to return more than zero
+        recipientsExtension.mock_call__getStatusRowColumn(_recipient, 0, _colIndex, _currentRow);
+
         // It should call _getStatusRowColumn
+        recipientsExtension.expectCall__getStatusRowColumn(_recipient);
+
         // It should return the status
-        vm.skip(true);
+        uint8 _status = recipientsExtension.call__getUintRecipientStatus(_recipient);
+        assertEq(_status, uint8((_currentRow >> _colIndex) & 15));
     }
 
-    function test__getUintRecipientStatusWhenStatusIndexIsZero() external {
+    function test__getUintRecipientStatusWhenStatusIndexIsZero(address _recipient) external {
         // It should return zero
-        vm.skip(true);
+        recipientsExtension.set_recipientToStatusIndexes(_recipient, 0);
+        assertEq(recipientsExtension.call__getUintRecipientStatus(_recipient), 0);
     }
 
-    function test__getStatusRowColumnShouldReturnRowIndexColIndexAndTheValueFromTheBitmap() external {
+    function test__getStatusRowColumnShouldReturnRowIndexColIndexAndTheValueFromTheBitmap(
+        address _recipientId,
+        uint256 _recipientIndex,
+        uint256 _currentRow
+    ) external {
+        _recipientIndex = bound(_recipientIndex, 1, type(uint64).max);
+        uint256 _recipientIndexMinusOne = _recipientIndex - 1;
+        vm.assume(_recipientIndexMinusOne > 64);
+
+        uint256 _rowIndex = _recipientIndexMinusOne / 64;
+        recipientsExtension.set_recipientToStatusIndexes(_recipientId, uint64(_recipientIndex));
+        recipientsExtension.set_statusesBitMap(_rowIndex, _currentRow);
+
         // It should return rowIndex, colIndex and the value from the bitmap
-        vm.skip(true);
+        (uint256 __rowIndex, uint256 _colIndex, uint256 __currentRow) =
+            recipientsExtension.call__getStatusRowColumn(_recipientId);
+        assertEq(_rowIndex, __rowIndex);
+        assertEq(_colIndex, (_recipientIndexMinusOne % 64) * 4);
+        assertEq(_currentRow, __currentRow);
     }
 
     modifier whenTheNewStatusIsDifferentThanTheCurrentStatus() {

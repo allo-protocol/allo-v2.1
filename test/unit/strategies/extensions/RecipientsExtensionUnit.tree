@@ -93,13 +93,13 @@ RecipientsExtension::_extractRecipientAndMetadata
 ├── When parameters are valid
 │   ├── It should return metadata
 │   └── It should return extraData
-├── When decoded _recipientIdOrRegistryAnchor is equal zero
+├── When decoded _recipientIdOrRegistryAnchor is not zero
 │   ├── It should call _isProfileMember
 │   ├── When is not a profile member
 │   │   └── It should revert
 │   ├── It should set isUsingRegistryAnchor as true
 │   └── It should set recipientId as _recipientIdOrRegistryAnchor
-└── When decoded _recipientIdOrRegistryAnchor is different from zero
+└── When decoded _recipientIdOrRegistryAnchor is equal zero
     └── It should set recipientId as sender
 
 RecipientsExtension::_getRecipient
