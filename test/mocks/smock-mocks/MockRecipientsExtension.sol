@@ -149,6 +149,15 @@ contract MockRecipientsExtension is BaseStrategy, RecipientsExtension {
         super._validateReviewRecipients(_sender);
     }
 
+    function _processRecipient(
+        address _recipientId,
+        bool _isUsingRegistryAnchor,
+        Metadata memory _metadata,
+        bytes memory _extraData
+    ) internal virtual override {
+        super._processRecipient(_recipientId, _isUsingRegistryAnchor, _metadata, _extraData);
+    }
+
     function set_recipientsCounter(uint256 _recipientsCounter) public {
         recipientsCounter = _recipientsCounter;
     }

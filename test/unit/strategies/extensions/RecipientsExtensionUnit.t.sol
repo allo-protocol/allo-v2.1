@@ -39,6 +39,30 @@ contract RecipientsExtensionUnit is Test {
         return _statuses;
     }
 
+    function _fixedArrayToMemory(address[10] memory _array) internal pure returns (address[] memory) {
+        address[] memory _memoryArray = new address[](_array.length);
+        for (uint256 i = 0; i < _array.length; i++) {
+            _memoryArray[i] = _array[i];
+        }
+        return _memoryArray;
+    }
+
+    function _assumeNotZeroAddressInArray(address[10] memory _array) internal pure {
+        for (uint256 i = 0; i < _array.length; i++) {
+            vm.assume(_array[i] != address(0));
+        }
+    }
+
+    function _assumeNoDuplicates(address[10] memory _array) internal pure {
+        for (uint256 i = 0; i < _array.length; i++) {
+            for (uint256 j = 0; j < _array.length; j++) {
+                if (i != j) {
+                    vm.assume(_array[i] != _array[j]);
+                }
+            }
+        }
+    }
+
     function test___RecipientsExtension_initWhenParametersAreValid(
         IRecipientsExtension.RecipientInitializeData memory _initData
     ) external {
@@ -314,33 +338,121 @@ contract RecipientsExtensionUnit is Test {
     }
 
     function test__registerWhenParametersAreValid() external {
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
+
         // It should call _checkOnlyActiveRegistration
-        vm.skip(true);
+        recipientsExtension.expectCall__checkOnlyActiveRegistration();
+
+        recipientsExtension.call__register(new address[](0), abi.encode(new bytes[](0)), address(0));
     }
 
     modifier whenIteratingEachRecipient() {
         _;
     }
 
-    function test__registerWhenIteratingEachRecipient() external whenIteratingEachRecipient {
-        // It should call _extractRecipientAndMetadata
-        // It should call _processRecipient
+    function test__registerWhenIteratingEachRecipient(
+        address[10] memory _recipients,
+        address[10] memory _recipientIds,
+        bool[10] memory _booleans,
+        Metadata[10] memory _metadatas,
+        address _sender
+    ) external whenIteratingEachRecipient {
+        _assumeNotZeroAddressInArray(_recipients);
+        _assumeNoDuplicates(_recipientIds);
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
+
+        bytes[] memory _dataArray = new bytes[](_recipients.length);
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            _dataArray[i] = abi.encode(_recipientIds[i], _metadatas[i]);
+            // mock the calls
+            recipientsExtension.mock_call__extractRecipientAndMetadata(
+                _dataArray[i], _sender, _recipientIds[i], _booleans[i], _metadatas[i], bytes("")
+            );
+            recipientsExtension.mock_call__processRecipient(_recipientIds[i], _booleans[i], _metadatas[i], bytes(""));
+            recipientsExtension.mock_call__setRecipientStatus(
+                _recipientIds[0], uint8(IRecipientsExtension.Status.Pending)
+            );
+
+            // It should call _extractRecipientAndMetadata
+            recipientsExtension.expectCall__extractRecipientAndMetadata(_dataArray[i], _sender);
+
+            // It should call _processRecipient
+            recipientsExtension.expectCall__processRecipient(_recipientIds[i], _booleans[i], _metadatas[i], bytes(""));
+        }
+
+        bytes memory _datas = abi.encode(_dataArray);
+        recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
+
         // It should set recipient struct
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            IRecipientsExtension.Recipient memory recipient = recipientsExtension.getRecipient(_recipientIds[i]);
+            assertEq(recipient.useRegistryAnchor, _booleans[i]);
+            assertEq(recipient.recipientAddress, _recipients[i]);
+            assertEq(recipient.metadata.protocol, _metadatas[i].protocol);
+            assertEq(recipient.metadata.pointer, _metadatas[i].pointer);
+        }
+
         // It should save recipientId in the array
-        vm.skip(true);
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            assertEq(recipientsExtension.recipientIndexToRecipientId(i), _recipientIds[i]);
+        }
     }
 
-    function test__registerRevertWhen_RecipientAddressIsAddressZero() external whenIteratingEachRecipient {
+    function test__registerRevertWhen_RecipientAddressIsAddressZero(
+        address[10] memory _recipients,
+        address[10] memory _recipientIds,
+        bool[10] memory _booleans,
+        Metadata[10] memory _metadatas,
+        address _sender
+    ) external whenIteratingEachRecipient {
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
+
+        _recipients[0] = address(0);
+
+        bytes[] memory _dataArray = new bytes[](_recipients.length);
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            _dataArray[i] = abi.encode(_recipientIds[i], _metadatas[i]);
+            // mock the calls
+            recipientsExtension.mock_call__extractRecipientAndMetadata(
+                _dataArray[i], _sender, _recipientIds[i], _booleans[i], _metadatas[i], bytes("")
+            );
+            recipientsExtension.mock_call__processRecipient(_recipientIds[i], _booleans[i], _metadatas[i], bytes(""));
+        }
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(abi.encodeWithSelector(Errors.RECIPIENT_ERROR.selector, _recipientIds[0]));
+
+        bytes memory _datas = abi.encode(_dataArray);
+        recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
     }
 
-    function test__registerRevertWhen_MetadataRequiredIsTrueAndTheMetadataIsInvalid()
-        external
-        whenIteratingEachRecipient
-    {
+    function test__registerRevertWhen_MetadataRequiredIsTrueAndTheMetadataIsInvalid(
+        address[10] memory _recipients,
+        address[10] memory _recipientIds,
+        bool[10] memory _booleans,
+        address _sender
+    ) external whenIteratingEachRecipient {
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
+        recipientsExtension.set_metadataRequired(true);
+        _assumeNotZeroAddressInArray(_recipients);
+
+        bytes[] memory _dataArray = new bytes[](_recipients.length);
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            _dataArray[i] = abi.encode(_recipientIds[i], Metadata({protocol: 0, pointer: ""}));
+            // mock the calls
+            recipientsExtension.mock_call__extractRecipientAndMetadata(
+                _dataArray[i], _sender, _recipientIds[i], _booleans[i], Metadata({protocol: 0, pointer: ""}), bytes("")
+            );
+        }
+
         // It should revert
-        vm.skip(true);
+        vm.expectRevert(Errors.INVALID_METADATA.selector);
+
+        bytes memory _datas = abi.encode(_dataArray);
+        recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
     }
 
     function test__registerWhenStatusIndexIsZero() external whenIteratingEachRecipient {
