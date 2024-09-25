@@ -113,14 +113,14 @@ interface IAllo {
     /// @param _treasury Address of the treasury
     /// @param _percentFee Percentage for the fee
     /// @param _baseFee Base fee amount
-    /// @param __trustedForwarder The address of the trusted forwarder
+    /// @param _trustedForwarder The address of the trusted forwarder
     function initialize(
         address _owner,
         address _registry,
         address payable _treasury,
         uint256 _percentFee,
         uint256 _baseFee,
-        address __trustedForwarder
+        address _trustedForwarder
     ) external;
 
     /// @notice Creates a new pool (with a custom strategy)

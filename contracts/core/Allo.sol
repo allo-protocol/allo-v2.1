@@ -59,7 +59,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     uint256 internal baseFee;
 
     /// @notice Incremental index to track the pools created
-    uint256 internal _poolIndex;
+    uint256 internal poolIndex;
 
     /// @notice Allo treasury
     address payable internal treasury;
@@ -69,18 +69,18 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
 
     /// @notice Maps the `_msgSender` to a `nonce` to prevent duplicates
     /// @dev '_msgSender' -> 'nonce' for cloning strategies
-    mapping(address => uint256) internal _nonces;
+    mapping(address => uint256) internal nonces;
 
     /// @notice Maps the pool ID to the pool details
     /// @dev 'Pool.id' -> 'Pool'
     mapping(uint256 => Pool) internal pools;
 
     /// @custom:oz-upgrades-renamed-from cloneableStrategies
-    mapping(address => bool) internal _unusedSlot;
+    mapping(address => bool) internal unusedSlot;
 
     /// @notice The trusted forwarder contract address
     /// @dev Based on ERC2771ContextUpgradeable OZ contracts
-    address internal _trustedForwarder;
+    address internal trustedForwarder;
 
     // ====================================
     // =========== Initializer =============
@@ -93,14 +93,14 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     /// @param _treasury The address of the treasury
     /// @param _percentFee The percentage fee
     /// @param _baseFee The base fee
-    /// @param __trustedForwarder The address of the trusted forwarder
+    /// @param _trustedForwarder The address of the trusted forwarder
     function initialize(
         address _owner,
         address _registry,
         address payable _treasury,
         uint256 _percentFee,
         uint256 _baseFee,
-        address __trustedForwarder
+        address _trustedForwarder
     ) external reinitializer(2) {
         // Initialize the owner using Solady ownable library
         _initializeOwner(_owner);
@@ -118,7 +118,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
         _updateBaseFee(_baseFee);
 
         // Set the trusted forwarder
-        _updateTrustedForwarder(__trustedForwarder);
+        _updateTrustedForwarder(_trustedForwarder);
     }
 
     // ====================================
@@ -214,7 +214,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
             creator,
             msg.value,
             _profileId,
-            IBaseStrategy(Clone.createClone(_strategy, _nonces[creator]++)),
+            IBaseStrategy(Clone.createClone(_strategy, nonces[creator]++)),
             _initStrategyData,
             _token,
             _amount,
@@ -264,9 +264,9 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
 
     /// @notice Updates the trusted forwarder address.
     /// @dev Use this to update the trusted forwarder address.
-    /// @param __trustedForwarder The new trusted forwarder address
-    function updateTrustedForwarder(address __trustedForwarder) external onlyOwner {
-        _updateTrustedForwarder(__trustedForwarder);
+    /// @param _trustedForwarder The new trusted forwarder address
+    function updateTrustedForwarder(address _trustedForwarder) external onlyOwner {
+        _updateTrustedForwarder(_trustedForwarder);
     }
 
     /// @notice Add multiple pool managers
@@ -500,7 +500,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     ) internal virtual returns (uint256 poolId) {
         if (!registry.isOwnerOrMemberOfProfile(_profileId, _creator)) revert UNAUTHORIZED();
 
-        poolId = ++_poolIndex;
+        poolId = ++poolIndex;
 
         // Generate the manager & admin roles for the pool (this is the way we do this throughout the protocol for consistency)
         bytes32 POOL_MANAGER_ROLE = bytes32(poolId);
@@ -676,11 +676,11 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     /// @notice Updates the trusted forwarder address
     /// @dev Internal function used to update the trusted forwarder address.
     ///      Emits a TrustedForwarderUpdated event.
-    /// @param __trustedForwarder The new trusted forwarder address
-    function _updateTrustedForwarder(address __trustedForwarder) internal virtual {
-        _trustedForwarder = __trustedForwarder;
+    /// @param _trustedForwarder The new trusted forwarder address
+    function _updateTrustedForwarder(address _trustedForwarder) internal virtual {
+        trustedForwarder = _trustedForwarder;
 
-        emit TrustedForwarderUpdated(__trustedForwarder);
+        emit TrustedForwarderUpdated(_trustedForwarder);
     }
 
     /// @notice Adds a pool manager
@@ -785,6 +785,6 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     /// @param forwarder address to check if it is trusted
     /// @return true if it is trusted, false otherwise
     function isTrustedForwarder(address forwarder) public view returns (bool) {
-        return forwarder == _trustedForwarder;
+        return forwarder == trustedForwarder;
     }
 }
