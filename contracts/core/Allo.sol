@@ -782,9 +782,9 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     }
 
     /// @dev Logic copied from ERC2771ContextUpgradeable OZ contracts
-    /// @param forwarder address to check if it is trusted
+    /// @param _forwarder address to check if it is trusted
     /// @return true if it is trusted, false otherwise
-    function isTrustedForwarder(address forwarder) public view returns (bool) {
-        return forwarder == trustedForwarder;
+    function isTrustedForwarder(address _forwarder) public view returns (bool) {
+        return _forwarder == trustedForwarder;
     }
 }

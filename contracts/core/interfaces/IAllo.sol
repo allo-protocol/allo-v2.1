@@ -337,7 +337,7 @@ interface IAllo {
     function getFeeDenominator() external view returns (uint256);
 
     /// @notice Returns TRUE if the forwarder is trusted
-    /// @param forwarder The address of the forwarder to check
+    /// @param _forwarder The address of the forwarder to check
     /// @return 'true' if the forwarder is trusted, otherwise 'false'
-    function isTrustedForwarder(address forwarder) external view returns (bool);
+    function isTrustedForwarder(address _forwarder) external view returns (bool);
 }
