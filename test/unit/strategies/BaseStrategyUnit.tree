@@ -19,6 +19,7 @@ BaseStrategy::withdraw
 │   ├── It should call getPool at allo
 │   ├── It should call transfer at token
 │   ├── It should call _afterWithdraw
+│   ├── It should not change the pool amount
 │   └── It should emit event
 └── When token is pool token
     ├── It should call balanceOf at token

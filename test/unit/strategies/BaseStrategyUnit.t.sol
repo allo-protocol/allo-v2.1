@@ -103,6 +103,10 @@ contract BaseStrategy is Test {
     ) external {
         vm.assume(_token != NATIVE);
         vm.assume(_token != _poolToken);
+        vm.assume(_token != address(vm));
+        vm.assume(_token != 0x000000000000000000636F6e736F6c652e6c6f67);
+
+        uint poolAmountBefore = baseStrategy.getPoolAmount();
 
         baseStrategy.mock_call__checkOnlyPoolManager(address(this));
 
@@ -141,12 +145,16 @@ contract BaseStrategy is Test {
         vm.expectEmit();
         emit IBaseStrategy.Withdrew(_token, _amount, _recipient);
 
+        // It should not change the pool amount
+        assertEq(baseStrategy.getPoolAmount(), poolAmountBefore);
+
         baseStrategy.withdraw(_token, _amount, _recipient);
     }
 
     modifier whenTokenIsPoolToken(address _token, uint256 _amount, address _recipient, uint256 _contractBalance) {
         vm.assume(_token != NATIVE);
         vm.assume(_token != address(vm));
+        vm.assume(_token != 0x000000000000000000636F6e736F6c652e6c6f67);
 
         baseStrategy.mock_call__checkOnlyPoolManager(address(this));
 
