@@ -106,7 +106,7 @@ contract BaseStrategy is Test {
         vm.assume(_token != address(vm));
         vm.assume(_token != 0x000000000000000000636F6e736F6c652e6c6f67);
 
-        uint poolAmountBefore = baseStrategy.getPoolAmount();
+        uint256 poolAmountBefore = baseStrategy.getPoolAmount();
 
         baseStrategy.mock_call__checkOnlyPoolManager(address(this));
 
