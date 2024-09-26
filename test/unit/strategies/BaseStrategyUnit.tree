@@ -13,15 +13,17 @@ BaseStrategy::increasePoolAmount
 └── It should call _afterIncreasePoolAmount
 
 BaseStrategy::withdraw
-├── When parameters are valid
+├── When token is not pool token
 │   ├── It should call onlyPoolManager
 │   ├── It should call _beforeWithdraw
-│   ├── It should call balanceOf at token
+│   ├── It should call getPool at allo
 │   ├── It should call transfer at token
 │   ├── It should call _afterWithdraw
 │   └── It should emit event
-└── When amount is greater than poolAmount
-    └── It should revert
+└── When token is pool token
+    ├── It should call balanceOf at token
+    └── When amount is greater than poolAmount
+        └── It should revert
 
 BaseStrategy::register
 └── When parameters are valid
