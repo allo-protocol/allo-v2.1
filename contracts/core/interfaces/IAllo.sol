@@ -134,7 +134,7 @@ interface IAllo {
     /// @param _amount The amount of the token you want to deposit into the pool on initialization
     /// @param _metadata The 'Metadata' of the pool, this uses our 'Meatdata.sol' struct (consistent throughout the protocol)
     /// @param _managers The managers of the pool, and can be added/removed later by the pool admin
-    /// @return poolId The ID of the pool
+    /// @return _poolId The ID of the pool
     function createPoolWithCustomStrategy(
         bytes32 _profileId,
         address _strategy,
@@ -143,7 +143,7 @@ interface IAllo {
         uint256 _amount,
         Metadata memory _metadata,
         address[] memory _managers
-    ) external payable returns (uint256 poolId);
+    ) external payable returns (uint256 _poolId);
 
     /// @notice Creates a new pool (by cloning a deployed strategies).
     /// @dev '_msgSender' must be owner or member of the profile id passed as '_profileId'. The strategy address passed
@@ -157,7 +157,7 @@ interface IAllo {
     /// @param _managers The managers of the pool
     /// @custom:initstrategydata The encoded data will be specific to a given strategy requirements,
     ///    reference the strategy implementation of 'initialize()'
-    /// @return poolId The ID of the pool
+    /// @return _poolId The ID of the pool
     function createPool(
         bytes32 _profileId,
         address _strategy,
@@ -166,7 +166,7 @@ interface IAllo {
         uint256 _amount,
         Metadata memory _metadata,
         address[] memory _managers
-    ) external payable returns (uint256 poolId);
+    ) external payable returns (uint256 _poolId);
 
     /// @notice Updates a pools metadata.
     /// @dev '_msgSender' must be a pool admin.

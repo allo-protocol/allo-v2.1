@@ -36,7 +36,7 @@ library QVHelper {
         /// Check if the number of recipients and amounts are equal
         if (_recipients.length != _voiceCredits.length) revert QVHelper_LengthMissmatch();
 
-        for (uint256 i = 0; i < _recipients.length; i++) {
+        for (uint256 i; i < _recipients.length; i++) {
             /// Add the voice credits to the recipient
             _state.recipientVoiceCredits[_recipients[i]] += _voiceCredits[i];
             uint256 _votes = FixedPointMathLib.sqrt(_voiceCredits[i]);
@@ -58,7 +58,7 @@ library QVHelper {
         /// Check if the number of recipients and amounts are equal
         if (_recipients.length != _votes.length) revert QVHelper_LengthMissmatch();
 
-        for (uint256 i = 0; i < _recipients.length; i++) {
+        for (uint256 i; i < _recipients.length; i++) {
             /// Add the votes to the recipient
             _state.recipientVotes[_recipients[i]] += _votes[i];
             /// Add the total votes
@@ -84,11 +84,11 @@ library QVHelper {
     {
         _payouts = new uint256[](_recipients.length);
 
-        for (uint256 i = 0; i < _recipients.length; i++) {
+        for (uint256 i; i < _recipients.length; i++) {
             /// Get the recipient
-            address recipient = _recipients[i];
+            address _recipient = _recipients[i];
             /// Get the votes of the recipient
-            uint256 _recipientVotes = _state.recipientVotes[recipient];
+            uint256 _recipientVotes = _state.recipientVotes[_recipient];
             /// Calculate the payout for the recipient
             _payouts[i] = _poolAmount * _recipientVotes / _state.totalVotes;
         }

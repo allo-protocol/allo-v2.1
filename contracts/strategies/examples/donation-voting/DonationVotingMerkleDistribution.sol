@@ -149,12 +149,9 @@ contract DonationVotingMerkleDistribution is DonationVotingOffchain {
 
         // Loop through the distributions and distribute the funds
         Distribution[] memory distributions = abi.decode(_data, (Distribution[]));
-        IAllo.Pool memory pool = allo.getPool(poolId);
-        for (uint256 i; i < distributions.length;) {
+        IAllo.Pool memory pool = _ALLO.getPool(_poolId);
+        for (uint256 i; i < distributions.length; i++) {
             _distributeSingle(distributions[i], pool.token, _sender);
-            unchecked {
-                i++;
-            }
         }
     }
 
@@ -186,17 +183,17 @@ contract DonationVotingMerkleDistribution is DonationVotingOffchain {
         if (!_isAcceptedRecipient(_distribution.recipientId)) revert RECIPIENT_NOT_ACCEPTED();
 
         // Generate the node that will be verified in the 'merkleRoot'
-        bytes32 node = keccak256(abi.encode(_distribution.index, _distribution.recipientId, _distribution.amount));
+        bytes32 _node = keccak256(abi.encode(_distribution.index, _distribution.recipientId, _distribution.amount));
 
         // Validate the distribution and transfer the funds to the recipient, otherwise skip
-        if (MerkleProof.verify(_distribution.merkleProof, merkleRoot, node)) {
+        if (MerkleProof.verify(_distribution.merkleProof, merkleRoot, _node)) {
             if (_distributed(_distribution.index, true)) revert ALREADY_DISTRIBUTED(_distribution.index);
-            poolAmount -= _distribution.amount;
+            _poolAmount -= _distribution.amount;
 
-            address recipientAddress = _recipients[_distribution.recipientId].recipientAddress;
-            _poolToken.transferAmount(recipientAddress, _distribution.amount);
+            address _recipientAddress = _recipients[_distribution.recipientId].recipientAddress;
+            _poolToken.transferAmount(_recipientAddress, _distribution.amount);
 
-            emit Distributed(_distribution.recipientId, abi.encode(recipientAddress, _distribution.amount, _sender));
+            emit Distributed(_distribution.recipientId, abi.encode(_recipientAddress, _distribution.amount, _sender));
         }
     }
 }

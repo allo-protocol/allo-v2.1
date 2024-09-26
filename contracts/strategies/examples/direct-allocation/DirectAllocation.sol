@@ -75,12 +75,12 @@ contract DirectAllocationStrategy is BaseStrategy, Native, Errors {
         }
 
         uint256 _totalNativeAmount;
-        for (uint256 _i = 0; _i < _recipientsLength; ++_i) {
+        for (uint256 i; i < _recipientsLength; ++i) {
             /// Direct allocate the funds
-            if (_tokens[_i] == NATIVE) _totalNativeAmount += _amounts[_i];
-            _tokens[_i].transferAmountFrom(_sender, _recipients[_i], _amounts[_i]);
+            if (_tokens[i] == NATIVE) _totalNativeAmount += _amounts[i];
+            _tokens[i].transferAmountFrom(_sender, _recipients[i], _amounts[i]);
 
-            emit DirectAllocated(_recipients[_i], _amounts[_i], _tokens[_i], _sender);
+            emit DirectAllocated(_recipients[i], _amounts[i], _tokens[i], _sender);
         }
 
         if (msg.value < _totalNativeAmount) revert ETH_MISMATCH();

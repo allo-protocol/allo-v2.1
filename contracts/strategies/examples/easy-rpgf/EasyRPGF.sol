@@ -70,24 +70,24 @@ contract EasyRPGF is BaseStrategy {
         onlyPoolManager(_sender)
     {
         // Decode amounts from memory param
-        uint256[] memory amounts = abi.decode(_recipientAmounts, (uint256[]));
+        uint256[] memory _amounts = abi.decode(_recipientAmounts, (uint256[]));
 
-        uint256 payoutLength = _recipientIds.length;
+        uint256 _payoutLength = _recipientIds.length;
 
         // Assert recipient and amounts length are equal
-        if (payoutLength != amounts.length) {
+        if (_payoutLength != _amounts.length) {
             revert INPUT_LENGTH_MISMATCH();
         }
 
-        IAllo.Pool memory pool = allo.getPool(poolId);
-        for (uint256 i; i < payoutLength; ++i) {
-            uint256 amount = amounts[i];
-            address recipientAddress = _recipientIds[i];
+        IAllo.Pool memory pool = _ALLO.getPool(_poolId);
+        for (uint256 i; i < _payoutLength; ++i) {
+            uint256 _amount = _amounts[i];
+            address _recipientAddress = _recipientIds[i];
 
-            poolAmount -= amount;
-            pool.token.transferAmount(recipientAddress, amount);
+            _poolAmount -= _amount;
+            pool.token.transferAmount(_recipientAddress, _amount);
 
-            emit Distributed(recipientAddress, abi.encode(amount, _sender));
+            emit Distributed(_recipientAddress, abi.encode(_amount, _sender));
         }
     }
 

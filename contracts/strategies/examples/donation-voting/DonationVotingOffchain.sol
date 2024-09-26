@@ -162,17 +162,17 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
 
         (Claim[] memory _claims) = abi.decode(_data, (Claim[]));
 
-        uint256 claimsLength = _claims.length;
-        for (uint256 i; i < claimsLength; i++) {
-            Claim memory claim = _claims[i];
-            uint256 amount = amountAllocated[claim.recipientId][claim.token];
-            address recipientAddress = _recipients[claim.recipientId].recipientAddress;
+        uint256 _claimsLength = _claims.length;
+        for (uint256 i; i < _claimsLength; i++) {
+            Claim memory _claim = _claims[i];
+            uint256 _amount = amountAllocated[_claim.recipientId][_claim.token];
+            address _recipientAddress = _recipients[_claim.recipientId].recipientAddress;
 
-            amountAllocated[claim.recipientId][claim.token] = 0;
+            amountAllocated[_claim.recipientId][_claim.token] = 0;
 
-            claim.token.transferAmount(recipientAddress, amount);
+            _claim.token.transferAmount(_recipientAddress, _amount);
 
-            emit Claimed(claim.recipientId, amount, claim.token);
+            emit Claimed(_claim.recipientId, _amount, _claim.token);
         }
     }
 
@@ -182,25 +182,25 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     function setPayout(bytes memory _data) external virtual onlyPoolManager(msg.sender) onlyAfterAllocation {
         (address[] memory _recipientIds, uint256[] memory _amounts) = abi.decode(_data, (address[], uint256[]));
 
-        uint256 totalAmount;
+        uint256 _totalAmount;
         for (uint256 i; i < _recipientIds.length; i++) {
-            address recipientId = _recipientIds[i];
-            if (!_isAcceptedRecipient(recipientId)) revert RECIPIENT_NOT_ACCEPTED();
+            address _recipientId = _recipientIds[i];
+            if (!_isAcceptedRecipient(_recipientId)) revert RECIPIENT_NOT_ACCEPTED();
 
-            PayoutSummary storage payoutSummary = payoutSummaries[recipientId];
-            if (payoutSummary.amount != 0) revert PAYOUT_ALREADY_SET(recipientId);
+            PayoutSummary storage payoutSummary = payoutSummaries[_recipientId];
+            if (payoutSummary.amount != 0) revert PAYOUT_ALREADY_SET(_recipientId);
 
-            uint256 amount = _amounts[i];
-            totalAmount += amount;
+            uint256 _amount = _amounts[i];
+            _totalAmount += _amount;
 
-            payoutSummary.amount = amount;
-            payoutSummary.recipientAddress = _recipients[recipientId].recipientAddress;
+            payoutSummary.amount = _amount;
+            payoutSummary.recipientAddress = _recipients[_recipientId].recipientAddress;
 
-            emit PayoutSet(recipientId, amount);
+            emit PayoutSet(_recipientId, _amount);
         }
 
-        totalPayoutAmount += totalAmount;
-        if (totalPayoutAmount > poolAmount) revert AMOUNTS_EXCEED_POOL_AMOUNT();
+        totalPayoutAmount += _totalAmount;
+        if (totalPayoutAmount > _poolAmount) revert AMOUNTS_EXCEED_POOL_AMOUNT();
     }
 
     /// ====================================
@@ -224,30 +224,30 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
         override
         onlyActiveAllocation
     {
-        (address[] memory tokens, bytes[] memory permits) = abi.decode(_data, (address[], bytes[]));
-        uint256 totalNativeAmount;
+        (address[] memory _tokens, bytes[] memory _permits) = abi.decode(_data, (address[], bytes[]));
+        uint256 _totalNativeAmount;
 
-        for (uint256 i = 0; i < __recipients.length; i++) {
+        for (uint256 i; i < __recipients.length; i++) {
             if (!_isAcceptedRecipient(__recipients[i])) revert RECIPIENT_NOT_ACCEPTED();
 
-            if (!allowedTokens[tokens[i]] && !allowedTokens[address(0)]) revert TOKEN_NOT_ALLOWED();
+            if (!allowedTokens[_tokens[i]] && !allowedTokens[address(0)]) revert TOKEN_NOT_ALLOWED();
 
-            if (!DIRECT_TRANSFER) amountAllocated[__recipients[i]][tokens[i]] += _amounts[i];
+            if (!DIRECT_TRANSFER) amountAllocated[__recipients[i]][_tokens[i]] += _amounts[i];
 
-            address recipientAddress = DIRECT_TRANSFER ? _recipients[__recipients[i]].recipientAddress : address(this);
+            address _recipientAddress = DIRECT_TRANSFER ? _recipients[__recipients[i]].recipientAddress : address(this);
 
-            if (tokens[i] == NATIVE) {
-                totalNativeAmount += _amounts[i];
+            if (_tokens[i] == NATIVE) {
+                _totalNativeAmount += _amounts[i];
             } else {
-                tokens[i].usePermit(_sender, recipientAddress, _amounts[i], permits[i]);
+                _tokens[i].usePermit(_sender, _recipientAddress, _amounts[i], _permits[i]);
             }
 
-            tokens[i].transferAmountFrom(_sender, recipientAddress, _amounts[i]);
+            _tokens[i].transferAmountFrom(_sender, _recipientAddress, _amounts[i]);
 
-            emit Allocated(__recipients[i], _sender, _amounts[i], abi.encode(tokens[i]));
+            emit Allocated(__recipients[i], _sender, _amounts[i], abi.encode(_tokens[i]));
         }
 
-        if (msg.value != totalNativeAmount) revert ETH_MISMATCH();
+        if (msg.value != _totalNativeAmount) revert ETH_MISMATCH();
     }
 
     /// @notice Distributes funds (tokens) to recipients.
@@ -261,19 +261,19 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
         onlyAfterAllocation
     {
         for (uint256 i; i < _recipientIds.length; i++) {
-            address recipientId = _recipientIds[i];
+            address _recipientId = _recipientIds[i];
 
-            uint256 amount = payoutSummaries[recipientId].amount;
-            delete payoutSummaries[recipientId].amount;
+            uint256 _amount = payoutSummaries[_recipientId].amount;
+            delete payoutSummaries[_recipientId].amount;
 
-            if (amount == 0) revert NOTHING_TO_DISTRIBUTE(recipientId);
-            poolAmount -= amount;
+            if (_amount == 0) revert NOTHING_TO_DISTRIBUTE(_recipientId);
+            _poolAmount -= _amount;
 
-            address recipientAddress = _recipients[recipientId].recipientAddress;
-            IAllo.Pool memory pool = allo.getPool(poolId);
-            pool.token.transferAmount(recipientAddress, amount);
+            address _recipientAddress = _recipients[_recipientId].recipientAddress;
+            IAllo.Pool memory _pool = _ALLO.getPool(_poolId);
+            _pool.token.transferAmount(_recipientAddress, _amount);
 
-            emit Distributed(recipientId, abi.encode(recipientAddress, amount, _sender));
+            emit Distributed(_recipientId, abi.encode(_recipientAddress, _amount, _sender));
         }
     }
 

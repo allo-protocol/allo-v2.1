@@ -91,23 +91,23 @@ contract QVImpactStream is QVSimple {
         if (payoutSet) revert PAYOUT_ALREADY_SET();
         payoutSet = true;
 
-        uint256 totalAmount;
+        uint256 _totalAmount;
 
-        uint256 length = _payouts.length;
-        for (uint256 i = 0; i < length; ++i) {
-            Payout memory payout = _payouts[i];
-            uint256 amount = payout.amount;
-            address recipientId = payout.recipientId;
+        uint256 _length = _payouts.length;
+        for (uint256 i; i < _length; ++i) {
+            Payout memory _payout = _payouts[i];
+            uint256 _amount = payout.amount;
+            address _recipientId = payout.recipientId;
 
-            if (amount == 0 || _getRecipientStatus(recipientId) != Status.Accepted) {
-                revert RECIPIENT_ERROR(recipientId);
+            if (_amount == 0 || _getRecipientStatus(_recipientId) != Status.Accepted) {
+                revert RECIPIENT_ERROR(_recipientId);
             }
 
-            payouts[recipientId] = amount;
-            totalAmount += amount;
+            payouts[_recipientId] = _amount;
+            _totalAmount += _amount;
         }
 
-        if (totalAmount > poolAmount) revert PAYOUT_MORE_THAN_POOL_BALANCE();
+        if (_totalAmount > _poolAmount) revert PAYOUT_MORE_THAN_POOL_BALANCE();
 
         emit PayoutSet(_payouts, msg.sender);
     }
@@ -123,26 +123,24 @@ contract QVImpactStream is QVSimple {
         override
         onlyAfterAllocation
     {
-        IAllo.Pool memory pool = allo.getPool(poolId);
-        address poolToken = pool.token;
+        IAllo.Pool memory _pool = allo.getPool(poolId);
+        address _poolToken = _pool.token;
 
-        uint256 length = _recipientIds.length;
-        for (uint256 i = 0; i < length; ++i) {
-            address recipientId = _recipientIds[i];
-            Recipient storage recipient = _recipients[recipientId];
+        uint256 _length = _recipientIds.length;
+        for (uint256 i; i < _length; ++i) {
+            address _recipientId = _recipientIds[i];
+            address _recipientAddress = _recipients[_recipientId].recipientAddress;
+            uint256 _amount = payouts[_recipientId];
 
-            address recipientAddress = recipient.recipientAddress;
-            uint256 amount = payouts[recipientId];
+            if (_amount == 0) revert RECIPIENT_ERROR(_recipientId);
 
-            if (amount == 0) revert RECIPIENT_ERROR(recipientId);
+            delete payouts[_recipientId];
 
-            delete payouts[recipientId];
+            _poolToken.transferAmount(_recipientAddress, _amount);
 
-            poolToken.transferAmount(recipientAddress, amount);
+            bytes memory _data = abi.encode(_recipientAddress, _amount, _sender);
 
-            bytes memory data = abi.encode(recipientAddress, amount, _sender);
-
-            emit Distributed(recipientId, data);
+            emit Distributed(_recipientId, _data);
         }
     }
 
@@ -161,7 +159,7 @@ contract QVImpactStream is QVSimple {
     /// @param _recipientId The ID of the recipient
     /// @return The payout as a 'Payout' struct
     function getPayout(address _recipientId) external view returns (Payout memory) {
-        uint256 amount = payouts[_recipientId];
-        return Payout(_recipientId, amount);
+        uint256 _amount = payouts[_recipientId];
+        return Payout(_recipientId, _amount);
     }
 }
