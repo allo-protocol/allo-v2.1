@@ -16,13 +16,6 @@ contract DirectAllocationStrategy is BaseStrategy, Native, Errors {
     using Transfer for address;
 
     /// ===============================
-    /// ============ Errors ===========
-    /// ===============================
-
-    /// @notice Error when the input is invalid
-    error INVALID_INPUT();
-
-    /// ===============================
     /// ============ Events ===========
     /// ===============================
 
@@ -71,7 +64,7 @@ contract DirectAllocationStrategy is BaseStrategy, Native, Errors {
         uint256 _recipientsLength = _recipients.length;
         /// Check if inputs match the decoded data
         if (_recipientsLength != _amounts.length || _recipientsLength != _tokens.length) {
-            revert INVALID_INPUT();
+            revert ARRAY_MISMATCH();
         }
 
         uint256 _totalNativeAmount;

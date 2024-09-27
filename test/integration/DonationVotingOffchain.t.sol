@@ -564,7 +564,11 @@ contract IntegrationDonationVotingOffchainSetPayout is IntegrationDonationVoting
         assertEq(recipientAddress, recipient1Addr);
 
         // Reverts
-        vm.expectRevert(abi.encodeWithSelector(DonationVotingOffchain.PAYOUT_ALREADY_SET.selector, recipient0Addr));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DonationVotingOffchain.DonationVotingOffchain_PayoutAlreadySet.selector, recipient0Addr
+            )
+        );
         strategy.setPayout(abi.encode(recipients, amounts));
 
         recipients[0] = recipient2Addr;
@@ -626,11 +630,19 @@ contract IntegrationDonationVotingOffchainDistribute is IntegrationDonationVotin
         assertEq(IERC20(DAI).balanceOf(address(strategy)), 0);
         assertEq(strategy.getPoolAmount(), 0);
 
-        vm.expectRevert(abi.encodeWithSelector(DonationVotingOffchain.NOTHING_TO_DISTRIBUTE.selector, recipient0Addr));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DonationVotingOffchain.DonationVotingOffchain_NothingToDistribute.selector, recipient0Addr
+            )
+        );
         strategy.distribute(recipients, "", recipient2Addr);
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(abi.encodeWithSelector(DonationVotingOffchain.NOTHING_TO_DISTRIBUTE.selector, recipient2Addr));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DonationVotingOffchain.DonationVotingOffchain_NothingToDistribute.selector, recipient2Addr
+            )
+        );
 
         strategy.distribute(recipients, "", recipient2Addr);
     }

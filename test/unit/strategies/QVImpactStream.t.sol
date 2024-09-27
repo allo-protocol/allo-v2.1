@@ -74,7 +74,7 @@ contract QVImpactStreamTest is Test {
 
     function test_SetPayoutsRevertWhen_PayoutSetIsTrue() external callWithPoolManager {
         stdstore.target(address(qvImpactStream)).sig("payoutSet()").checked_write(true);
-        vm.expectRevert(QVImpactStream.PAYOUT_ALREADY_SET.selector);
+        vm.expectRevert(QVImpactStream.QVImpactStream_PayoutAlreadySet.selector);
 
         /// make it after allocation finished
         vm.warp(block.timestamp + allocationWindow + 1 days);

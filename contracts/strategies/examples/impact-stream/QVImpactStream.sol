@@ -44,10 +44,10 @@ contract QVImpactStream is QVSimple {
     /// ======================
 
     /// @notice Thrown when payout is already set
-    error PAYOUT_ALREADY_SET();
+    error QVImpactStream_PayoutAlreadySet();
 
     /// @notice Thrown when the total set payout is more than the pool balance
-    error PAYOUT_MORE_THAN_POOL_BALANCE();
+    error QVImpactStream_PayoutsExceedPoolAmount();
 
     /// ======================
     /// ======= Storage ======
@@ -88,7 +88,7 @@ contract QVImpactStream is QVSimple {
     /// @dev Only the pool manager(s) can call this function
     /// @param _payouts The payouts to distribute
     function setPayouts(Payout[] memory _payouts) external onlyPoolManager(msg.sender) onlyAfterAllocation {
-        if (payoutSet) revert PAYOUT_ALREADY_SET();
+        if (payoutSet) revert QVImpactStream_PayoutAlreadySet();
         payoutSet = true;
 
         uint256 _totalAmount;
@@ -107,7 +107,7 @@ contract QVImpactStream is QVSimple {
             _totalAmount += _amount;
         }
 
-        if (_totalAmount > _poolAmount) revert PAYOUT_MORE_THAN_POOL_BALANCE();
+        if (_totalAmount > _poolAmount) revert QVImpactStream_PayoutsExceedPoolAmount();
 
         emit PayoutSet(_payouts, msg.sender);
     }

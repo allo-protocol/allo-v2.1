@@ -15,7 +15,7 @@ contract EASGatingExtensionUnit is Test {
 
     function test___EASGatingExtension_initShouldRevertIf_easIsZeroAddress() external {
         // It should revert if _eas is zero address
-        vm.expectRevert(EASGatingExtension.EASGatingExtension_INVALID_EAS_ADDRESS.selector);
+        vm.expectRevert(EASGatingExtension.EASGatingExtension_InvalidEASAddress.selector);
 
         easGatingExtension.call___EASGatingExtension_init(address(0));
     }
@@ -85,7 +85,7 @@ contract EASGatingExtensionUnit is Test {
         );
 
         // It should revert
-        vm.expectRevert(EASGatingExtension.EASGatingExtension_INVALID_ATTESTATION_SCHEMA.selector);
+        vm.expectRevert(EASGatingExtension.EASGatingExtension_InvalidAttestationSchema.selector);
 
         easGatingExtension.call__checkOnlyWithAttestation(_schema, _attester, _uid);
     }
@@ -116,7 +116,7 @@ contract EASGatingExtensionUnit is Test {
         );
 
         // It should revert
-        vm.expectRevert(EASGatingExtension.EASGatingExtension_INVALID_ATTESTATION_ATTESTER.selector);
+        vm.expectRevert(EASGatingExtension.EASGatingExtension_InvalidAttestationAttester.selector);
 
         easGatingExtension.call__checkOnlyWithAttestation(_schema, _attester, _uid);
     }

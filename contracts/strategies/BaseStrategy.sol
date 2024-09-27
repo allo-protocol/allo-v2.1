@@ -83,10 +83,10 @@ abstract contract BaseStrategy is IBaseStrategy {
     /// @param __poolId ID of the pool
     function __BaseStrategy_init(uint256 __poolId) internal virtual onlyAllo {
         // check if pool ID is not initialized already, if it is, revert
-        if (_poolId != 0) revert BaseStrategy_ALREADY_INITIALIZED();
+        if (_poolId != 0) revert BaseStrategy_AlreadyInitialized();
 
         // check if pool ID is valid and not zero (0), if it is, revert
-        if (__poolId == 0) revert BaseStrategy_INVALID_POOL_ID();
+        if (__poolId == 0) revert BaseStrategy_InvalidPoolId();
         _poolId = __poolId;
     }
 
@@ -112,7 +112,7 @@ abstract contract BaseStrategy is IBaseStrategy {
         _beforeWithdraw(_token, _amount, _recipient);
         // If the token is the pool token, revert if the amount is greater than the pool amount
         if (_token.getBalance(address(this)) - _amount < _poolAmount) {
-            revert BaseStrategy_WITHDRAW_MORE_THAN_POOL_AMOUNT();
+            revert BaseStrategy_WithdrawMoreThanPoolAmount();
         }
         _token.transferAmount(_recipient, _amount);
         _afterWithdraw(_token, _amount, _recipient);
@@ -174,14 +174,14 @@ abstract contract BaseStrategy is IBaseStrategy {
     /// @notice Checks if the 'msg.sender' is the Allo contract.
     /// @dev Reverts if the 'msg.sender' is not the Allo contract.
     function _checkOnlyAllo() internal view {
-        if (msg.sender != address(_ALLO)) revert BaseStrategy_UNAUTHORIZED();
+        if (msg.sender != address(_ALLO)) revert BaseStrategy_Unauthorized();
     }
 
     /// @notice Checks if the '_sender' is a pool manager.
     /// @dev Reverts if the '_sender' is not a pool manager.
     /// @param _sender The address to check if they are a pool manager
     function _checkOnlyPoolManager(address _sender) internal view virtual {
-        if (!_ALLO.isPoolManager(_poolId, _sender)) revert BaseStrategy_UNAUTHORIZED();
+        if (!_ALLO.isPoolManager(_poolId, _sender)) revert BaseStrategy_Unauthorized();
     }
 
     /// @notice This will register a recipient, set their status (and any other strategy specific values), and

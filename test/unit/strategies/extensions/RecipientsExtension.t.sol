@@ -164,7 +164,7 @@ contract RecipientsExtensionReviewRecipients is BaseRecipientsExtensionUnit {
         // force allo to return false
         vm.mockCall(allo, abi.encodeWithSelector(IAllo.isPoolManager.selector, poolId, _caller), abi.encode(false));
 
-        vm.expectRevert(IBaseStrategy.BaseStrategy_UNAUTHORIZED.selector);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_Unauthorized.selector);
 
         vm.prank(_caller);
         recipientsExtension.reviewRecipients(_statuses, _refRecipientsCounter);
@@ -323,7 +323,7 @@ contract RecipientsExtensionUpdatePoolTimestamps is BaseRecipientsExtensionUnit 
         // force allo to return false
         vm.mockCall(allo, abi.encodeWithSelector(IAllo.isPoolManager.selector, poolId, _caller), abi.encode(false));
 
-        vm.expectRevert(IBaseStrategy.BaseStrategy_UNAUTHORIZED.selector);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_Unauthorized.selector);
 
         vm.prank(_caller);
         recipientsExtension.updatePoolTimestamps(0, 0);

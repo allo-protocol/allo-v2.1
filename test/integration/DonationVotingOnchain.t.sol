@@ -300,7 +300,11 @@ contract IntegrationDonationVotingOnchainDistributeERC20 is IntegrationDonationV
         assertEq(IERC20(allocationToken).balanceOf(recipient1Addr), 25);
         assertEq(IERC20(allocationToken).balanceOf(address(strategy)), 0);
 
-        vm.expectRevert(abi.encodeWithSelector(DonationVotingOnchain.NOTHING_TO_DISTRIBUTE.selector, recipient0Addr));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DonationVotingOnchain.DonationVotingOnchain_NothingToDistribute.selector, recipient0Addr
+            )
+        );
         strategy.distribute(recipients, abi.encode(allocationToken), recipient0Addr);
 
         vm.stopPrank();
@@ -367,7 +371,11 @@ contract IntegrationDonationVotingOnchainDistributeETH is IntegrationDonationVot
         assertEq(recipient1Addr.balance, 25);
         assertEq(address(strategy).balance, 0);
 
-        vm.expectRevert(abi.encodeWithSelector(DonationVotingOnchain.NOTHING_TO_DISTRIBUTE.selector, recipient0Addr));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DonationVotingOnchain.DonationVotingOnchain_NothingToDistribute.selector, recipient0Addr
+            )
+        );
         strategy.distribute(recipients, abi.encode(allocationToken), recipient0Addr);
 
         vm.stopPrank();

@@ -49,14 +49,14 @@ contract DonationVotingMerkleDistribution is DonationVotingOffchain {
     /// ================================
 
     /// @notice Thrown when the merkle root is attempted to be updated but the distribution is ongoing
-    error DISTRIBUTION_ALREADY_STARTED();
+    error DonationVotingMerkleDistribution_DistributionAlreadyStarted();
 
     /// @notice Thrown when distribution is invoked but the merkle root has not been set yet
-    error MERKLE_ROOT_NOT_SET();
+    error DonationVotingMerkleDistribution_MerkleRootNotSet();
 
     /// @notice Thrown when distribution is attempted twice for the same 'index'
     /// @param _index The index for which a repeated distribution was attempted
-    error ALREADY_DISTRIBUTED(uint256 _index);
+    error DonationVotingMerkleDistribution_AlreadyDistributed(uint256 _index);
 
     /// ================================
     /// ========== Struct ==============
@@ -110,7 +110,7 @@ contract DonationVotingMerkleDistribution is DonationVotingOffchain {
     /// @custom:data (bytes32 _merkleRoot, Metadata _distributionMetadata)
     function setPayout(bytes memory _data) external virtual override onlyPoolManager(msg.sender) onlyAfterAllocation {
         // The merkleRoot can only be updated before the distribution has started
-        if (distributionStarted) revert DISTRIBUTION_ALREADY_STARTED();
+        if (distributionStarted) revert DonationVotingMerkleDistribution_DistributionAlreadyStarted();
 
         (bytes32 _merkleRoot, Metadata memory _distributionMetadata) = abi.decode(_data, (bytes32, Metadata));
 
@@ -143,7 +143,7 @@ contract DonationVotingMerkleDistribution is DonationVotingOffchain {
         override
         onlyAfterAllocation
     {
-        if (merkleRoot == bytes32(0)) revert MERKLE_ROOT_NOT_SET();
+        if (merkleRoot == bytes32(0)) revert DonationVotingMerkleDistribution_MerkleRootNotSet();
 
         if (!distributionStarted) distributionStarted = true;
 
@@ -187,7 +187,9 @@ contract DonationVotingMerkleDistribution is DonationVotingOffchain {
 
         // Validate the distribution and transfer the funds to the recipient, otherwise skip
         if (MerkleProof.verify(_distribution.merkleProof, merkleRoot, _node)) {
-            if (_distributed(_distribution.index, true)) revert ALREADY_DISTRIBUTED(_distribution.index);
+            if (_distributed(_distribution.index, true)) {
+                revert DonationVotingMerkleDistribution_AlreadyDistributed(_distribution.index);
+            }
             _poolAmount -= _distribution.amount;
 
             address _recipientAddress = _recipients[_distribution.recipientId].recipientAddress;

@@ -21,7 +21,7 @@ contract BaseStrategyTest is Test, AlloSetup {
     }
 
     function testRevert_initialize_INVALID_zeroPoolId() public {
-        vm.expectRevert(IBaseStrategy.BaseStrategy_INVALID_POOL_ID.selector);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_InvalidPoolId.selector);
 
         vm.prank(address(allo()));
         strategy.initialize(0, "");
@@ -70,7 +70,7 @@ contract BaseStrategyTest is Test, AlloSetup {
         address _token = allo().getPool(0).token;
 
         vm.mockCall(_token, abi.encodeWithSelector(IERC20.balanceOf.selector, address(strategy)), abi.encode(100));
-        vm.expectRevert(IBaseStrategy.BaseStrategy_WITHDRAW_MORE_THAN_POOL_AMOUNT.selector);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_WithdrawMoreThanPoolAmount.selector);
         strategy.withdraw(_token, 50, address(this));
     }
 }

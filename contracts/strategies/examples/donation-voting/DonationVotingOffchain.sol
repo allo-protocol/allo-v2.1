@@ -54,17 +54,17 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
 
     /// @notice Thrown when there is nothing to distribute for the given recipient.
     /// @param recipientId The recipientId to which distribution was attempted.
-    error NOTHING_TO_DISTRIBUTE(address recipientId);
+    error DonationVotingOffchain_NothingToDistribute(address recipientId);
 
     /// @notice Thrown when a the payout for a recipient is attempted to be overwritten.
     /// @param recipientId The recipientId to which a repeated payout was attempted.
-    error PAYOUT_ALREADY_SET(address recipientId);
+    error DonationVotingOffchain_PayoutAlreadySet(address recipientId);
 
     /// @notice Thrown when the total payout amount is greater than the pool amount.
-    error AMOUNTS_EXCEED_POOL_AMOUNT();
+    error DonationVotingOffchain_PayoutsExceedPoolAmount();
 
     /// @notice Thrown when the token used was not whitelisted.
-    error TOKEN_NOT_ALLOWED();
+    error DonationVotingOffchain_TokenNotAllowed();
 
     /// ================================
     /// ========== Struct ==============
@@ -188,7 +188,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
             if (!_isAcceptedRecipient(_recipientId)) revert RECIPIENT_NOT_ACCEPTED();
 
             PayoutSummary storage payoutSummary = payoutSummaries[_recipientId];
-            if (payoutSummary.amount != 0) revert PAYOUT_ALREADY_SET(_recipientId);
+            if (payoutSummary.amount != 0) revert DonationVotingOffchain_PayoutAlreadySet(_recipientId);
 
             uint256 _amount = _amounts[i];
             _totalAmount += _amount;
@@ -200,7 +200,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
         }
 
         totalPayoutAmount += _totalAmount;
-        if (totalPayoutAmount > _poolAmount) revert AMOUNTS_EXCEED_POOL_AMOUNT();
+        if (totalPayoutAmount > _poolAmount) revert DonationVotingOffchain_PayoutsExceedPoolAmount();
     }
 
     /// ====================================
@@ -230,7 +230,9 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
         for (uint256 i; i < __recipients.length; i++) {
             if (!_isAcceptedRecipient(__recipients[i])) revert RECIPIENT_NOT_ACCEPTED();
 
-            if (!allowedTokens[_tokens[i]] && !allowedTokens[address(0)]) revert TOKEN_NOT_ALLOWED();
+            if (!allowedTokens[_tokens[i]] && !allowedTokens[address(0)]) {
+                revert DonationVotingOffchain_TokenNotAllowed();
+            }
 
             if (!DIRECT_TRANSFER) amountAllocated[__recipients[i]][_tokens[i]] += _amounts[i];
 
@@ -266,7 +268,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
             uint256 _amount = payoutSummaries[_recipientId].amount;
             delete payoutSummaries[_recipientId].amount;
 
-            if (_amount == 0) revert NOTHING_TO_DISTRIBUTE(_recipientId);
+            if (_amount == 0) revert DonationVotingOffchain_NothingToDistribute(_recipientId);
             _poolAmount -= _amount;
 
             address _recipientAddress = _recipients[_recipientId].recipientAddress;

@@ -624,11 +624,17 @@ contract IntegrationDonationVotingMerkleDistributionDistribute is IntegrationDon
         assertEq(IERC20(DAI).balanceOf(address(strategy)), 0);
         assertEq(strategy.getPoolAmount(), 0);
 
-        vm.expectRevert(abi.encodeWithSelector(DonationVotingMerkleDistribution.ALREADY_DISTRIBUTED.selector, 0));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DonationVotingMerkleDistribution.DonationVotingMerkleDistribution_AlreadyDistributed.selector, 0
+            )
+        );
         strategy.distribute(recipients, data, recipient2Addr);
 
         vm.startPrank(address(userAddr));
-        vm.expectRevert(DonationVotingMerkleDistribution.DISTRIBUTION_ALREADY_STARTED.selector);
+        vm.expectRevert(
+            DonationVotingMerkleDistribution.DonationVotingMerkleDistribution_DistributionAlreadyStarted.selector
+        );
         bytes32 merkleRoot = keccak256(abi.encode("merkleRoot"));
         Metadata memory distributionMetadata = Metadata({protocol: 1, pointer: "A"});
         strategy.setPayout(abi.encode(merkleRoot, distributionMetadata));

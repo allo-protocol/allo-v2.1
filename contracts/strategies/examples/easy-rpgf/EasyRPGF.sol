@@ -8,6 +8,7 @@ import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {BaseStrategy} from "strategies/BaseStrategy.sol";
 // Internal Libraries
 import {Transfer} from "contracts/core/libraries/Transfer.sol";
+import {Errors} from "contracts/core/libraries/Errors.sol";
 
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣗⠀⠀⠀⢸⣿⣿⣿⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣗⠀⠀⠀⢸⣿⣿⣿⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -24,17 +25,8 @@ import {Transfer} from "contracts/core/libraries/Transfer.sol";
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠙⠋⠛⠙⠋⠛⠙⠋⠛⠙⠋⠃⠀⠀⠀⠀⠀⠀⠀⠀⠠⠿⠻⠟⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠟⠿⠟⠿⠆⠀⠸⠿⠿⠟⠯⠀⠀⠀⠸⠿⠿⠿⠏⠀⠀⠀⠀⠀⠈⠉⠻⠻⡿⣿⢿⡿⡿⠿⠛⠁⠀⠀⠀⠀⠀⠀
 //                    allo.gitcoin.co
 
-contract EasyRPGF is BaseStrategy {
+contract EasyRPGF is BaseStrategy, Errors {
     using Transfer for address;
-
-    /// ===============================
-    /// ============ Errors ===========
-    /// ===============================
-
-    /// @dev Thrown when input arrays have different lengths
-    error INPUT_LENGTH_MISMATCH();
-    /// @dev Thrown when a function which hasn't been implemented is called
-    error NOOP();
 
     /// ===============================
     /// ========= Constructor =========
@@ -76,7 +68,7 @@ contract EasyRPGF is BaseStrategy {
 
         // Assert recipient and amounts length are equal
         if (_payoutLength != _amounts.length) {
-            revert INPUT_LENGTH_MISMATCH();
+            revert ARRAY_MISMATCH();
         }
 
         IAllo.Pool memory pool = _ALLO.getPool(_poolId);
@@ -93,11 +85,11 @@ contract EasyRPGF is BaseStrategy {
 
     /// @inheritdoc BaseStrategy
     function _allocate(address[] memory, uint256[] memory, bytes memory, address) internal virtual override {
-        revert NOOP();
+        revert NOT_IMPLEMENTED();
     }
 
     /// @inheritdoc BaseStrategy
     function _register(address[] memory, bytes memory, address) internal virtual override returns (address[] memory) {
-        revert NOOP();
+        revert NOT_IMPLEMENTED();
     }
 }

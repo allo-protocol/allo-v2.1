@@ -82,7 +82,7 @@ abstract contract MilestonesExtension is BaseStrategy, IMilestonesExtension {
         for (uint256 i; i < _milestonesLength; ++i) {
             uint256 _amountPercentage = __milestones[i].amountPercentage;
 
-            if (_amountPercentage == 0) revert MilestonesExtension_INVALID_MILESTONE();
+            if (_amountPercentage == 0) revert MilestonesExtension_InvalidMilestone();
 
             _totalAmountPercentage += _amountPercentage;
             __milestones[i].status = MilestoneStatus.None;
@@ -90,7 +90,7 @@ abstract contract MilestonesExtension is BaseStrategy, IMilestonesExtension {
         }
 
         // Check if the all milestone amount percentage totals to 1e18 (100%)
-        if (_totalAmountPercentage != 1e18) revert MilestonesExtension_INVALID_MILESTONE();
+        if (_totalAmountPercentage != 1e18) revert MilestonesExtension_InvalidMilestone();
 
         emit MilestonesSet(_milestonesLength);
     }
@@ -139,7 +139,7 @@ abstract contract MilestonesExtension is BaseStrategy, IMilestonesExtension {
     function _setProposalBid(address _bidderId, uint256 _proposalBid) internal virtual {
         if (_proposalBid > maxBid) {
             // If the proposal bid is greater than the max bid this will revert
-            revert MilestonesExtension_EXCEEDING_MAX_BID();
+            revert MilestonesExtension_ExceedingMaxBid();
         } else if (_proposalBid == 0) {
             // If the proposal bid is 0, set it to the max bid
             _proposalBid = maxBid;
@@ -154,7 +154,7 @@ abstract contract MilestonesExtension is BaseStrategy, IMilestonesExtension {
     function _validateSetMilestones(address _sender) internal virtual {
         _checkOnlyPoolManager(_sender);
         if (_milestones.length > 0) {
-            if (_milestones[0].status != MilestoneStatus.None) revert MilestonesExtension_MILESTONES_ALREADY_SET();
+            if (_milestones[0].status != MilestoneStatus.None) revert MilestonesExtension_MilestonesAlreadySet();
             delete _milestones;
         }
     }
@@ -164,12 +164,12 @@ abstract contract MilestonesExtension is BaseStrategy, IMilestonesExtension {
     /// @param _sender The address of the submitter
     function _validateSubmitUpcomingMilestone(address _recipientId, address _sender) internal virtual {
         // Check if the 'msg.sender' is accepted
-        if (!_isAcceptedRecipient(_recipientId)) revert MilestonesExtension_INVALID_RECIPIENT();
-        if (_sender != _recipientId) revert MilestonesExtension_INVALID_SUBMITTER();
+        if (!_isAcceptedRecipient(_recipientId)) revert MilestonesExtension_InvalidRecipient();
+        if (_sender != _recipientId) revert MilestonesExtension_InvalidSubmitter();
 
         // Check if a submission is ongoing to prevent front-running a milestone review.
         if (_milestones[upcomingMilestone].status == MilestoneStatus.Pending) {
-            revert MilestonesExtension_MILESTONE_PENDING();
+            revert MilestonesExtension_MilestonePending();
         }
     }
 
@@ -178,9 +178,9 @@ abstract contract MilestonesExtension is BaseStrategy, IMilestonesExtension {
     /// @param _milestoneStatus The new status to set the milestone to
     function _validateReviewMilestone(address _sender, MilestoneStatus _milestoneStatus) internal virtual {
         _checkOnlyPoolManager(_sender);
-        if (_milestoneStatus == MilestoneStatus.None) revert MilestonesExtension_INVALID_MILESTONE_STATUS();
+        if (_milestoneStatus == MilestoneStatus.None) revert MilestonesExtension_InvalidMilestoneStatus();
         if (_milestones[upcomingMilestone].status != MilestoneStatus.Pending) {
-            revert MilestonesExtension_MILESTONE_NOT_PENDING();
+            revert MilestonesExtension_MilestoneNotPending();
         }
     }
 
@@ -188,7 +188,7 @@ abstract contract MilestonesExtension is BaseStrategy, IMilestonesExtension {
     /// @param _maxBid The new max bid to be set
     function _increaseMaxBid(uint256 _maxBid) internal virtual {
         // make sure the new max bid is greater than the current max bid
-        if (_maxBid < maxBid) revert MilestonesExtension_AMOUNT_TOO_LOW();
+        if (_maxBid < maxBid) revert MilestonesExtension_AmountTooLow();
 
         maxBid = _maxBid;
 
@@ -206,7 +206,7 @@ abstract contract MilestonesExtension is BaseStrategy, IMilestonesExtension {
     /// @param _milestoneId The milestone id
     /// @return payout amount assigned to the milestone
     function _getMilestonePayout(address _recipientId, uint256 _milestoneId) internal view virtual returns (uint256) {
-        if (!_isAcceptedRecipient(_recipientId)) revert MilestonesExtension_INVALID_RECIPIENT();
+        if (!_isAcceptedRecipient(_recipientId)) revert MilestonesExtension_InvalidRecipient();
         return (bids[_recipientId] * _milestones[_milestoneId].amountPercentage) / 1e18;
     }
 }

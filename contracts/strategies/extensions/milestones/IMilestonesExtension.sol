@@ -10,31 +10,31 @@ interface IMilestonesExtension {
     /// ===============================
 
     /// @notice Thrown when the pool manager attempts to lower the max bid
-    error MilestonesExtension_AMOUNT_TOO_LOW();
+    error MilestonesExtension_AmountTooLow();
 
     /// @notice Thrown when the proposal bid exceeds maximum bid
-    error MilestonesExtension_EXCEEDING_MAX_BID();
+    error MilestonesExtension_ExceedingMaxBid();
 
     /// @notice Thrown when a recipient is not accepted
-    error MilestonesExtension_INVALID_RECIPIENT();
+    error MilestonesExtension_InvalidRecipient();
 
     /// @notice Thrown when an unauthorized address attempts to submit a milestone
-    error MilestonesExtension_INVALID_SUBMITTER();
+    error MilestonesExtension_InvalidSubmitter();
 
     /// @notice Thrown when the milestone is invalid
-    error MilestonesExtension_INVALID_MILESTONE();
+    error MilestonesExtension_InvalidMilestone();
 
     /// @notice Thrown when the new milestone status being reviewed is invalid
-    error MilestonesExtension_INVALID_MILESTONE_STATUS();
+    error MilestonesExtension_InvalidMilestoneStatus();
 
     /// @notice Thrown when the milestone are already approved and cannot be changed
-    error MilestonesExtension_MILESTONES_ALREADY_SET();
+    error MilestonesExtension_MilestonesAlreadySet();
 
     /// @notice Thrown when the milestone is not pending
-    error MilestonesExtension_MILESTONE_NOT_PENDING();
+    error MilestonesExtension_MilestoneNotPending();
 
     /// @notice Thrown when the milestone is pending
-    error MilestonesExtension_MILESTONE_PENDING();
+    error MilestonesExtension_MilestonePending();
 
     /// ===============================
     /// ========== Events =============

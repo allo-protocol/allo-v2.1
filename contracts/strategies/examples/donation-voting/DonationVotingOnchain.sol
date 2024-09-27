@@ -41,10 +41,10 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
 
     /// @notice Thrown when there is nothing to distribute for the given recipient.
     /// @param recipientId The recipientId to which distribution was attempted.
-    error NOTHING_TO_DISTRIBUTE(address recipientId);
+    error DonationVotingOnchain_NothingToDistribute(address recipientId);
 
     /// @notice Thrown when the allocation token is not allowed.
-    error TOKEN_NOT_ALLOWED();
+    error DonationVotingOnchain_TokenNotAllowed();
 
     /// ================================
     /// ========== Storage =============
@@ -121,7 +121,7 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
         onlyActiveAllocation
     {
         (address _allocationToken, bytes memory _permitData) = abi.decode(_data, (address, bytes));
-        if (!_isAllowedToken(_allocationToken)) revert TOKEN_NOT_ALLOWED();
+        if (!_isAllowedToken(_allocationToken)) revert DonationVotingOnchain_TokenNotAllowed();
 
         uint256 _totalAmount;
         for (uint256 i; i < _recipients.length; i++) {
@@ -157,13 +157,13 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
         if (totalPayoutAmount == 0) totalPayoutAmount = _poolAmount;
 
         (address _allocationToken) = abi.decode(_data, (address));
-        if (!_isAllowedToken(_allocationToken)) revert TOKEN_NOT_ALLOWED();
+        if (!_isAllowedToken(_allocationToken)) revert DonationVotingOnchain_TokenNotAllowed();
 
         for (uint256 i; i < _recipientIds.length; i++) {
             address _recipientId = _recipientIds[i];
             address _recipientAddress = _recipients[_recipientId].recipientAddress;
 
-            if (amountAllocated[_recipientId] == 0) revert NOTHING_TO_DISTRIBUTE(_recipientId);
+            if (amountAllocated[_recipientId] == 0) revert DonationVotingOnchain_NothingToDistribute(_recipientId);
 
             // Transfer allocation
             uint256 _allocationAmount = amountAllocated[_recipientId];
