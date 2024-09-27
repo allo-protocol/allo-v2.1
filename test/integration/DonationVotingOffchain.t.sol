@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {Metadata} from "contracts/core/Registry.sol";
 import {DonationVotingOffchain} from "strategies/examples/donation-voting/DonationVotingOffchain.sol";
-import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IErrors} from "contracts/utils/IErrors.sol";
 import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsExtension.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IntegrationBase} from "./IntegrationBase.sol";
@@ -154,7 +154,7 @@ contract IntegrationDonationVotingOffchainReviewRecipients is IntegrationDonatio
         vm.warp(registrationEndTime + 1);
         _newStatuses[1] = uint256(IRecipientsExtension.Status.Rejected);
         statuses[0] = _getApplicationStatus(_recipientIds, _newStatuses, address(strategy));
-        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RegistrationNotActive.selector);
         strategy.reviewRecipients(statuses, recipientsCounter);
 
         vm.stopPrank();
@@ -215,7 +215,7 @@ contract IntegrationDonationVotingOffchainAllocateERC20 is IntegrationDonationVo
         assertEq(IERC20(allocationToken).balanceOf(address(strategy)), 4 + 25);
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(Errors.RECIPIENT_NOT_ACCEPTED.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RecipientNotAccepted.selector);
         strategy.allocate(recipients, amounts, data, allocator0);
 
         vm.stopPrank();
@@ -281,7 +281,7 @@ contract IntegrationDonationVotingOffchainAllocateETH is IntegrationDonationVoti
         assertEq(IERC20(allocationToken).balanceOf(address(strategy)), 4);
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(Errors.RECIPIENT_NOT_ACCEPTED.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RecipientNotAccepted.selector);
         strategy.allocate(recipients, amounts, data, allocator0);
 
         vm.stopPrank();
@@ -349,7 +349,7 @@ contract IntegrationDonationVotingOffchainDirectAllocateERC20 is IntegrationDona
         assertEq(amountAllocated1, 0);
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(Errors.RECIPIENT_NOT_ACCEPTED.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RecipientNotAccepted.selector);
         strategyWithDirectTransfers.allocate(recipients, amounts, data, allocator0);
 
         vm.stopPrank();
@@ -418,7 +418,7 @@ contract IntegrationDonationVotingOffchainDirectAllocateETH is IntegrationDonati
         assertEq(IERC20(allocationToken).balanceOf(recipient0Addr), 4);
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(Errors.RECIPIENT_NOT_ACCEPTED.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RecipientNotAccepted.selector);
         strategyWithDirectTransfers.allocate(recipients, amounts, data, allocator0);
 
         vm.stopPrank();
@@ -509,7 +509,7 @@ contract IntegrationDonationVotingOffchainDisabledClaim is IntegrationDonationVo
         claims[1].recipientId = recipient1Addr;
         claims[1].token = allocationToken;
 
-        vm.expectRevert(Errors.NOT_IMPLEMENTED.selector);
+        vm.expectRevert(IErrors.Errors_NotImplemented.selector);
         strategyWithDirectTransfers.claimAllocation(abi.encode(claims));
 
         vm.stopPrank();
@@ -572,7 +572,7 @@ contract IntegrationDonationVotingOffchainSetPayout is IntegrationDonationVoting
         strategy.setPayout(abi.encode(recipients, amounts));
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(Errors.RECIPIENT_NOT_ACCEPTED.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RecipientNotAccepted.selector);
         strategy.setPayout(abi.encode(recipients, amounts));
 
         vm.stopPrank();

@@ -100,7 +100,7 @@ contract QVImpactStream is QVSimple {
             address _recipientId = _payout.recipientId;
 
             if (_amount == 0 || _getRecipientStatus(_recipientId) != Status.Accepted) {
-                revert RECIPIENT_ERROR(_recipientId);
+                revert RecipientsExtension_RecipientError(_recipientId);
             }
 
             payouts[_recipientId] = _amount;
@@ -132,7 +132,7 @@ contract QVImpactStream is QVSimple {
             address _recipientAddress = _recipients[_recipientId].recipientAddress;
             uint256 _amount = payouts[_recipientId];
 
-            if (_amount == 0) revert RECIPIENT_ERROR(_recipientId);
+            if (_amount == 0) revert RecipientsExtension_RecipientError(_recipientId);
 
             delete payouts[_recipientId];
 

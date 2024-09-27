@@ -7,7 +7,7 @@ import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsEx
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
 import {IBaseStrategy} from "strategies/BaseStrategy.sol";
-import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IErrors} from "contracts/utils/IErrors.sol";
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
 
 abstract contract BaseRecipientsExtensionUnit is Test, IRecipientsExtension {
@@ -182,7 +182,7 @@ contract RecipientsExtensionReviewRecipients is BaseRecipientsExtensionUnit {
 
         recipientsExtension.set_recipientsCounter(_recipientsCounter);
 
-        vm.expectRevert(Errors.INVALID.selector);
+        vm.expectRevert(IErrors.Errors_Invalid.selector);
 
         recipientsExtension.reviewRecipients(_statuses, _refRecipientsCounter);
     }
@@ -390,7 +390,7 @@ contract RecipientsExtension_checkOnlyActiveRegistration is BaseRecipientsExtens
         recipientsExtension.set_registrationStartTime(_registrationStartTime);
         recipientsExtension.set_registrationEndTime(_registrationEndTime);
 
-        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
+        vm.expectRevert(RecipientsExtension_RegistrationNotActive.selector);
 
         recipientsExtension.call__checkOnlyActiveRegistration();
     }
@@ -407,7 +407,7 @@ contract RecipientsExtension_checkOnlyActiveRegistration is BaseRecipientsExtens
         recipientsExtension.set_registrationStartTime(_registrationStartTime);
         recipientsExtension.set_registrationEndTime(_registrationEndTime);
 
-        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
+        vm.expectRevert(RecipientsExtension_RegistrationNotActive.selector);
 
         recipientsExtension.call__checkOnlyActiveRegistration();
     }
@@ -417,7 +417,7 @@ contract RecipientsExtension_isPoolTimestampValid is BaseRecipientsExtensionUnit
     function test_Revert_IfInvalidTimestamps(uint64 _registrationStartTime, uint64 _registrationEndTime) public {
         vm.assume(_registrationStartTime > _registrationEndTime);
 
-        vm.expectRevert(Errors.INVALID.selector);
+        vm.expectRevert(IErrors.Errors_Invalid.selector);
 
         recipientsExtension.call__isPoolTimestampValid(_registrationStartTime, _registrationEndTime);
     }
@@ -460,7 +460,7 @@ contract RecipientsExtension_register is BaseRecipientsExtensionUnit {
     {
         recipientsExtension.set_registrationStartTime(uint64(block.timestamp + 1));
 
-        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
+        vm.expectRevert(RecipientsExtension_RegistrationNotActive.selector);
 
         recipientsExtension.call__register(_recipients, _data, _sender);
     }
@@ -509,7 +509,7 @@ contract RecipientsExtension_register is BaseRecipientsExtensionUnit {
             );
         }
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.RECIPIENT_ERROR.selector, _recipientIds[0]));
+        vm.expectRevert(abi.encodeWithSelector(RecipientsExtension_RecipientError.selector, _recipientIds[0]));
 
         bytes memory _datas = abi.encode(_dataArray);
         recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
@@ -534,7 +534,7 @@ contract RecipientsExtension_register is BaseRecipientsExtensionUnit {
             );
         }
 
-        vm.expectRevert(Errors.INVALID_METADATA.selector);
+        vm.expectRevert(RecipientsExtension_InvalidMetada.selector);
 
         bytes memory _datas = abi.encode(_dataArray);
         recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
@@ -563,7 +563,7 @@ contract RecipientsExtension_register is BaseRecipientsExtensionUnit {
             );
         }
 
-        vm.expectRevert(Errors.INVALID_METADATA.selector);
+        vm.expectRevert(RecipientsExtension_InvalidMetada.selector);
 
         bytes memory _datas = abi.encode(_dataArray);
         recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
@@ -965,7 +965,7 @@ contract RecipientsExtension_extractRecipientAndMetadata is BaseRecipientsExtens
         bytes memory _data = abi.encode(_recipientIdOrRegistryAnchor, _metadata, bytes(""));
         recipientsExtension.mock_call__isProfileMember(_recipientIdOrRegistryAnchor, _sender, false);
 
-        vm.expectRevert(Errors.UNAUTHORIZED.selector);
+        vm.expectRevert(IErrors.Errors_Unauthorized.selector);
 
         recipientsExtension.call__extractRecipientAndMetadata(_data, _sender);
     }

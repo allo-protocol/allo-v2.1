@@ -127,7 +127,7 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
             uint256 _amount = _payouts[i];
 
             if (paidOut[_recipientId] || !_isAcceptedRecipient(_recipientId) || _amount == 0) {
-                revert RECIPIENT_ERROR(_recipientId);
+                revert RecipientsExtension_RecipientError(_recipientId);
             }
 
             paidOut[_recipientId] = true;
@@ -149,16 +149,16 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
         override
     {
         // check that the sender can allocate votes
-        if (!_isValidAllocator(_sender)) revert UNAUTHORIZED();
+        if (!_isValidAllocator(_sender)) revert Errors_Unauthorized();
 
         uint256 _voiceCreditsToAllocate;
 
         for (uint256 i; i < __recipients.length; i++) {
             // check the voice credits to allocate is > 0
-            if (_amounts[i] == 0) revert INVALID();
+            if (_amounts[i] == 0) revert Errors_Invalid();
 
             // check that the recipient is accepted
-            if (!_isAcceptedRecipient(__recipients[i])) revert RECIPIENT_ERROR(__recipients[i]);
+            if (!_isAcceptedRecipient(__recipients[i])) revert RecipientsExtension_RecipientError(__recipients[i]);
 
             // sum up the voice credits to allocate
             _voiceCreditsToAllocate += _amounts[i];
@@ -167,7 +167,7 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
         }
 
         // check that the allocator has voice credits left to allocate
-        if (!_hasVoiceCreditsLeft(_voiceCreditsToAllocate, voiceCreditsAllocated[_sender])) revert INVALID();
+        if (!_hasVoiceCreditsLeft(_voiceCreditsToAllocate, voiceCreditsAllocated[_sender])) revert Errors_Invalid();
 
         _votingState._voteWithVoiceCredits(__recipients, _amounts);
 
@@ -199,7 +199,7 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
     /// @param _recipient The address to withdraw to
     function _beforeWithdraw(address _token, uint256 _amount, address _recipient) internal virtual override {
         if (distributionStarted) {
-            revert INVALID();
+            revert Errors_Invalid();
         }
     }
 
@@ -207,7 +207,7 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
     /// @param _amount The amount to increase the pool by
     function _beforeIncreasePoolAmount(uint256 _amount) internal virtual override {
         if (distributionStarted) {
-            revert INVALID();
+            revert Errors_Invalid();
         }
     }
 }

@@ -7,7 +7,7 @@ import {
     DonationVotingMerkleDistribution,
     DonationVotingOffchain
 } from "strategies/examples/donation-voting/DonationVotingMerkleDistribution.sol";
-import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IErrors} from "contracts/utils/IErrors.sol";
 import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsExtension.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IntegrationBase} from "./IntegrationBase.sol";
@@ -158,7 +158,7 @@ contract IntegrationDonationVotingMerkleDistributionReviewRecipients is
         vm.warp(registrationEndTime + 1);
         _newStatuses[1] = uint256(IRecipientsExtension.Status.Rejected);
         statuses[0] = _getApplicationStatus(_recipientIds, _newStatuses, address(strategy));
-        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RegistrationNotActive.selector);
         strategy.reviewRecipients(statuses, recipientsCounter);
 
         vm.stopPrank();
@@ -219,7 +219,7 @@ contract IntegrationDonationVotingMerkleDistributionAllocateERC20 is Integration
         assertEq(IERC20(allocationToken).balanceOf(address(strategy)), 4 + 25);
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(Errors.RECIPIENT_NOT_ACCEPTED.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RecipientNotAccepted.selector);
         strategy.allocate(recipients, amounts, data, allocator0);
 
         vm.stopPrank();
@@ -285,7 +285,7 @@ contract IntegrationDonationVotingMerkleDistributionAllocateETH is IntegrationDo
         assertEq(IERC20(allocationToken).balanceOf(address(strategy)), 4);
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(Errors.RECIPIENT_NOT_ACCEPTED.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RecipientNotAccepted.selector);
         strategy.allocate(recipients, amounts, data, allocator0);
 
         vm.stopPrank();
@@ -355,7 +355,7 @@ contract IntegrationDonationVotingMerkleDistributionDirectAllocateERC20 is
         assertEq(amountAllocated1, 0);
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(Errors.RECIPIENT_NOT_ACCEPTED.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RecipientNotAccepted.selector);
         strategyWithDirectTransfers.allocate(recipients, amounts, data, allocator0);
 
         vm.stopPrank();
@@ -426,7 +426,7 @@ contract IntegrationDonationVotingMerkleDistributionDirectAllocateETH is
         assertEq(IERC20(allocationToken).balanceOf(recipient0Addr), 4);
 
         recipients[0] = recipient2Addr;
-        vm.expectRevert(Errors.RECIPIENT_NOT_ACCEPTED.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RecipientNotAccepted.selector);
         strategyWithDirectTransfers.allocate(recipients, amounts, data, allocator0);
 
         vm.stopPrank();
@@ -517,7 +517,7 @@ contract IntegrationDonationVotingMerkleDistributionDisabledClaim is Integration
         claims[1].recipientId = recipient1Addr;
         claims[1].token = allocationToken;
 
-        vm.expectRevert(Errors.NOT_IMPLEMENTED.selector);
+        vm.expectRevert(IErrors.Errors_NotImplemented.selector);
         strategyWithDirectTransfers.claimAllocation(abi.encode(claims));
 
         vm.stopPrank();

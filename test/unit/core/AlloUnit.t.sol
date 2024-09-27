@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
 import {MockMockAllo} from "test/smock/MockMockAllo.sol";
-import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IErrors} from "contracts/utils/IErrors.sol";
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
 import {IBaseStrategy} from "contracts/strategies/IBaseStrategy.sol";
 import {ClonesUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/proxy/ClonesUpgradeable.sol";
@@ -65,7 +65,7 @@ contract Allo is Test {
         address[] memory _managers
     ) external {
         // it should revert
-        vm.expectRevert(Errors.ZERO_ADDRESS.selector);
+        vm.expectRevert(IErrors.Errors_ZeroAddress.selector);
 
         allo.createPoolWithCustomStrategy(
             _profileId, address(0), _initStrategyData, _token, _amount, _metadata, _managers
@@ -123,7 +123,7 @@ contract Allo is Test {
         address[] memory _managers
     ) external {
         // it should revert
-        vm.expectRevert(Errors.ZERO_ADDRESS.selector);
+        vm.expectRevert(IErrors.Errors_ZeroAddress.selector);
 
         allo.createPool(_profileId, address(0), _initStrategyData, _token, _amount, _metadata, _managers);
     }

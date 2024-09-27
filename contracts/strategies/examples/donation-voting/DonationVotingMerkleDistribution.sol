@@ -180,7 +180,7 @@ contract DonationVotingMerkleDistribution is DonationVotingOffchain {
     /// @param _poolToken Token address of the strategy
     /// @param _sender The address of the sender
     function _distributeSingle(Distribution memory _distribution, address _poolToken, address _sender) internal {
-        if (!_isAcceptedRecipient(_distribution.recipientId)) revert RECIPIENT_NOT_ACCEPTED();
+        if (!_isAcceptedRecipient(_distribution.recipientId)) revert RecipientsExtension_RecipientNotAccepted();
 
         // Generate the node that will be verified in the 'merkleRoot'
         bytes32 _node = keccak256(abi.encode(_distribution.index, _distribution.recipientId, _distribution.amount));

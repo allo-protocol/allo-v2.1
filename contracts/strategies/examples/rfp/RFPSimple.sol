@@ -76,7 +76,7 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
         returns (Status _reviewedStatus)
     {
         if (_newStatus == Status.Accepted) {
-            if (block.timestamp > registrationEndTime) revert INVALID();
+            if (block.timestamp > registrationEndTime) revert Errors_Invalid();
             // The registration period ends when a recipient is accepted.
             registrationEndTime = uint64(block.timestamp - 1);
         }
@@ -95,7 +95,7 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
 
     /// @inheritdoc BaseStrategy
     function _allocate(address[] memory, uint256[] memory, bytes memory, address) internal virtual override {
-        revert NOT_IMPLEMENTED();
+        revert Errors_NotImplemented();
     }
 
     /// @notice Distributes funds (tokens) to recipients.
@@ -110,8 +110,8 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
         virtual
         override
     {
-        if (block.timestamp <= registrationEndTime) revert ALLOCATION_NOT_ENDED();
-        if (_recipientIds.length > 1) revert RECIPIENT_NOT_ACCEPTED();
+        if (block.timestamp <= registrationEndTime) revert Errors_AllocationHasNotEnded();
+        if (_recipientIds.length > 1) revert RecipientsExtension_RecipientNotAccepted();
 
         address _acceptedRecipientId = _recipientIds[0];
         uint256[] memory _milestoneIds = abi.decode(_data, (uint256[]));

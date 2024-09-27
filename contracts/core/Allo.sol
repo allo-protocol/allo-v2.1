@@ -13,7 +13,7 @@ import {ReentrancyGuardUpgradeable} from
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
 import {Clone} from "contracts/core/libraries/Clone.sol";
-import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IErrors} from "contracts/utils/IErrors.sol";
 import {Native} from "contracts/core/libraries/Native.sol";
 import {Transfer} from "contracts/core/libraries/Transfer.sol";
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
@@ -38,7 +38,15 @@ import {IBaseStrategy} from "strategies/IBaseStrategy.sol";
 /// @author @thelostone-mc <aditya@gitcoin.co>, @0xKurt <kurt@gitcoin.co>, @codenamejason <jason@gitcoin.co>, @0xZakk <zakk@gitcoin.co>, @nfrgosselin <nate@gitcoin.co>
 /// @notice This contract is used to create & manage _pools as well as manage the protocol.
 /// @dev The contract must be initialized with the 'initialize()' function.
-contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable, ReentrancyGuardUpgradeable, Errors {
+contract Allo is
+    IAllo,
+    Native,
+    Initializable,
+    Ownable,
+    AccessControlUpgradeable,
+    ReentrancyGuardUpgradeable,
+    IErrors
+{
     using Transfer for address;
 
     // ==========================
@@ -127,14 +135,14 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
 
     // Both modifiers below are using OpenZeppelin's AccessControl.sol with custom roles under the hood
 
-    /// @notice Reverts UNAUTHORIZED() if the caller is not a pool manager
+    /// @notice Reverts Errors_Unauthorized() if the caller is not a pool manager
     /// @param _poolId The pool id
     modifier onlyPoolManager(uint256 _poolId) {
         _checkOnlyPoolManager(_poolId, _msgSender());
         _;
     }
 
-    /// @notice Reverts UNAUTHORIZED() if the caller is not a pool admin
+    /// @notice Reverts Errors_Unauthorized() if the caller is not a pool admin
     /// @param _poolId The pool id
     modifier onlyPoolAdmin(uint256 _poolId) {
         _checkOnlyPoolAdmin(_poolId, _msgSender());
@@ -166,8 +174,8 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
         Metadata memory _metadata,
         address[] memory _managers
     ) external payable returns (uint256 _poolId) {
-        // Revert if the strategy address passed is the zero address with 'ZERO_ADDRESS()'
-        if (_strategy == address(0)) revert ZERO_ADDRESS();
+        // Revert if the strategy address passed is the zero address with 'Errors_ZeroAddress()'
+        if (_strategy == address(0)) revert Errors_ZeroAddress();
 
         // Call the internal '_createPool()' function and return the pool ID
         return _createPool(
@@ -205,8 +213,8 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
         Metadata memory _metadata,
         address[] memory _managers
     ) external payable nonReentrant returns (uint256 _poolId) {
-        // Revert if the strategy address passed is the zero address with 'ZERO_ADDRESS()'
-        if (_strategy == address(0)) revert ZERO_ADDRESS();
+        // Revert if the strategy address passed is the zero address with 'Errors_ZeroAddress()'
+        if (_strategy == address(0)) revert Errors_ZeroAddress();
 
         // Returns the created pool ID
         address _creator = _msgSender();
@@ -343,7 +351,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     /// @notice Register multiple recipients to multiple _pools.
     /// @dev Returns the 'recipientIds' from the strategy that have been registered from calling this function.
     ///      Encoded data unique to a strategy that registerRecipient() requires. Encoded '_data' length must match
-    ///      '_poolIds' length or this will revert with MISMATCH(). Other requirements will be determined by the strategy.
+    ///      '_poolIds' length or this will revert with Errors_ArrayMismatch(). Other requirements will be determined by the strategy.
     /// @param _poolIds ID's of the _pools
     /// @param _recipientAddresses An array of recipients addresses arrays
     /// @param _data An array of encoded data unique to a strategy that registerRecipient() requires.
@@ -356,7 +364,8 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
         uint256 _poolIdLength = _poolIds.length;
         _recipientIds = new address[][](_poolIdLength);
 
-        if (_poolIdLength != _data.length || _poolIdLength != _recipientAddresses.length) revert MISMATCH();
+        if (_poolIdLength != _data.length) revert Errors_ArrayMismatch();
+        if (_poolIdLength != _recipientAddresses.length) revert Errors_ArrayMismatch();
 
         // Loop through the '_poolIds' & '_data' and call the 'strategy.register()' function
         for (uint256 i; i < _poolIdLength; ++i) {
@@ -369,11 +378,11 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     /// @param _poolId ID of the pool
     /// @param _amount The amount to be deposited into the pool
     function fundPool(uint256 _poolId, uint256 _amount) external payable nonReentrant {
-        // if amount is 0, revert with 'NOT_ENOUGH_FUNDS()' error
-        if (_amount == 0) revert NOT_ENOUGH_FUNDS();
+        // if amount is 0, revert with 'Errors_NotEnoughFunds()' error
+        if (_amount == 0) revert Errors_NotEnoughFunds();
 
         Pool memory _pool = _pools[_poolId];
-        if (_pool.token == NATIVE && _amount != msg.value) revert NOT_ENOUGH_FUNDS();
+        if (_pool.token == NATIVE && _amount != msg.value) revert Errors_NotEnoughFunds();
 
         // Call the internal fundPool() function
         _fundPool(_amount, _msgSender(), _poolId, _pool.strategy);
@@ -411,14 +420,14 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     ) external payable nonReentrant {
         uint256 _numPools = _poolIds.length;
 
-        // Reverts if the length of _poolIds does not match the length of _datas with 'MISMATCH()' error
-        if (_numPools != _datas.length) revert MISMATCH();
-        // Reverts if the length of _poolIds does not match the length of _values with 'MISMATCH()' error
-        if (_numPools != _values.length) revert MISMATCH();
-        // Reverts if the length of _poolIds does not match the length of _recipients with 'MISMATCH()' error
-        if (_numPools != _recipients.length) revert MISMATCH();
-        // Reverts if the length of _poolIds does not match the length of _amounts with 'MISMATCH()' error
-        if (_numPools != _amounts.length) revert MISMATCH();
+        // Reverts if the length of _poolIds does not match the length of _datas with 'Errors_ArrayMismatch()' error
+        if (_numPools != _datas.length) revert Errors_ArrayMismatch();
+        // Reverts if the length of _poolIds does not match the length of _values with 'Errors_ArrayMismatch()' error
+        if (_numPools != _values.length) revert Errors_ArrayMismatch();
+        // Reverts if the length of _poolIds does not match the length of _recipients with 'Errors_ArrayMismatch()' error
+        if (_numPools != _recipients.length) revert Errors_ArrayMismatch();
+        // Reverts if the length of _poolIds does not match the length of _amounts with 'Errors_ArrayMismatch()' error
+        if (_numPools != _amounts.length) revert Errors_ArrayMismatch();
 
         // Loop through the _poolIds & _datas and call the internal _allocate() function
         uint256 _totalValue;
@@ -427,8 +436,8 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
             _allocate(_poolIds[i], _recipients[i], _amounts[i], _datas[i], _values[i], _sender);
             _totalValue += _values[i];
         }
-        // Reverts if the sum of all the allocated values is different than 'msg.value' with 'MISMATCH()' error
-        if (_totalValue != msg.value) revert ETH_MISMATCH();
+        // Reverts if the sum of all the allocated values is different than 'msg.value' with 'Errors_ETHMismatch()' error
+        if (_totalValue != msg.value) revert Errors_ETHMismatch();
     }
 
     /// @notice Distribute to a recipient or multiple recipients.
@@ -446,7 +455,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     /// @param _poolId ID of the pool
     /// @param _newAdmin The address of the new admin
     function changeAdmin(uint256 _poolId, address _newAdmin) external onlyPoolAdmin(_poolId) {
-        if (_newAdmin == address(0)) revert ZERO_ADDRESS();
+        if (_newAdmin == address(0)) revert Errors_ZeroAddress();
 
         _revokeRole(_pools[_poolId].adminRole, _msgSender());
         _grantRole(_pools[_poolId].adminRole, _newAdmin);
@@ -460,14 +469,14 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     /// @param _poolId The pool id
     /// @param _address The address to check
     function _checkOnlyPoolManager(uint256 _poolId, address _address) internal view virtual {
-        if (!_isPoolManager(_poolId, _address)) revert UNAUTHORIZED();
+        if (!_isPoolManager(_poolId, _address)) revert Errors_Unauthorized();
     }
 
     /// @notice Internal function to check is caller is pool admin
     /// @param _poolId The pool id
     /// @param _address The address to check
     function _checkOnlyPoolAdmin(uint256 _poolId, address _address) internal view virtual {
-        if (!_isPoolAdmin(_poolId, _address)) revert UNAUTHORIZED();
+        if (!_isPoolAdmin(_poolId, _address)) revert Errors_Unauthorized();
     }
 
     /// @notice Creates a new pool.
@@ -495,7 +504,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
         Metadata memory _metadata,
         address[] memory _managers
     ) internal virtual returns (uint256 _poolId) {
-        if (!_registry.isOwnerOrMemberOfProfile(_profileId, _creator)) revert UNAUTHORIZED();
+        if (!_registry.isOwnerOrMemberOfProfile(_profileId, _creator)) revert Errors_Unauthorized();
 
         _poolId = ++_poolIndex;
 
@@ -526,7 +535,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
         // Initialization is expected to revert when invoked more than once with 'ALREADY_INITIALIZED()' error
         _strategy.initialize(_poolId, _initStrategyData);
 
-        if (_strategy.getPoolId() != _poolId || address(_strategy.getAllo()) != address(this)) revert MISMATCH();
+        if (_strategy.getPoolId() != _poolId || address(_strategy.getAllo()) != address(this)) revert Errors_Mismatch();
 
         // grant pool managers roles
         uint256 _managersLength = _managers.length;
@@ -538,8 +547,8 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
             // To prevent paying the _baseFee from the Allo contract's balance
             // If _token is NATIVE, then _baseFee + _amount should be equal to _msgValue.
             // If _token is not NATIVE, then _baseFee should be equal to _msgValue.
-            if (_token == NATIVE && (_baseFee + _amount != _msgValue)) revert NOT_ENOUGH_FUNDS();
-            if (_token != NATIVE && _baseFee != _msgValue) revert NOT_ENOUGH_FUNDS();
+            if (_token == NATIVE && (_baseFee + _amount != _msgValue)) revert Errors_NotEnoughFunds();
+            if (_token != NATIVE && _baseFee != _msgValue) revert Errors_NotEnoughFunds();
 
             address(_treasury).transferAmountNative(_baseFee);
 
@@ -586,7 +595,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
 
         address _token = _pools[_poolId].token;
 
-        if (_token == NATIVE && msg.value < _amount) revert ETH_MISMATCH();
+        if (_token == NATIVE && msg.value < _amount) revert Errors_ETHMismatch();
 
         if (_feeAmount > 0) {
             uint256 _balanceBeforeFee = _token.getBalance(_treasury);
@@ -630,7 +639,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     ///      Emits a RegistryUpdated event.
     /// @param __registry The new _registry address
     function _updateRegistry(address __registry) internal virtual {
-        if (__registry == address(0)) revert ZERO_ADDRESS();
+        if (__registry == address(0)) revert Errors_ZeroAddress();
 
         _registry = IRegistry(__registry);
         emit RegistryUpdated(__registry);
@@ -641,7 +650,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     ///      Emits a TreasuryUpdated event.
     /// @param __treasury The new _treasury address
     function _updateTreasury(address payable __treasury) internal virtual {
-        if (__treasury == address(0)) revert ZERO_ADDRESS();
+        if (__treasury == address(0)) revert Errors_ZeroAddress();
 
         _treasury = __treasury;
         emit TreasuryUpdated(_treasury);
@@ -652,7 +661,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     ///      Emits a PercentFeeUpdated event.
     /// @param __percentFee The new fee
     function _updatePercentFee(uint256 __percentFee) internal virtual {
-        if (__percentFee > 1e18) revert INVALID_FEE();
+        if (__percentFee > 1e18) revert Errors_Invalid();
 
         _percentFee = __percentFee;
 
@@ -684,8 +693,8 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     /// @param _poolId The ID of the pool
     /// @param _manager The address to add
     function _addPoolManager(uint256 _poolId, address _manager) internal virtual {
-        // Reverts if the address is the zero address with 'ZERO_ADDRESS()'
-        if (_manager == address(0)) revert ZERO_ADDRESS();
+        // Reverts if the address is the zero address with 'Errors_ZeroAddress()'
+        if (_manager == address(0)) revert Errors_ZeroAddress();
 
         // Grants the pool manager role to the '_manager' address
         _grantRole(_pools[_poolId].managerRole, _manager);

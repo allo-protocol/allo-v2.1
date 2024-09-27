@@ -125,7 +125,7 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
 
         uint256 _totalAmount;
         for (uint256 i; i < _recipients.length; i++) {
-            if (!_isAcceptedRecipient(_recipients[i])) revert RECIPIENT_NOT_ACCEPTED();
+            if (!_isAcceptedRecipient(_recipients[i])) revert RecipientsExtension_RecipientNotAccepted();
 
             // Update the total payout amount for the claim and the total claimable amount
             amountAllocated[_recipients[i]] += _amounts[i];
@@ -135,7 +135,7 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
         }
 
         if (_allocationToken == NATIVE) {
-            if (msg.value != _totalAmount) revert ETH_MISMATCH();
+            if (msg.value != _totalAmount) revert Errors_ETHMismatch();
         } else {
             _allocationToken.usePermit(_sender, address(this), _totalAmount, _permitData);
             _allocationToken.transferAmountFrom(_sender, address(this), _totalAmount);
@@ -187,13 +187,13 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
     /// @param _amount The amount to withdraw
     /// @param _recipient The address to withdraw to
     function _beforeWithdraw(address _token, uint256 _amount, address _recipient) internal virtual override {
-        if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert INVALID();
+        if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert Errors_Invalid();
     }
 
     /// @notice Hook called before increasing the pool amount.
     /// @param _amount The amount to increase the pool by
     function _beforeIncreasePoolAmount(uint256 _amount) internal virtual override {
-        if (block.timestamp > allocationEndTime) revert POOL_INACTIVE();
+        if (block.timestamp > allocationEndTime) revert Errors_PoolInactive();
     }
 
     /// @notice Returns if the recipient is accepted

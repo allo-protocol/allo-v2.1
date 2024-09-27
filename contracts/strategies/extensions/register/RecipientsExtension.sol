@@ -9,9 +9,9 @@ import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
 import {BaseStrategy} from "strategies/BaseStrategy.sol";
 // Internal Libraries
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
-import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IErrors} from "contracts/utils/IErrors.sol";
 
-abstract contract RecipientsExtension is BaseStrategy, Errors, IRecipientsExtension {
+abstract contract RecipientsExtension is BaseStrategy, IRecipientsExtension, IErrors {
     /// @notice if set to true, `_reviewRecipientStatus()` is called for each new status update.
     bool public immutable REVIEW_EACH_STATUS;
 
@@ -122,7 +122,7 @@ abstract contract RecipientsExtension is BaseStrategy, Errors, IRecipientsExtens
     /// @param _refRecipientsCounter the recipientCounter the transaction is based on
     function reviewRecipients(ApplicationStatus[] calldata _statuses, uint256 _refRecipientsCounter) public virtual {
         _validateReviewRecipients(msg.sender);
-        if (_refRecipientsCounter != recipientsCounter) revert INVALID();
+        if (_refRecipientsCounter != recipientsCounter) revert Errors_Invalid();
         // Loop through the statuses and set the status
         for (uint256 i; i < _statuses.length; ++i) {
             uint256 _rowIndex = _statuses[i].index;
@@ -170,7 +170,7 @@ abstract contract RecipientsExtension is BaseStrategy, Errors, IRecipientsExtens
     /// @dev This will revert if the registration has not started or if the registration has ended.
     function _checkOnlyActiveRegistration() internal view virtual {
         if (registrationStartTime > block.timestamp || block.timestamp > registrationEndTime) {
-            revert REGISTRATION_NOT_ACTIVE();
+            revert RecipientsExtension_RegistrationNotActive();
         }
     }
 
@@ -181,7 +181,7 @@ abstract contract RecipientsExtension is BaseStrategy, Errors, IRecipientsExtens
     /// @param _registrationEndTime The end time for the registration
     function _isPoolTimestampValid(uint64 _registrationStartTime, uint64 _registrationEndTime) internal view virtual {
         if (_registrationStartTime > _registrationEndTime) {
-            revert INVALID();
+            revert Errors_Invalid();
         }
     }
 
@@ -227,12 +227,12 @@ abstract contract RecipientsExtension is BaseStrategy, Errors, IRecipientsExtens
 
             // If the recipient address is the zero address this will revert
             if (_recipientAddress == address(0)) {
-                revert RECIPIENT_ERROR(_recipientId);
+                revert RecipientsExtension_RecipientError(_recipientId);
             }
 
             // If the metadata is required and the metadata is invalid this will revert
             if (metadataRequired && (bytes(_metadata.pointer).length == 0 || _metadata.protocol == 0)) {
-                revert INVALID_METADATA();
+                revert RecipientsExtension_InvalidMetada();
             }
 
             // Get the recipient
@@ -249,7 +249,7 @@ abstract contract RecipientsExtension is BaseStrategy, Errors, IRecipientsExtens
                 recipientIndexToRecipientId[recipientsCounter] = _recipientId;
                 _setRecipientStatus(_recipientId, uint8(Status.Pending));
 
-                bytes memory _extendedData = abi.encode(_data, recipientsCounter);
+                bytes memory _extendedData = abi.encode(_recipientData, recipientsCounter);
                 emit Registered(_recipientId, _extendedData);
 
                 recipientsCounter++;
@@ -262,7 +262,7 @@ abstract contract RecipientsExtension is BaseStrategy, Errors, IRecipientsExtens
                     // recipient updating rejected application
                     _setRecipientStatus(_recipientId, uint8(Status.Appealed));
                 }
-                emit UpdatedRegistration(_recipientId, _data, _sender, _getUintRecipientStatus(_recipientId));
+                emit UpdatedRegistration(_recipientId, _recipientData, _sender, _getUintRecipientStatus(_recipientId));
             }
 
             _recipientIds[i] = _recipientId;
@@ -289,7 +289,7 @@ abstract contract RecipientsExtension is BaseStrategy, Errors, IRecipientsExtens
         // Anchor can never be zero, so if zero, set '_sender' as the recipientId
         if (_recipientIdOrRegistryAnchor != address(0)) {
             if (!_isProfileMember(_recipientIdOrRegistryAnchor, _sender)) {
-                revert UNAUTHORIZED();
+                revert Errors_Unauthorized();
             }
 
             _isUsingRegistryAnchor = true;

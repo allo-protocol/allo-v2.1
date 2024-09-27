@@ -158,7 +158,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     /// @param _data The data to be decoded
     /// @custom:data (Claim[] _claims)
     function claimAllocation(bytes memory _data) external virtual onlyAfterAllocation {
-        if (DIRECT_TRANSFER) revert NOT_IMPLEMENTED();
+        if (DIRECT_TRANSFER) revert Errors_NotImplemented();
 
         (Claim[] memory _claims) = abi.decode(_data, (Claim[]));
 
@@ -185,7 +185,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
         uint256 _totalAmount;
         for (uint256 i; i < _recipientIds.length; i++) {
             address _recipientId = _recipientIds[i];
-            if (!_isAcceptedRecipient(_recipientId)) revert RECIPIENT_NOT_ACCEPTED();
+            if (!_isAcceptedRecipient(_recipientId)) revert RecipientsExtension_RecipientNotAccepted();
 
             PayoutSummary storage payoutSummary = payoutSummaries[_recipientId];
             if (payoutSummary.amount != 0) revert DonationVotingOffchain_PayoutAlreadySet(_recipientId);
@@ -228,7 +228,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
         uint256 _totalNativeAmount;
 
         for (uint256 i; i < __recipients.length; i++) {
-            if (!_isAcceptedRecipient(__recipients[i])) revert RECIPIENT_NOT_ACCEPTED();
+            if (!_isAcceptedRecipient(__recipients[i])) revert RecipientsExtension_RecipientNotAccepted();
 
             if (!allowedTokens[_tokens[i]] && !allowedTokens[address(0)]) {
                 revert DonationVotingOffchain_TokenNotAllowed();
@@ -249,7 +249,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
             emit Allocated(__recipients[i], _sender, _amounts[i], abi.encode(_tokens[i]));
         }
 
-        if (msg.value != _totalNativeAmount) revert ETH_MISMATCH();
+        if (msg.value != _totalNativeAmount) revert Errors_ETHMismatch();
     }
 
     /// @notice Distributes funds (tokens) to recipients.
@@ -284,13 +284,13 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     /// @param _amount The amount to withdraw
     /// @param _recipient The address to withdraw to
     function _beforeWithdraw(address _token, uint256 _amount, address _recipient) internal virtual override {
-        if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert INVALID();
+        if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert Errors_Invalid();
     }
 
     /// @notice Hook called after increasing the pool amount.
     /// @param _amount The amount to increase the pool by
     function _beforeIncreasePoolAmount(uint256 _amount) internal virtual override {
-        if (block.timestamp > allocationEndTime) revert POOL_INACTIVE();
+        if (block.timestamp > allocationEndTime) revert Errors_PoolInactive();
     }
 
     /// @notice Returns if the recipient is accepted

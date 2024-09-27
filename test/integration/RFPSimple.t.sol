@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {Metadata} from "contracts/core/Registry.sol";
 import {RFPSimple} from "strategies/examples/rfp/RFPSimple.sol";
-import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IErrors} from "contracts/utils/IErrors.sol";
 import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsExtension.sol";
 import {IMilestonesExtension} from "strategies/extensions/milestones/IMilestonesExtension.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -99,7 +99,7 @@ contract IntegrationRFPSimple is IntegrationBase {
         _newStatuses[0] = uint256(IRecipientsExtension.Status.Accepted);
         _newStatuses[1] = uint256(IRecipientsExtension.Status.Accepted);
         statuses[0] = _getApplicationStatus(_recipientIds, _newStatuses, address(strategy));
-        vm.expectRevert(Errors.INVALID.selector);
+        vm.expectRevert(IErrors.Errors_Invalid.selector);
         strategy.reviewRecipients(statuses, recipientsCounter);
 
         // Correctly set statuses
@@ -109,7 +109,7 @@ contract IntegrationRFPSimple is IntegrationBase {
 
         // Registration has ended
         assertEq(uint256(strategy.registrationEndTime()), block.timestamp - 1);
-        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RegistrationNotActive.selector);
         strategy.reviewRecipients(statuses, recipientsCounter);
 
         vm.stopPrank();
@@ -121,7 +121,7 @@ contract IntegrationRFPSimple is IntegrationBase {
         address[] memory recipients = new address[](1);
         uint256[] memory amounts = new uint256[](1);
 
-        vm.expectRevert(Errors.NOT_IMPLEMENTED.selector);
+        vm.expectRevert(IErrors.Errors_NotImplemented.selector);
         strategy.allocate(recipients, amounts, "", address(0));
         vm.stopPrank();
     }

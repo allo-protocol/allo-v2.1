@@ -6,13 +6,13 @@ pragma solidity ^0.8.19;
 import {BaseStrategy} from "strategies/BaseStrategy.sol";
 // Internal Libraries
 import {Native} from "contracts/core/libraries/Native.sol";
-import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IErrors} from "contracts/utils/IErrors.sol";
 import {Transfer} from "contracts/core/libraries/Transfer.sol";
 
 /// @title DirectAllocationStrategy
 /// @dev The strategy only implements the allocate logic
 /// @notice A strategy that directly allocates funds to a recipient
-contract DirectAllocationStrategy is BaseStrategy, Native, Errors {
+contract DirectAllocationStrategy is BaseStrategy, Native, IErrors {
     using Transfer for address;
 
     /// ===============================
@@ -64,7 +64,7 @@ contract DirectAllocationStrategy is BaseStrategy, Native, Errors {
         uint256 _recipientsLength = _recipients.length;
         /// Check if inputs match the decoded data
         if (_recipientsLength != _amounts.length || _recipientsLength != _tokens.length) {
-            revert ARRAY_MISMATCH();
+            revert Errors_ArrayMismatch();
         }
 
         uint256 _totalNativeAmount;
@@ -76,22 +76,22 @@ contract DirectAllocationStrategy is BaseStrategy, Native, Errors {
             emit DirectAllocated(_recipients[i], _amounts[i], _tokens[i], _sender);
         }
 
-        if (msg.value < _totalNativeAmount) revert ETH_MISMATCH();
+        if (msg.value < _totalNativeAmount) revert Errors_ETHMismatch();
     }
 
     /// @inheritdoc BaseStrategy
     function _distribute(address[] memory, bytes memory, address) internal virtual override {
-        revert NOT_IMPLEMENTED();
+        revert Errors_NotImplemented();
     }
 
     /// @inheritdoc BaseStrategy
     function _register(address[] memory, bytes memory, address) internal virtual override returns (address[] memory) {
-        revert NOT_IMPLEMENTED();
+        revert Errors_NotImplemented();
     }
 
     /// @notice Fallback function to receive ether
     /// @dev This function is not implemented, should not receive ether
     receive() external payable virtual override {
-        revert NOT_IMPLEMENTED();
+        revert Errors_NotImplemented();
     }
 }

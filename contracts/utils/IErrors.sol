@@ -1,15 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.19;
 
-// Internal Imports
-// Interfaces
-import {IAllo} from "contracts/core/interfaces/IAllo.sol";
-// Contracts
-import {BaseStrategy} from "strategies/BaseStrategy.sol";
-// Internal Libraries
-import {Transfer} from "contracts/core/libraries/Transfer.sol";
-import {IErrors} from "contracts/utils/IErrors.sol";
-
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣗⠀⠀⠀⢸⣿⣿⣿⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣗⠀⠀⠀⢸⣿⣿⣿⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣿⢿⣿⣿⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣗⠀⠀⠀⢸⣿⣿⣿⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -25,71 +16,80 @@ import {IErrors} from "contracts/utils/IErrors.sol";
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠙⠋⠛⠙⠋⠛⠙⠋⠛⠙⠋⠃⠀⠀⠀⠀⠀⠀⠀⠀⠠⠿⠻⠟⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠟⠿⠟⠿⠆⠀⠸⠿⠿⠟⠯⠀⠀⠀⠸⠿⠿⠿⠏⠀⠀⠀⠀⠀⠈⠉⠻⠻⡿⣿⢿⡿⡿⠿⠛⠁⠀⠀⠀⠀⠀⠀
 //                    allo.gitcoin.co
 
-contract EasyRPGF is BaseStrategy, IErrors {
-    using Transfer for address;
+/// @title Errors
+/// @notice Interface containing generic errors used across all the smart contracts
+interface IErrors {
+    /// ======================
+    /// ====== Generic =======
+    /// ======================
 
-    /// ===============================
-    /// ========= Constructor =========
-    /// ===============================
+    /// @notice Thrown as a general error when input / data is invalid
+    error Errors_Invalid();
 
-    constructor(address _allo) BaseStrategy(_allo) {}
+    /// @notice Thrown when mismatch in decoding data
+    error Errors_Mismatch();
 
-    /// ===============================
-    /// ========= Initialize ==========
-    /// ===============================
+    /// @notice Thrown when mismatch in decoding data
+    error Errors_ArrayMismatch();
 
-    /// @notice Initialize the strategy
-    /// @param _poolId The pool id
-    /// @param _data Not used
-    function initialize(uint256 _poolId, bytes memory _data) external override {
-        __BaseStrategy_init(_poolId);
+    /// @notice Thrown when there is a mismatch in ETH needed vs ETH provided
+    error Errors_ETHMismatch();
 
-        emit Initialized(_poolId, "");
-    }
+    /// @notice Thrown when not enough funds are available
+    error Errors_NotEnoughFunds();
 
-    /// ====================================
-    /// ============ Internal ==============
-    /// ====================================
+    /// @notice Thrown when user is not authorized
+    error Errors_Unauthorized();
 
-    /// @notice Distribute pool funds
-    /// @param _recipientIds Array of addresses to send the funds to
-    /// @param _recipientAmounts Array of amounts that maps to _recipientIds array
-    /// @param _sender The sender address
-    function _distribute(address[] memory _recipientIds, bytes memory _recipientAmounts, address _sender)
-        internal
-        virtual
-        override
-        onlyPoolManager(_sender)
-    {
-        // Decode amounts from memory param
-        uint256[] memory _amounts = abi.decode(_recipientAmounts, (uint256[]));
+    /// @notice Thrown when address is the zero address
+    error Errors_ZeroAddress();
 
-        uint256 _payoutLength = _recipientIds.length;
+    /// @notice Thrown when the function is not implemented
+    error Errors_NotImplemented();
 
-        // Assert recipient and amounts length are equal
-        if (_payoutLength != _amounts.length) {
-            revert Errors_ArrayMismatch();
-        }
+    /// @notice Thrown when the value is non-zero
+    error Errors_NonZeroValue();
 
-        IAllo.Pool memory pool = _ALLO.getPool(_poolId);
-        for (uint256 i; i < _payoutLength; ++i) {
-            uint256 _amount = _amounts[i];
-            address _recipientAddress = _recipientIds[i];
+    /// ======================
+    /// ===== Strategies =====
+    /// ======================
 
-            _poolAmount -= _amount;
-            pool.token.transferAmount(_recipientAddress, _amount);
+    /// @notice Thrown when data is already intialized
+    error ALREADY_INITIALIZED();
 
-            emit Distributed(_recipientAddress, abi.encode(_amount, _sender));
-        }
-    }
+    /// @notice Thrown when data is yet to be initialized
+    error NOT_INITIALIZED();
 
-    /// @inheritdoc BaseStrategy
-    function _allocate(address[] memory, uint256[] memory, bytes memory, address) internal virtual override {
-        revert Errors_NotImplemented();
-    }
+    /// @notice Thrown when an invalid address is used
+    error INVALID_ADDRESS();
 
-    /// @inheritdoc BaseStrategy
-    function _register(address[] memory, bytes memory, address) internal virtual override returns (address[] memory) {
-        revert Errors_NotImplemented();
-    }
+    /// @notice Thrown when a pool is inactive
+    error POOL_INACTIVE();
+
+    /// @notice Thrown when a pool is already active
+    error Errors_PoolInactive();
+
+    /// @notice Thrown when the metadata is invalid.
+    error INVALID_METADATA();
+
+    /// @notice Thrown when the recipient is not accepted.
+    error RECIPIENT_NOT_ACCEPTED();
+
+    /// @notice Thrown when recipient is already accepted.
+    error RECIPIENT_ALREADY_ACCEPTED();
+
+    /// @notice Thrown when registration is not active.
+    error REGISTRATION_NOT_ACTIVE();
+
+    /// @notice Thrown when registration is active.
+    error REGISTRATION_ACTIVE();
+
+    /// @notice Thrown when the allocation is not active.
+    error ALLOCATION_NOT_ACTIVE();
+
+    /// @notice Thrown when the allocation is not ended.
+    error Errors_AllocationHasNotEnded();
+
+    /// @notice Thrown when the allocation is active.
+    error ALLOCATION_ACTIVE();
 }

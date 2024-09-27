@@ -9,7 +9,7 @@ import {IBaseStrategy} from "strategies/IBaseStrategy.sol";
 import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsExtension.sol";
 import {QVSimple} from "strategies/examples/quadratic-voting/QVSimple.sol";
 import {QVImpactStream} from "strategies/examples/impact-stream/QVImpactStream.sol";
-import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IErrors} from "contracts/utils/IErrors.sol";
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
 
 contract QVImpactStreamTest is Test {
@@ -84,7 +84,9 @@ contract QVImpactStreamTest is Test {
     }
 
     function test_SetPayoutsRevertWhen_PayoutAmountIsZero() external callWithPoolManager {
-        vm.expectRevert(abi.encodeWithSelector(Errors.RECIPIENT_ERROR.selector, recipient1));
+        vm.expectRevert(
+            abi.encodeWithSelector(IRecipientsExtension.RecipientsExtension_RecipientError.selector, recipient1)
+        );
         payouts.push(QVImpactStream.Payout({recipientId: recipient1, amount: 0}));
 
         /// make it after allocation finished
@@ -95,7 +97,9 @@ contract QVImpactStreamTest is Test {
     }
 
     function test_SetPayoutsRevertWhen_RecipientStatusIsNotAccepted() external callWithPoolManager {
-        vm.expectRevert(abi.encodeWithSelector(Errors.RECIPIENT_ERROR.selector, recipient1));
+        vm.expectRevert(
+            abi.encodeWithSelector(IRecipientsExtension.RecipientsExtension_RecipientError.selector, recipient1)
+        );
 
         /// make it after allocation finished
         vm.warp(block.timestamp + allocationWindow + 1 days);
@@ -131,7 +135,9 @@ contract QVImpactStreamTest is Test {
         vm.warp(block.timestamp + allocationWindow + 1 days);
 
         /// it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.RECIPIENT_ERROR.selector, recipient1));
+        vm.expectRevert(
+            abi.encodeWithSelector(IRecipientsExtension.RecipientsExtension_RecipientError.selector, recipient1)
+        );
 
         address[] memory _recipients = new address[](1);
         _recipients[0] = recipient1;
