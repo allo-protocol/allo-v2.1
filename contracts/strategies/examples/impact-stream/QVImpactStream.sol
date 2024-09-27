@@ -96,8 +96,8 @@ contract QVImpactStream is QVSimple {
         uint256 _length = _payouts.length;
         for (uint256 i; i < _length; ++i) {
             Payout memory _payout = _payouts[i];
-            uint256 _amount = payout.amount;
-            address _recipientId = payout.recipientId;
+            uint256 _amount = _payout.amount;
+            address _recipientId = _payout.recipientId;
 
             if (_amount == 0 || _getRecipientStatus(_recipientId) != Status.Accepted) {
                 revert RECIPIENT_ERROR(_recipientId);
@@ -123,7 +123,7 @@ contract QVImpactStream is QVSimple {
         override
         onlyAfterAllocation
     {
-        IAllo.Pool memory _pool = allo.getPool(poolId);
+        IAllo.Pool memory _pool = _ALLO.getPool(_poolId);
         address _poolToken = _pool.token;
 
         uint256 _length = _recipientIds.length;

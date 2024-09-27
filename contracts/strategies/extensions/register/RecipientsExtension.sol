@@ -283,8 +283,7 @@ abstract contract RecipientsExtension is BaseStrategy, Errors, IRecipientsExtens
         returns (address _recipientId, bool _isUsingRegistryAnchor, Metadata memory _metadata, bytes memory _extraData)
     {
         address _recipientIdOrRegistryAnchor;
-        (_recipientIdOrRegistryAnchor, _metadata, _extraData) =
-            abi.decode(_data, (address, Metadata, bytes));
+        (_recipientIdOrRegistryAnchor, _metadata, _extraData) = abi.decode(_data, (address, Metadata, bytes));
 
         // If the registry anchor is not the zero address check authorization
         // Anchor can never be zero, so if zero, set '_sender' as the recipientId

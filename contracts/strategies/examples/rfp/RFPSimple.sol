@@ -119,8 +119,10 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
         for (uint256 i; i < _milestoneIds.length; i++) {
             uint256 _milestoneId = _milestoneIds[i];
             // Check if the milestone is accepted or if it was already paid
-            if (_milestones[_milestoneId].status != MilestoneStatus.Accepted) revert INVALID_MILESTONE_STATUS();
-            if (wasMilestonePaid[_milestoneId]) revert INVALID_MILESTONE_STATUS();
+            if (_milestones[_milestoneId].status != MilestoneStatus.Accepted) {
+                revert MilestonesExtension_INVALID_MILESTONE_STATUS();
+            }
+            if (wasMilestonePaid[_milestoneId]) revert MilestonesExtension_INVALID_MILESTONE_STATUS();
 
             // Calculate the amount to be distributed for the milestone
             // Reverts if the recipient is not actually accepted
