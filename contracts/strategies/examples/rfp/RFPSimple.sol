@@ -110,7 +110,7 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
         virtual
         override
     {
-        if (block.timestamp <= registrationEndTime) revert Errors_AllocationHasNotEnded();
+        if (block.timestamp <= registrationEndTime) revert RecipientsExtension_RegistrationHasNotEnded();
         if (_recipientIds.length > 1) revert RecipientsExtension_RecipientNotAccepted();
 
         address _acceptedRecipientId = _recipientIds[0];

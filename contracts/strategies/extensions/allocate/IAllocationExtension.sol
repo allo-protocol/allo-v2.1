@@ -11,8 +11,11 @@ interface IAllocationExtension {
     /// @dev Error thrown when trying to call the function when the allocation is not active
     error AllocationExtension_ALLOCATION_NOT_ACTIVE();
 
-    /// @dev Error thrown when trying to call the function when the allocation has ended
+    /// @dev Error thrown when trying to call the function when the allocation has not ended
     error AllocationExtension_ALLOCATION_HAS_NOT_ENDED();
+
+    /// @dev Error thrown when trying to call the function when the allocation has ended
+    error AllocationExtension_ALLOCATION_HAS_ENDED();
 
     /// @notice Emitted when the allocation timestamps are updated
     /// @param allocationStartTime The start time for the allocation period

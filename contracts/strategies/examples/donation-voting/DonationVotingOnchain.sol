@@ -193,7 +193,7 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
     /// @notice Hook called before increasing the pool amount.
     /// @param _amount The amount to increase the pool by
     function _beforeIncreasePoolAmount(uint256 _amount) internal virtual override {
-        if (block.timestamp > allocationEndTime) revert Errors_PoolInactive();
+        if (block.timestamp > allocationEndTime) revert AllocationExtension_ALLOCATION_HAS_ENDED();
     }
 
     /// @notice Returns if the recipient is accepted

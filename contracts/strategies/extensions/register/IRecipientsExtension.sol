@@ -76,6 +76,9 @@ interface IRecipientsExtension {
     /// @notice Error when the recipient is not accepted
     error RecipientsExtension_RecipientNotAccepted();
 
+    /// @notice Error when the registration period has not ended
+    error RecipientsExtension_RegistrationHasNotEnded();
+
     /// ======================
     /// ======= Events =======
     /// ======================
