@@ -516,33 +516,145 @@ contract RecipientsExtensionUnit is Test {
         _;
     }
 
-    function test__registerWhenStatusIndexIsDifferentThanZero()
-        external
-        whenIteratingEachRecipient
-        whenStatusIndexIsDifferentThanZero
-    {
-        // It should call _getUintRecipientStatus
-        // It should emit event
-        // It should call _getUintRecipientStatus
-        vm.skip(true);
+    function test__registerWhenStatusIndexIsDifferentThanZero(
+        address[10] memory _recipients,
+        address[10] memory _recipientIds,
+        bool[10] memory _booleans,
+        address _sender
+    ) external whenIteratingEachRecipient whenStatusIndexIsDifferentThanZero {
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
+        recipientsExtension.set_metadataRequired(false);
+        _assumeNotZeroAddressInArray(_recipients);
+        _assumeNoDuplicates(_recipientIds);
+
+        bytes[] memory _dataArray = new bytes[](_recipients.length);
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            _dataArray[i] = abi.encode(_recipientIds[i], Metadata({protocol: 0, pointer: ""}));
+            // mock the calls
+            recipientsExtension.mock_call__extractRecipientAndMetadata(
+                _dataArray[i], _sender, _recipientIds[i], _booleans[i], Metadata({protocol: 0, pointer: ""}), bytes("")
+            );
+            recipientsExtension.mock_call__setRecipientStatus(
+                _recipientIds[0], uint8(IRecipientsExtension.Status.Pending)
+            );
+            recipientsExtension.mock_call__getUintRecipientStatus(_recipientIds[i], 2);
+            recipientsExtension.set__recipients(
+                _recipientIds[i],
+                IRecipientsExtension.Recipient({
+                    useRegistryAnchor: false,
+                    recipientAddress: address(0),
+                    statusIndex: uint64(i + 1),
+                    metadata: Metadata({protocol: 0, pointer: ""})
+                })
+            );
+
+            // It should call _getUintRecipientStatus
+            recipientsExtension.expectCall__getUintRecipientStatus(_recipientIds[i]);
+
+            // It should call _getUintRecipientStatus
+            recipientsExtension.expectCall__getUintRecipientStatus(_recipientIds[i]);
+        }
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            // It should emit event
+            vm.expectEmit();
+            emit IRecipientsExtension.UpdatedRegistration(_recipientIds[i], _dataArray[i], _sender, 2);
+        }
+
+        bytes memory _datas = abi.encode(_dataArray);
+        recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
     }
 
-    function test__registerWhenCurrentStatusIsAcceptedOrInReview()
-        external
-        whenIteratingEachRecipient
-        whenStatusIndexIsDifferentThanZero
-    {
-        // It should call _setRecipientStatus with correct parameters
-        vm.skip(true);
+    function test__registerWhenCurrentStatusIsAcceptedOrInReview(
+        address[10] memory _recipients,
+        address[10] memory _recipientIds,
+        bool[10] memory _booleans,
+        address _sender
+    ) external whenIteratingEachRecipient whenStatusIndexIsDifferentThanZero {
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
+        recipientsExtension.set_metadataRequired(false);
+        _assumeNotZeroAddressInArray(_recipients);
+        _assumeNoDuplicates(_recipientIds);
+
+        bytes[] memory _dataArray = new bytes[](_recipients.length);
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            _dataArray[i] = abi.encode(_recipientIds[i], Metadata({protocol: 0, pointer: ""}));
+            // mock the calls
+            recipientsExtension.mock_call__extractRecipientAndMetadata(
+                _dataArray[i], _sender, _recipientIds[i], _booleans[i], Metadata({protocol: 0, pointer: ""}), bytes("")
+            );
+            recipientsExtension.set__recipients(
+                _recipientIds[i],
+                IRecipientsExtension.Recipient({
+                    useRegistryAnchor: false,
+                    recipientAddress: address(0),
+                    statusIndex: uint64(i + 1),
+                    metadata: Metadata({protocol: 0, pointer: ""})
+                })
+            );
+            // Half of the recipients will have status Accepted and the other half InReview
+            uint8 currentStatus =
+                i % 2 == 0 ? uint8(IRecipientsExtension.Status.Accepted) : uint8(IRecipientsExtension.Status.InReview);
+            recipientsExtension.mock_call__getUintRecipientStatus(_recipientIds[i], currentStatus);
+            recipientsExtension.mock_call__setRecipientStatus(
+                _recipientIds[0], uint8(IRecipientsExtension.Status.Pending)
+            );
+
+            // It should call _setRecipientStatus with correct parameters
+            recipientsExtension.expectCall__setRecipientStatus(
+                _recipientIds[i], uint8(IRecipientsExtension.Status.Pending)
+            );
+        }
+
+        bytes memory _datas = abi.encode(_dataArray);
+        recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
     }
 
-    function test__registerWhenCurrentStatusIsRejected()
-        external
-        whenIteratingEachRecipient
-        whenStatusIndexIsDifferentThanZero
-    {
-        // It should call _setRecipientStatus with correct parameters
-        vm.skip(true);
+    function test__registerWhenCurrentStatusIsRejected(
+        address[10] memory _recipients,
+        address[10] memory _recipientIds,
+        bool[10] memory _booleans,
+        address _sender
+    ) external whenIteratingEachRecipient whenStatusIndexIsDifferentThanZero {
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
+        recipientsExtension.set_metadataRequired(false);
+        _assumeNotZeroAddressInArray(_recipients);
+        _assumeNoDuplicates(_recipientIds);
+
+        bytes[] memory _dataArray = new bytes[](_recipients.length);
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            _dataArray[i] = abi.encode(_recipientIds[i], Metadata({protocol: 0, pointer: ""}));
+            // mock the calls
+            recipientsExtension.mock_call__extractRecipientAndMetadata(
+                _dataArray[i], _sender, _recipientIds[i], _booleans[i], Metadata({protocol: 0, pointer: ""}), bytes("")
+            );
+            recipientsExtension.set__recipients(
+                _recipientIds[i],
+                IRecipientsExtension.Recipient({
+                    useRegistryAnchor: false,
+                    recipientAddress: address(0),
+                    statusIndex: uint64(i + 1),
+                    metadata: Metadata({protocol: 0, pointer: ""})
+                })
+            );
+            recipientsExtension.mock_call__getUintRecipientStatus(
+                _recipientIds[i], uint8(IRecipientsExtension.Status.Rejected)
+            );
+            recipientsExtension.mock_call__setRecipientStatus(
+                _recipientIds[0], uint8(IRecipientsExtension.Status.Appealed)
+            );
+
+            // It should call _setRecipientStatus with correct parameters
+            recipientsExtension.expectCall__setRecipientStatus(
+                _recipientIds[i], uint8(IRecipientsExtension.Status.Appealed)
+            );
+        }
+
+        bytes memory _datas = abi.encode(_dataArray);
+        recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
     }
 
     function test__extractRecipientAndMetadataWhenParametersAreValid(
