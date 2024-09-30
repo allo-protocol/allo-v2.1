@@ -8,6 +8,7 @@ import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
 import {MockMockRecipientsExtension} from "test/smock/MockMockRecipientsExtension.sol";
 import {Errors} from "contracts/core/libraries/Errors.sol";
+import {IBaseStrategy} from "contracts/strategies/IBaseStrategy.sol";
 
 contract RecipientsExtensionUnit is Test {
     MockMockRecipientsExtension recipientsExtension;
@@ -455,13 +456,60 @@ contract RecipientsExtensionUnit is Test {
         recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
     }
 
-    function test__registerWhenStatusIndexIsZero() external whenIteratingEachRecipient {
-        // It should set statusIndex
-        // It should set recipientIndexToRecipientId mapping
-        // It should call _setRecipientStatus
-        // It should emit event
+    function test__registerWhenStatusIndexIsZero(
+        address[10] memory _recipients,
+        address[10] memory _recipientIds,
+        bool[10] memory _booleans,
+        address _sender
+    ) external whenIteratingEachRecipient {
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
+        recipientsExtension.set_metadataRequired(false);
+        _assumeNotZeroAddressInArray(_recipients);
+        _assumeNoDuplicates(_recipientIds);
+
+        recipientsExtension.set_recipientsCounter(1); // Initialize recipientsCounter
+
+        bytes[] memory _eventDataArray = new bytes[](_recipients.length);
+        bytes[] memory _dataArray = new bytes[](_recipients.length);
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            _dataArray[i] = abi.encode(_recipientIds[i], Metadata({protocol: 0, pointer: ""}));
+            // mock the calls
+            recipientsExtension.mock_call__extractRecipientAndMetadata(
+                _dataArray[i], _sender, _recipientIds[i], _booleans[i], Metadata({protocol: 0, pointer: ""}), bytes("")
+            );
+            recipientsExtension.mock_call__setRecipientStatus(
+                _recipientIds[0], uint8(IRecipientsExtension.Status.Pending)
+            );
+
+            _eventDataArray[i] = abi.encode(_dataArray[i], i + 1);
+
+            // It should call _setRecipientStatus
+            recipientsExtension.expectCall__setRecipientStatus(
+                _recipientIds[i], uint8(IRecipientsExtension.Status.Pending)
+            );
+        }
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            // It should emit event
+            vm.expectEmit();
+            emit IBaseStrategy.Registered(_recipientIds[i], _eventDataArray[i]);
+        }
+
+        bytes memory _datas = abi.encode(_dataArray);
+        recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            // It should set statusIndex
+            IRecipientsExtension.Recipient memory recipient = recipientsExtension.getRecipient(_recipientIds[i]);
+            assertEq(recipient.statusIndex, i + 1);
+
+            // It should set recipientIndexToRecipientId mapping
+            assertEq(recipientsExtension.recipientIndexToRecipientId(i + 1), _recipientIds[i]);
+        }
+
         // It should increment recipientsCounter
-        vm.skip(true);
+        assertEq(recipientsExtension.recipientsCounter(), _recipients.length + 1);
     }
 
     modifier whenStatusIndexIsDifferentThanZero() {
