@@ -199,7 +199,7 @@ contract BaseStrategy is Test {
         baseStrategy.withdraw(_token, _amount, _recipient);
     }
 
-    function test_WithdrawRevertWhen_AmountIsGreaterThanPoolAmount(
+    function test_WithdrawRevertWhen_AmountIsGreaterThanBalanceMinusPoolAmount(
         address _token,
         uint256 _amount,
         address _recipient,

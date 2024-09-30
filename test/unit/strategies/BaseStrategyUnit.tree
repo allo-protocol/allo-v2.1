@@ -23,7 +23,7 @@ BaseStrategy::withdraw
 │   └── It should emit event
 └── When token is pool token
     ├── It should call balanceOf at token
-    └── When amount is greater than poolAmount
+    └── When amount is greater than balance minus poolAmount
         └── It should revert
 
 BaseStrategy::register
