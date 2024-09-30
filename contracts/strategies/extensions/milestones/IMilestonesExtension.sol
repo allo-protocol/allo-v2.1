@@ -6,6 +6,32 @@ import {Metadata} from "contracts/core/libraries/Metadata.sol";
 
 interface IMilestonesExtension {
     /// ===============================
+    /// ========== Events =============
+    /// ===============================
+
+    /// @notice Emitted when the maximum bid is increased.
+    /// @param maxBid The new maximum bid
+    event MaxBidIncreased(uint256 maxBid);
+
+    /// @notice Emitted when a bidder places a bid.
+    /// @param bidderId The address of the bidder
+    /// @param newBid The bid amount
+    event SetBid(address indexed bidderId, uint256 newBid);
+
+    /// @notice Emitted when a milestone is submitted.
+    /// @param milestoneId Id of the milestone
+    event MilestoneSubmitted(uint256 milestoneId);
+
+    /// @notice Emitted for the status change of a milestone.
+    /// @param milestoneId Id of the milestone
+    /// @param status Status of the milestone
+    event MilestoneStatusChanged(uint256 indexed milestoneId, MilestoneStatus status);
+
+    /// @notice Emitted when milestones are set.
+    /// @param milestonesLength Count of milestones
+    event MilestonesSet(uint256 milestonesLength);
+
+    /// ===============================
     /// ========== Errors =============
     /// ===============================
 
@@ -35,32 +61,6 @@ interface IMilestonesExtension {
 
     /// @notice Thrown when the milestone is pending
     error MilestonesExtension_MilestonePending();
-
-    /// ===============================
-    /// ========== Events =============
-    /// ===============================
-
-    /// @notice Emitted when the maximum bid is increased.
-    /// @param maxBid The new maximum bid
-    event MaxBidIncreased(uint256 maxBid);
-
-    /// @notice Emitted when a bidder places a bid.
-    /// @param bidderId The address of the bidder
-    /// @param newBid The bid amount
-    event SetBid(address indexed bidderId, uint256 newBid);
-
-    /// @notice Emitted when a milestone is submitted.
-    /// @param milestoneId Id of the milestone
-    event MilestoneSubmitted(uint256 milestoneId);
-
-    /// @notice Emitted for the status change of a milestone.
-    /// @param milestoneId Id of the milestone
-    /// @param status Status of the milestone
-    event MilestoneStatusChanged(uint256 indexed milestoneId, MilestoneStatus status);
-
-    /// @notice Emitted when milestones are set.
-    /// @param milestonesLength Count of milestones
-    event MilestonesSet(uint256 milestonesLength);
 
     /// ================================
     /// =========== Enums ==============

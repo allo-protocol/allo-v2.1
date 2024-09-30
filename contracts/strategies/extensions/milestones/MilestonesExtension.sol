@@ -4,7 +4,6 @@ pragma solidity ^0.8.19;
 // Internal Imports
 // Interfaces
 import {IMilestonesExtension} from "strategies/extensions/milestones/IMilestonesExtension.sol";
-import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
 // Core Contracts
 import {BaseStrategy} from "strategies/BaseStrategy.sol";
 // Internal Libraries

@@ -4,7 +4,6 @@ pragma solidity ^0.8.19;
 // External Imports
 // External Libraries
 import {MerkleProof} from "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
-import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 // Internal Imports
 // Interfaces
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
@@ -133,11 +132,10 @@ contract DonationVotingMerkleDistribution is DonationVotingOffchain {
     /// ====================================
 
     /// @notice Distributes funds (tokens) to recipients.
-    /// @param _recipientIds NOT USED
     /// @param _data Data to be decoded
     /// @custom:data (Distribution[] _distributions)
     /// @param _sender The address of the sender
-    function _distribute(address[] memory _recipientIds, bytes memory _data, address _sender)
+    function _distribute(address[] memory, bytes memory _data, address _sender)
         internal
         virtual
         override
