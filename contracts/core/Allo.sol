@@ -383,11 +383,11 @@ contract Allo is
     /// @param _poolId ID of the pool
     /// @param _amount The amount to be deposited into the pool
     function fundPool(uint256 _poolId, uint256 _amount) external payable nonReentrant {
-        // if amount is 0, revert with 'Errors_NotEnoughFunds()' error
-        if (_amount == 0) revert Errors_NotEnoughFunds();
+        // if amount is 0, revert with 'Errors_Invalid()' error
+        if (_amount == 0) revert Errors_Invalid();
 
         Pool memory _pool = _pools[_poolId];
-        if (_pool.token == NATIVE && _amount != msg.value) revert Errors_NotEnoughFunds();
+        if (_pool.token == NATIVE && _amount != msg.value) revert Errors_ETHMismatch();
 
         // Call the internal fundPool() function
         _fundPool(_amount, _msgSender(), _poolId, _pool.strategy);
@@ -552,8 +552,8 @@ contract Allo is
             // To prevent paying the _baseFee from the Allo contract's balance
             // If _token is NATIVE, then _baseFee + _amount should be equal to _msgValue.
             // If _token is not NATIVE, then _baseFee should be equal to _msgValue.
-            if (_token == NATIVE && (_baseFee + _amount != _msgValue)) revert Errors_NotEnoughFunds();
-            if (_token != NATIVE && _baseFee != _msgValue) revert Errors_NotEnoughFunds();
+            if (_token == NATIVE && (_baseFee + _amount != _msgValue)) revert Errors_ETHMismatch();
+            if (_token != NATIVE && _baseFee != _msgValue) revert Errors_ETHMismatch();
 
             address(_treasury).transferAmountNative(_baseFee);
 
