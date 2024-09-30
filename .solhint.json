@@ -12,7 +12,7 @@
     "immutable-vars-naming": ["warn", { "immutablesAsConstants": true }],
 		"avoid-low-level-calls": "off",
 		"no-console": "off",
-		"max-line-length": ["warn", 120, { "ignore": ["comments"] }],
+		"max-line-length": ["off", 120, { "ignore": ["comments"] }],
 		"gas-custom-errors": "warn",
 		"no-unused-vars": "warn"
 	}
