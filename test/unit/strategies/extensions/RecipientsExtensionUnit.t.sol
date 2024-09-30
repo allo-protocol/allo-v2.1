@@ -362,6 +362,7 @@ contract RecipientsExtensionUnit is Test {
     }
 
     modifier whenIteratingEachRecipient() {
+        recipientsExtension.mock_call__checkOnlyActiveRegistration();
         _;
     }
 
@@ -374,7 +375,6 @@ contract RecipientsExtensionUnit is Test {
     ) external whenIteratingEachRecipient {
         _assumeNotZeroAddressInArray(_recipients);
         _assumeNoDuplicates(_recipientIds);
-        recipientsExtension.mock_call__checkOnlyActiveRegistration();
 
         bytes[] memory _dataArray = new bytes[](_recipients.length);
 
@@ -421,7 +421,6 @@ contract RecipientsExtensionUnit is Test {
         Metadata[10] memory _metadatas,
         address _sender
     ) external whenIteratingEachRecipient {
-        recipientsExtension.mock_call__checkOnlyActiveRegistration();
 
         _recipients[0] = address(0);
 
@@ -449,7 +448,6 @@ contract RecipientsExtensionUnit is Test {
         bool[10] memory _booleans,
         address _sender
     ) external whenIteratingEachRecipient {
-        recipientsExtension.mock_call__checkOnlyActiveRegistration();
         recipientsExtension.set_metadataRequired(true);
         _assumeNotZeroAddressInArray(_recipients);
 
@@ -476,7 +474,6 @@ contract RecipientsExtensionUnit is Test {
         bool[10] memory _booleans,
         address _sender
     ) external whenIteratingEachRecipient {
-        recipientsExtension.mock_call__checkOnlyActiveRegistration();
         recipientsExtension.set_metadataRequired(false);
         _assumeNotZeroAddressInArray(_recipients);
         _assumeNoDuplicates(_recipientIds);
@@ -536,7 +533,6 @@ contract RecipientsExtensionUnit is Test {
         bool[10] memory _booleans,
         address _sender
     ) external whenIteratingEachRecipient whenStatusIndexIsDifferentThanZero {
-        recipientsExtension.mock_call__checkOnlyActiveRegistration();
         recipientsExtension.set_metadataRequired(false);
         _assumeNotZeroAddressInArray(_recipients);
         _assumeNoDuplicates(_recipientIds);
@@ -586,7 +582,6 @@ contract RecipientsExtensionUnit is Test {
         bool[10] memory _booleans,
         address _sender
     ) external whenIteratingEachRecipient whenStatusIndexIsDifferentThanZero {
-        recipientsExtension.mock_call__checkOnlyActiveRegistration();
         recipientsExtension.set_metadataRequired(false);
         _assumeNotZeroAddressInArray(_recipients);
         _assumeNoDuplicates(_recipientIds);
@@ -632,7 +627,6 @@ contract RecipientsExtensionUnit is Test {
         bool[10] memory _booleans,
         address _sender
     ) external whenIteratingEachRecipient whenStatusIndexIsDifferentThanZero {
-        recipientsExtension.mock_call__checkOnlyActiveRegistration();
         recipientsExtension.set_metadataRequired(false);
         _assumeNotZeroAddressInArray(_recipients);
         _assumeNoDuplicates(_recipientIds);
