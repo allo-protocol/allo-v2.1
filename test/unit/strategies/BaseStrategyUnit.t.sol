@@ -203,12 +203,13 @@ contract BaseStrategy is Test {
         address _token,
         uint256 _amount,
         address _recipient,
-        uint256 _contractBalance
+        uint256 _contractBalance,
+        uint256 _poolAmount
     ) external whenTokenIsPoolToken(_token, _amount, _recipient, _contractBalance) {
-        vm.assume(_amount > 0);
-        vm.assume(_contractBalance > _amount);
-
-        baseStrategy.set__poolAmount(_contractBalance);
+        vm.assume(_contractBalance > 0);
+        _poolAmount = bound(_poolAmount, 1, _contractBalance);
+        _amount = bound(_amount, _contractBalance - _poolAmount + 1, _contractBalance);
+        baseStrategy.set__poolAmount(_poolAmount);
 
         // It should revert
         vm.expectRevert(IBaseStrategy.BaseStrategy_WITHDRAW_MORE_THAN_POOL_AMOUNT.selector);
