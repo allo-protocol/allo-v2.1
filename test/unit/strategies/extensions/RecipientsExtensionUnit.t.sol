@@ -40,6 +40,20 @@ contract RecipientsExtensionUnit is Test {
         return _statuses;
     }
 
+    function _boundStatuses(uint256 _fullRow) internal view returns (uint256, uint8[] memory) {
+        uint8[] memory _statusValues = new uint8[](64);
+        for (uint256 col = 0; col < 64; col++) {
+            uint256 colIndex = col << 2; // col * 4
+            uint8 newStatus = uint8((_fullRow >> colIndex) & 0xF);
+            newStatus = uint8(bound(newStatus, 0, 6)); // max enum value = 6
+            _statusValues[col] = newStatus;
+
+            uint256 reviewedRow = _fullRow & ~(0xF << colIndex);
+            _fullRow = reviewedRow | (uint256(newStatus) << colIndex);
+        }
+        return (_fullRow, _statusValues);
+    }
+
     function _fixedArrayToMemory(address[10] memory _array) internal pure returns (address[] memory) {
         address[] memory _memoryArray = new address[](_array.length);
         for (uint256 i = 0; i < _array.length; i++) {
@@ -814,20 +828,76 @@ contract RecipientsExtensionUnit is Test {
         _;
     }
 
-    function test__processStatusRowWhenTheNewStatusIsDifferentThanTheCurrentStatus()
+    function test__processStatusRowWhenTheNewStatusIsDifferentThanTheCurrentStatus(uint256 _fullRow)
         external
         whenTheNewStatusIsDifferentThanTheCurrentStatus
     {
-        // It should call _reviewRecipientStatus
-        vm.skip(true);
+        uint8[] memory _statusValues;
+        (_fullRow, _statusValues) = _boundStatuses(_fullRow);
+
+        uint256 _rowIndex = 0;
+        uint256 currentRow = recipientsExtension.statusesBitMap(_rowIndex);
+        for (uint256 col = 0; col < 64; ++col) {
+            // Extract the status at the column index
+            uint256 colIndex = col << 2; // col * 4
+            uint8 newStatus = uint8((_fullRow >> colIndex) & 0xF);
+            uint8 currentStatus = uint8((currentRow >> colIndex) & 0xF);
+
+            // Only do something if the status is being modified
+            if (newStatus != currentStatus) {
+                uint256 recipientIndex = (_rowIndex << 6) + col + 1; // _rowIndex * 64 + col + 1
+
+                // It should call _reviewRecipientStatus
+                recipientsExtension.expectCall__reviewRecipientStatus(
+                    IRecipientsExtension.Status(newStatus), IRecipientsExtension.Status(currentStatus), recipientIndex
+                );
+            }
+        }
+
+        recipientsExtension.call__processStatusRow(0, _fullRow);
     }
 
-    function test__processStatusRowWhenTheReviewedStatusIsDifferentThanNewStatus()
+    function test__processStatusRowWhenTheReviewedStatusIsDifferentThanNewStatus(uint256 _fullRow)
         external
         whenTheNewStatusIsDifferentThanTheCurrentStatus
     {
+        uint8[] memory _statusValues;
+        (_fullRow, _statusValues) = _boundStatuses(_fullRow);
+
+        uint256 _rowIndex = 0;
+
+        uint256 currentRow = recipientsExtension.statusesBitMap(_rowIndex);
+        for (uint256 col = 0; col < 64; ++col) {
+            // Extract the status at the column index
+            uint256 colIndex = col << 2; // col * 4
+            uint8 newStatus = uint8((_fullRow >> colIndex) & 0xF);
+            uint8 currentStatus = uint8((currentRow >> colIndex) & 0xF);
+
+            // Only do something if the status is being modified
+            if (newStatus != currentStatus) {
+                uint256 recipientIndex = (_rowIndex << 6) + col + 1; // _rowIndex * 64 + col + 1
+                recipientsExtension.mock_call__reviewRecipientStatus(
+                    IRecipientsExtension.Status(newStatus),
+                    IRecipientsExtension.Status(currentStatus),
+                    recipientIndex,
+                    IRecipientsExtension.Status.Accepted
+                );
+            }
+        }
+
+        uint256 reviewedFullRow = recipientsExtension.call__processStatusRow(_rowIndex, _fullRow);
+
         // It should update _fullRow
-        vm.skip(true);
+        for (uint256 col = 0; col < 64; col++) {
+            uint256 colIndex = col << 2; // col * 4
+            uint8 newStatus = uint8((reviewedFullRow >> colIndex) & 0xF);
+            uint8 proposedStatus = uint8((_fullRow >> colIndex) & 0xF);
+            if (proposedStatus == 0) {
+                assertEq(newStatus, uint8(IRecipientsExtension.Status.None));
+            } else {
+                assertEq(newStatus, uint8(IRecipientsExtension.Status.Accepted));
+            }
+        }
     }
 
     function test__validateReviewRecipientsWhenParametersAreValid(address _sender) external {
