@@ -28,7 +28,7 @@ library QVHelper {
     /// @param _recipients The recipients to vote
     /// @param _voiceCredits The amounts of voice credits to cast for each recipient
     /// @dev The number of recipients and voiceCredits should be equal and the same index should correspond to the same recipient and amount
-    function _voteWithVoiceCredits(
+    function voteWithVoiceCredits(
         VotingState storage _state,
         address[] memory _recipients,
         uint256[] memory _voiceCredits
@@ -54,7 +54,7 @@ library QVHelper {
     /// @param _recipients The recipients to vote
     /// @param _votes The amounts of votes to cast for each recipient
     /// @dev The number of recipients and votes should be equal and the same index should correspond to the same recipient and amount
-    function _vote(VotingState storage _state, address[] memory _recipients, uint256[] memory _votes) internal {
+    function vote(VotingState storage _state, address[] memory _recipients, uint256[] memory _votes) internal {
         /// Check if the number of recipients and amounts are equal
         if (_recipients.length != _votes.length) revert QVHelper_LengthMissmatch();
 
@@ -77,7 +77,7 @@ library QVHelper {
     /// @param _recipients The recipients
     /// @param _poolAmount The amount of the pool
     /// @return _payouts The payouts for each recipient
-    function _getPayout(VotingState storage _state, address[] memory _recipients, uint256 _poolAmount)
+    function getPayout(VotingState storage _state, address[] memory _recipients, uint256 _poolAmount)
         internal
         view
         returns (uint256[] memory _payouts)

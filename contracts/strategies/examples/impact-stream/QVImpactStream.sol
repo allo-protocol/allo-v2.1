@@ -132,12 +132,11 @@ contract QVImpactStream is QVSimple {
             if (_amount == 0) revert RecipientsExtension_RecipientError(_recipientId);
 
             delete payouts[_recipientId];
+            _poolAmount -= _amount;
 
             _poolToken.transferAmount(_recipientAddress, _amount);
 
-            bytes memory _data = abi.encode(_recipientAddress, _amount, _sender);
-
-            emit Distributed(_recipientId, _data);
+            emit Distributed(_recipientId, abi.encode(_recipientAddress, _amount, _sender));
         }
     }
 
