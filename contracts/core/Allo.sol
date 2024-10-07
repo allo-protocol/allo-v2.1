@@ -38,15 +38,7 @@ import {IBaseStrategy} from "strategies/IBaseStrategy.sol";
 /// @author @thelostone-mc <aditya@gitcoin.co>, @0xKurt <kurt@gitcoin.co>, @codenamejason <jason@gitcoin.co>, @0xZakk <zakk@gitcoin.co>, @nfrgosselin <nate@gitcoin.co>
 /// @notice This contract is used to create & manage _pools as well as manage the protocol.
 /// @dev The contract must be initialized with the 'initialize()' function.
-contract Allo is
-    IAllo,
-    Native,
-    Initializable,
-    Ownable,
-    AccessControlUpgradeable,
-    ReentrancyGuardUpgradeable,
-    Errors
-{
+contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable, ReentrancyGuardUpgradeable, Errors {
     using Transfer for address;
 
     // ==========================
