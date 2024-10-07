@@ -166,9 +166,9 @@ contract SQFSuperfluid is
                 || _sqfSuperfluidInitializeParams.allocationSuperToken == address(0)
                 || _sqfSuperfluidInitializeParams.superfluidHost == address(0)
                 || _sqfSuperfluidInitializeParams.passportDecoder == address(0)
-        ) revert Errors_ZeroAddress();
+        ) revert ZERO_ADDRESS();
 
-        if (_sqfSuperfluidInitializeParams.initialSuperAppBalance == 0) revert Errors_Invalid();
+        if (_sqfSuperfluidInitializeParams.initialSuperAppBalance == 0) revert INVALID();
 
         superfluidHost = _sqfSuperfluidInitializeParams.superfluidHost;
         minPassportScore = _sqfSuperfluidInitializeParams.minPassportScore;
@@ -247,7 +247,7 @@ contract SQFSuperfluid is
     function adjustWeightings(uint256 _previousFlowRate, uint256 _newFlowRate) external {
         address recipientId = superAppsRecipientIds[msg.sender];
 
-        if (recipientId == address(0)) revert Errors_Unauthorized();
+        if (recipientId == address(0)) revert UNAUTHORIZED();
 
         uint256 recipientTotalUnits = totalUnitsByRecipient[recipientId] * 1e5;
 
@@ -318,7 +318,7 @@ contract SQFSuperfluid is
     /// @param _recipient The address to withdraw to
     function _beforeWithdraw(address _token, uint256 _amount, address _recipient) internal override {
         if (_token == address(poolSuperToken)) {
-            revert Errors_Invalid();
+            revert INVALID();
         }
     }
 
@@ -402,7 +402,7 @@ contract SQFSuperfluid is
         bytes memory _data,
         address _sender
     ) internal override onlyActiveAllocation {
-        if (!_isValidAllocator(_sender)) revert Errors_Unauthorized();
+        if (!_isValidAllocator(_sender)) revert UNAUTHORIZED();
 
         int96[] memory flowRates = abi.decode(_data, (int96[]));
 

@@ -8,7 +8,7 @@ import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {BaseStrategy} from "strategies/BaseStrategy.sol";
 // Internal Libraries
 import {Transfer} from "contracts/core/libraries/Transfer.sol";
-import {IErrors} from "contracts/utils/IErrors.sol";
+import {Errors} from "contracts/core/libraries/Errors.sol";
 
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣗⠀⠀⠀⢸⣿⣿⣿⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣗⠀⠀⠀⢸⣿⣿⣿⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -25,7 +25,7 @@ import {IErrors} from "contracts/utils/IErrors.sol";
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠙⠋⠛⠙⠋⠛⠙⠋⠛⠙⠋⠃⠀⠀⠀⠀⠀⠀⠀⠀⠠⠿⠻⠟⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠟⠿⠟⠿⠆⠀⠸⠿⠿⠟⠯⠀⠀⠀⠸⠿⠿⠿⠏⠀⠀⠀⠀⠀⠈⠉⠻⠻⡿⣿⢿⡿⡿⠿⠛⠁⠀⠀⠀⠀⠀⠀
 //                    allo.gitcoin.co
 
-contract EasyRPGF is BaseStrategy, IErrors {
+contract EasyRPGF is BaseStrategy, Errors {
     using Transfer for address;
 
     /// ===============================
@@ -68,7 +68,7 @@ contract EasyRPGF is BaseStrategy, IErrors {
 
         // Assert recipient and amounts length are equal
         if (_payoutLength != _amounts.length) {
-            revert Errors_ArrayMismatch();
+            revert ARRAY_MISMATCH();
         }
 
         IAllo.Pool memory pool = _ALLO.getPool(_poolId);
@@ -85,11 +85,11 @@ contract EasyRPGF is BaseStrategy, IErrors {
 
     /// @inheritdoc BaseStrategy
     function _allocate(address[] memory, uint256[] memory, bytes memory, address) internal virtual override {
-        revert Errors_NotImplemented();
+        revert NOT_IMPLEMENTED();
     }
 
     /// @inheritdoc BaseStrategy
     function _register(address[] memory, bytes memory, address) internal virtual override returns (address[] memory) {
-        revert Errors_NotImplemented();
+        revert NOT_IMPLEMENTED();
     }
 }

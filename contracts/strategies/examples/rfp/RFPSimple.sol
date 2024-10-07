@@ -76,7 +76,7 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
         returns (Status _reviewedStatus)
     {
         if (_newStatus == Status.Accepted) {
-            if (block.timestamp > registrationEndTime) revert Errors_Invalid();
+            if (block.timestamp > registrationEndTime) revert INVALID();
             // The registration period ends when a recipient is accepted.
             registrationEndTime = uint64(block.timestamp - 1);
         }
@@ -95,7 +95,7 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
 
     /// @inheritdoc BaseStrategy
     function _allocate(address[] memory, uint256[] memory, bytes memory, address) internal virtual override {
-        revert Errors_NotImplemented();
+        revert NOT_IMPLEMENTED();
     }
 
     /// @notice Distributes funds (tokens) to recipients.

@@ -7,7 +7,7 @@ import {
     DonationVotingMerkleDistribution,
     DonationVotingOffchain
 } from "strategies/examples/donation-voting/DonationVotingMerkleDistribution.sol";
-import {IErrors} from "contracts/utils/IErrors.sol";
+import {Errors} from "contracts/core/libraries/Errors.sol";
 import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsExtension.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IntegrationBase} from "./IntegrationBase.sol";
@@ -517,7 +517,7 @@ contract IntegrationDonationVotingMerkleDistributionDisabledClaim is Integration
         claims[1].recipientId = recipient1Addr;
         claims[1].token = allocationToken;
 
-        vm.expectRevert(IErrors.Errors_NotImplemented.selector);
+        vm.expectRevert(Errors.NOT_IMPLEMENTED.selector);
         strategyWithDirectTransfers.claimAllocation(abi.encode(claims));
 
         vm.stopPrank();

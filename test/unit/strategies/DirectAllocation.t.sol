@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
 import {DirectAllocationStrategy} from "strategies/examples/direct-allocation/DirectAllocation.sol";
-import {IErrors} from "contracts/utils/IErrors.sol";
+import {Errors} from "contracts/core/libraries/Errors.sol";
 
 contract DirectAllocationTest is Test {
     event Initialized(uint256 poolId, bytes data);
@@ -42,7 +42,7 @@ contract DirectAllocationTest is Test {
         address[] memory _tokens = new address[](_recipients.length);
         bytes memory _data = abi.encode(_tokens);
 
-        vm.expectRevert(IErrors.Errors_ArrayMismatch.selector);
+        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
 
         vm.prank(mockAlloAddress);
         directAllocationStrategy.allocate(_recipients, _amounts, _data, _sender);
@@ -56,7 +56,7 @@ contract DirectAllocationTest is Test {
         address[] memory _tokens = new address[](_recipients.length + 1);
         bytes memory _data = abi.encode(_tokens);
 
-        vm.expectRevert(IErrors.Errors_ArrayMismatch.selector);
+        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
 
         vm.prank(mockAlloAddress);
         directAllocationStrategy.allocate(_recipients, _amounts, _data, _sender);
@@ -85,7 +85,7 @@ contract DirectAllocationTest is Test {
     function test_DistributeRevertWhen_Called(address[] memory _recipientIds, bytes memory _data, address _sender)
         external
     {
-        vm.expectRevert(IErrors.Errors_NotImplemented.selector);
+        vm.expectRevert(Errors.NOT_IMPLEMENTED.selector);
 
         vm.prank(mockAlloAddress);
         directAllocationStrategy.distribute(_recipientIds, _data, _sender);
@@ -94,14 +94,14 @@ contract DirectAllocationTest is Test {
     function test_RegisterRevertWhen_Called(address[] memory _recipients, bytes memory _data, address _sender)
         external
     {
-        vm.expectRevert(IErrors.Errors_NotImplemented.selector);
+        vm.expectRevert(Errors.NOT_IMPLEMENTED.selector);
 
         vm.prank(mockAlloAddress);
         directAllocationStrategy.register(_recipients, _data, _sender);
     }
 
     function test_ReceiveRevertWhen_Called() external {
-        vm.expectRevert(IErrors.Errors_NotImplemented.selector);
+        vm.expectRevert(Errors.NOT_IMPLEMENTED.selector);
 
         /// send ether to the strategy
         payable(address(directAllocationStrategy)).transfer(1 ether);

@@ -9,9 +9,9 @@ import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
 import {BaseStrategy} from "strategies/BaseStrategy.sol";
 // Internal Libraries
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
-import {IErrors} from "contracts/utils/IErrors.sol";
+import {Errors} from "contracts/core/libraries/Errors.sol";
 
-abstract contract RecipientsExtension is BaseStrategy, IRecipientsExtension, IErrors {
+abstract contract RecipientsExtension is BaseStrategy, IRecipientsExtension, Errors {
     /// @notice if set to true, `_reviewRecipientStatus()` is called for each new status update.
     bool public immutable REVIEW_EACH_STATUS;
 
@@ -122,7 +122,7 @@ abstract contract RecipientsExtension is BaseStrategy, IRecipientsExtension, IEr
     /// @param _refRecipientsCounter the recipientCounter the transaction is based on
     function reviewRecipients(ApplicationStatus[] calldata _statuses, uint256 _refRecipientsCounter) public virtual {
         _validateReviewRecipients(msg.sender);
-        if (_refRecipientsCounter != recipientsCounter) revert Errors_Invalid();
+        if (_refRecipientsCounter != recipientsCounter) revert INVALID();
         // Loop through the statuses and set the status
         for (uint256 i; i < _statuses.length; ++i) {
             uint256 _rowIndex = _statuses[i].index;
@@ -181,7 +181,7 @@ abstract contract RecipientsExtension is BaseStrategy, IRecipientsExtension, IEr
     /// @param _registrationEndTime The end time for the registration
     function _isPoolTimestampValid(uint64 _registrationStartTime, uint64 _registrationEndTime) internal view virtual {
         if (_registrationStartTime > _registrationEndTime) {
-            revert Errors_Invalid();
+            revert INVALID();
         }
     }
 
@@ -289,7 +289,7 @@ abstract contract RecipientsExtension is BaseStrategy, IRecipientsExtension, IEr
         // Anchor can never be zero, so if zero, set '_sender' as the recipientId
         if (_recipientIdOrRegistryAnchor != address(0)) {
             if (!_isProfileMember(_recipientIdOrRegistryAnchor, _sender)) {
-                revert Errors_Unauthorized();
+                revert UNAUTHORIZED();
             }
 
             _isUsingRegistryAnchor = true;

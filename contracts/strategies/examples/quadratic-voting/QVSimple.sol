@@ -150,13 +150,13 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
         override
     {
         // check that the sender can allocate votes
-        if (!_isValidAllocator(_sender)) revert Errors_Unauthorized();
+        if (!_isValidAllocator(_sender)) revert UNAUTHORIZED();
 
         uint256 _voiceCreditsToAllocate;
 
         for (uint256 i; i < __recipients.length; i++) {
             // check the voice credits to allocate is > 0
-            if (_amounts[i] == 0) revert Errors_Invalid();
+            if (_amounts[i] == 0) revert INVALID();
 
             // check that the recipient is accepted
             if (!_isAcceptedRecipient(__recipients[i])) revert RecipientsExtension_RecipientError(__recipients[i]);
@@ -168,7 +168,7 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
         }
 
         // check that the allocator has voice credits left to allocate
-        if (!_hasVoiceCreditsLeft(_voiceCreditsToAllocate, voiceCreditsAllocated[_sender])) revert Errors_Invalid();
+        if (!_hasVoiceCreditsLeft(_voiceCreditsToAllocate, voiceCreditsAllocated[_sender])) revert INVALID();
 
         _votingState.voteWithVoiceCredits(__recipients, _amounts);
 
@@ -198,7 +198,7 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
     /// @param _amount The amount to increase the pool by
     function _beforeIncreasePoolAmount(uint256 _amount) internal virtual override {
         if (totalPayoutAmount != 0) {
-            revert Errors_Invalid();
+            revert INVALID();
         }
     }
 }

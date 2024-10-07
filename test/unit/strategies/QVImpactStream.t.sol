@@ -9,7 +9,7 @@ import {IBaseStrategy} from "strategies/IBaseStrategy.sol";
 import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsExtension.sol";
 import {QVSimple} from "strategies/examples/quadratic-voting/QVSimple.sol";
 import {QVImpactStream} from "strategies/examples/impact-stream/QVImpactStream.sol";
-import {IErrors} from "contracts/utils/IErrors.sol";
+import {Errors} from "contracts/core/libraries/Errors.sol";
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
 
 contract QVImpactStreamTest is Test {

@@ -7,7 +7,7 @@ import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
 import {MockMockRecipientsExtension} from "test/smock/MockMockRecipientsExtension.sol";
-import {IErrors} from "contracts/utils/IErrors.sol";
+import {Errors} from "contracts/core/libraries/Errors.sol";
 import {IBaseStrategy} from "contracts/strategies/IBaseStrategy.sol";
 
 contract RecipientsExtensionUnit is Test {
@@ -205,7 +205,7 @@ contract RecipientsExtensionUnit is Test {
         recipientsExtension.mock_call__validateReviewRecipients(address(this));
 
         // It should revert
-        vm.expectRevert(IErrors.Errors_Invalid.selector);
+        vm.expectRevert(Errors.INVALID.selector);
 
         recipientsExtension.reviewRecipients(new IRecipientsExtension.ApplicationStatus[](0), _refRecipientsCounter);
     }
@@ -316,7 +316,7 @@ contract RecipientsExtensionUnit is Test {
         vm.assume(_registrationStartTime > _registrationEndTime);
 
         // It should revert
-        vm.expectRevert(IErrors.Errors_Invalid.selector);
+        vm.expectRevert(Errors.INVALID.selector);
 
         recipientsExtension.call__isPoolTimestampValid(_registrationStartTime, _registrationEndTime);
     }
@@ -726,7 +726,7 @@ contract RecipientsExtensionUnit is Test {
         recipientsExtension.mock_call__isProfileMember(_param.recipientIdOrRegistryAnchor, _sender, false);
 
         // It should revert
-        vm.expectRevert(IErrors.Errors_Unauthorized.selector);
+        vm.expectRevert(Errors.UNAUTHORIZED.selector);
 
         recipientsExtension.call__extractRecipientAndMetadata(_data, _sender);
     }

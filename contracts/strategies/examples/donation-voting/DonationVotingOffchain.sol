@@ -158,7 +158,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     /// @param _data The data to be decoded
     /// @custom:data (Claim[] _claims)
     function claimAllocation(bytes memory _data) external virtual onlyAfterAllocation {
-        if (DIRECT_TRANSFER) revert Errors_NotImplemented();
+        if (DIRECT_TRANSFER) revert NOT_IMPLEMENTED();
 
         (Claim[] memory _claims) = abi.decode(_data, (Claim[]));
 
@@ -249,7 +249,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
             emit Allocated(__recipients[i], _sender, _amounts[i], abi.encode(_tokens[i]));
         }
 
-        if (msg.value != _totalNativeAmount) revert Errors_ETHMismatch();
+        if (msg.value != _totalNativeAmount) revert ETH_MISMATCH();
     }
 
     /// @notice Distributes funds (tokens) to recipients.
@@ -284,7 +284,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     /// @param _amount The amount to withdraw
     /// @param _recipient The address to withdraw to
     function _beforeWithdraw(address _token, uint256 _amount, address _recipient) internal virtual override {
-        if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert Errors_Invalid();
+        if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert INVALID();
     }
 
     /// @notice Hook called after increasing the pool amount.

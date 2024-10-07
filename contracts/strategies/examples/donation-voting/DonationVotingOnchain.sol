@@ -135,7 +135,7 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
         }
 
         if (_allocationToken == NATIVE) {
-            if (msg.value != _totalAmount) revert Errors_ETHMismatch();
+            if (msg.value != _totalAmount) revert ETH_MISMATCH();
         } else {
             _allocationToken.usePermit(_sender, address(this), _totalAmount, _permitData);
             _allocationToken.transferAmountFrom(_sender, address(this), _totalAmount);
@@ -187,7 +187,7 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
     /// @param _amount The amount to withdraw
     /// @param _recipient The address to withdraw to
     function _beforeWithdraw(address _token, uint256 _amount, address _recipient) internal virtual override {
-        if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert Errors_Invalid();
+        if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert INVALID();
     }
 
     /// @notice Hook called before increasing the pool amount.
