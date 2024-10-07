@@ -37,7 +37,7 @@ contract DirectAllocationStrategy is BaseStrategy, Native, Errors {
     /// ========= Constructor =========
     /// ===============================
 
-    constructor(address _allo) BaseStrategy(_allo) {}
+    constructor(address _allo) BaseStrategy(_allo, "DirectAllocation") {}
 
     /// ===============================
     /// ========= Initialize ==========

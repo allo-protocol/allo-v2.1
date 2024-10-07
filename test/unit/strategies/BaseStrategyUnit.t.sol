@@ -13,7 +13,7 @@ contract BaseStrategy is Test {
     address constant NATIVE = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     function setUp() public {
-        baseStrategy = new MockMockBaseStrategy(address(0));
+        baseStrategy = new MockMockBaseStrategy(address(0), "MockBaseStrategy");
     }
 
     function test___BaseStrategy_initShouldCallOnlyAllo(uint256 _poolId) external {
