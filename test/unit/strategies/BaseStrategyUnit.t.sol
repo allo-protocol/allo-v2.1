@@ -16,6 +16,20 @@ contract BaseStrategy is Test {
         baseStrategy = new MockMockBaseStrategy(address(0), "MockBaseStrategy");
     }
 
+    function test_ConstructorShouldSetAllo(address _allo) external {
+        baseStrategy = new MockMockBaseStrategy(_allo, "MockBaseStrategy");
+
+        // It should set allo
+        assertEq(address(baseStrategy.getAllo()), _allo);
+    }
+
+    function test_ConstructorShouldSetStrategyName(string memory _strategyName) external {
+        baseStrategy = new MockMockBaseStrategy(address(0), _strategyName);
+
+        // It should set strategy name
+        assertEq(baseStrategy.getStrategyId(), keccak256(abi.encode(_strategyName)));
+    }
+
     function test___BaseStrategy_initShouldCallOnlyAllo(uint256 _poolId) external {
         vm.assume(_poolId != 0);
         baseStrategy.mock_call__checkOnlyAllo();
