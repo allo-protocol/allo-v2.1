@@ -14,7 +14,6 @@ import {ReentrancyGuardUpgradeable} from
 import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 import {IRegistry} from "contracts/core/interfaces/IRegistry.sol";
 import {Errors} from "contracts/core/libraries/Errors.sol";
-import {Native} from "contracts/core/libraries/Native.sol";
 import {Transfer} from "contracts/core/libraries/Transfer.sol";
 import {Metadata} from "contracts/core/libraries/Metadata.sol";
 import {IBaseStrategy} from "strategies/IBaseStrategy.sol";
@@ -38,7 +37,7 @@ import {IBaseStrategy} from "strategies/IBaseStrategy.sol";
 /// @author @thelostone-mc <aditya@gitcoin.co>, @0xKurt <kurt@gitcoin.co>, @codenamejason <jason@gitcoin.co>, @0xZakk <zakk@gitcoin.co>, @nfrgosselin <nate@gitcoin.co>
 /// @notice This contract is used to create & manage pools as well as manage the protocol.
 /// @dev The contract must be initialized with the 'initialize()' function.
-contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable, ReentrancyGuardUpgradeable, Errors {
+contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, ReentrancyGuardUpgradeable, Errors {
     using Transfer for address;
 
     // ==========================
@@ -318,7 +317,8 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
     /// @param _recipient The recipient
     function recoverFunds(address _token, address _recipient) external onlyOwner {
         // Get the amount of the token to transfer, which is always the entire balance of the contract address
-        uint256 amount = _token == NATIVE ? address(this).balance : IERC20Upgradeable(_token).balanceOf(address(this));
+        uint256 amount =
+            _token == Transfer.NATIVE ? address(this).balance : IERC20Upgradeable(_token).balanceOf(address(this));
 
         // Transfer the amount to the recipient (pool owner)
         _token.transferAmount(_recipient, amount);
@@ -381,7 +381,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
         if (_amount == 0) revert NOT_ENOUGH_FUNDS();
 
         Pool memory pool = pools[_poolId];
-        if (pool.token == NATIVE && _amount != msg.value) revert NOT_ENOUGH_FUNDS();
+        if (pool.token == Transfer.NATIVE && _amount != msg.value) revert NOT_ENOUGH_FUNDS();
 
         // Call the internal fundPool() function
         _fundPool(_amount, _msgSender(), _poolId, pool.strategy);
@@ -546,8 +546,8 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
             // To prevent paying the baseFee from the Allo contract's balance
             // If _token is NATIVE, then baseFee + _amount should be equal to _msgValue.
             // If _token is not NATIVE, then baseFee should be equal to _msgValue.
-            if (_token == NATIVE && (baseFee + _amount != _msgValue)) revert NOT_ENOUGH_FUNDS();
-            if (_token != NATIVE && baseFee != _msgValue) revert NOT_ENOUGH_FUNDS();
+            if (_token == Transfer.NATIVE && (baseFee + _amount != _msgValue)) revert NOT_ENOUGH_FUNDS();
+            if (_token != Transfer.NATIVE && baseFee != _msgValue) revert NOT_ENOUGH_FUNDS();
 
             address(treasury).transferAmountNative(baseFee);
 
@@ -595,7 +595,7 @@ contract Allo is IAllo, Native, Initializable, Ownable, AccessControlUpgradeable
         Pool storage pool = pools[_poolId];
         address _token = pool.token;
 
-        if (_token == NATIVE && msg.value < _amount) revert ETH_MISMATCH();
+        if (_token == Transfer.NATIVE && msg.value < _amount) revert ETH_MISMATCH();
 
         if (feeAmount > 0) {
             uint256 balanceBeforeFee = _token.getBalance(treasury);
