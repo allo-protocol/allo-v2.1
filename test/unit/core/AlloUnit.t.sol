@@ -777,16 +777,6 @@ contract Allo is Test {
         vm.skip(true);
     }
 
-    function test__msgDataWhenCalldataLengthIsMoreThan20() external whenSenderIsTrustedForwarder {
-        // it should return actual data
-        vm.skip(true);
-    }
-
-    function test__msgDataWhenConditionsAreNotMet() external {
-        // it should call _msgData
-        vm.skip(true);
-    }
-
     function test_GetFeeDenominatorShouldReturnFeeDenominator() external {
         // it should return feeDenominator
         vm.skip(true);

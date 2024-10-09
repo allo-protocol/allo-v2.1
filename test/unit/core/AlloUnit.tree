@@ -245,13 +245,6 @@ Allo::_msgSender
 └── when conditions are not met
     └── it should call _msgSender
 
-Allo::_msgData
-├── when sender is trustedForwarder
-│   └── when calldata length is more than 20
-│       └── it should return actual data
-└── when conditions are not met
-    └── it should call _msgData
-
 Allo::getFeeDenominator
 └── it should return feeDenominator
 
