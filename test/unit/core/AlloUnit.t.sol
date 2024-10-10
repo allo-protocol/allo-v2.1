@@ -334,7 +334,7 @@ contract AlloUnit is Test {
         vm.assume(_percentFee > 1e18);
 
         // it should revert
-        vm.expectRevert(Errors.INVALID_FEE.selector);
+        vm.expectRevert(Errors.INVALID.selector);
         allo.updatePercentFee(_percentFee);
     }
 
@@ -654,7 +654,7 @@ contract AlloUnit is Test {
         _recipients[0][0] = address(1);
 
         // it should revert
-        vm.expectRevert(Errors.MISMATCH.selector);
+        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
 
         allo.batchRegisterRecipient(_poolIds, _recipients, _data);
     }
@@ -669,7 +669,7 @@ contract AlloUnit is Test {
         bytes[] memory _data = new bytes[](1);
         _data[0] = "data";
         // it should revert
-        vm.expectRevert(Errors.MISMATCH.selector);
+        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
 
         allo.batchRegisterRecipient(_poolIds, _recipients, _data);
     }
@@ -706,7 +706,7 @@ contract AlloUnit is Test {
 
     function test_FundPoolRevertWhen_AmountIsZero(uint256 _poolId) external {
         // it should revert
-        vm.expectRevert(Errors.NOT_ENOUGH_FUNDS.selector);
+        vm.expectRevert(Errors.INVALID.selector);
 
         allo.fundPool(_poolId, 0);
     }
@@ -720,7 +720,7 @@ contract AlloUnit is Test {
 
         allo.setPool(_poolId, fakePool);
         // it should revert
-        vm.expectRevert(Errors.NOT_ENOUGH_FUNDS.selector);
+        vm.expectRevert(Errors.ETH_MISMATCH.selector);
         allo.fundPool(_poolId, _amount);
     }
 
@@ -786,7 +786,7 @@ contract AlloUnit is Test {
         _values[0] = 1;
 
         // it should revert
-        vm.expectRevert(Errors.MISMATCH.selector);
+        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
         allo.batchAllocate(_poolIds, _recipients, _amounts, _values, _datas);
     }
 
@@ -808,7 +808,7 @@ contract AlloUnit is Test {
         _datas[0] = "data";
 
         // it should revert
-        vm.expectRevert(Errors.MISMATCH.selector);
+        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
         allo.batchAllocate(_poolIds, _recipients, _amounts, _values, _datas);
     }
 
@@ -831,7 +831,7 @@ contract AlloUnit is Test {
         _datas[0] = "data";
 
         // it should revert
-        vm.expectRevert(Errors.MISMATCH.selector);
+        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
         allo.batchAllocate(_poolIds, _recipients, _amounts, _values, _datas);
     }
 
@@ -853,7 +853,7 @@ contract AlloUnit is Test {
         _datas[0] = "data";
 
         // it should revert
-        vm.expectRevert(Errors.MISMATCH.selector);
+        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
         allo.batchAllocate(_poolIds, _recipients, _amounts, _values, _datas);
     }
 
@@ -1163,7 +1163,7 @@ contract AlloUnit is Test {
         // we change the allo address so it reverts here
         vm.mockCall(_strategy, abi.encodeWithSelector(IBaseStrategy.getAllo.selector), abi.encode(address(0)));
         // it should revert
-        vm.expectRevert(Errors.MISMATCH.selector);
+        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
 
         allo.call__createPool(
             address(this),
@@ -1227,7 +1227,7 @@ contract AlloUnit is Test {
         }
 
         // it should revert
-        vm.expectRevert(Errors.NOT_ENOUGH_FUNDS.selector);
+        vm.expectRevert(Errors.ETH_MISMATCH.selector);
 
         allo.call__createPool(
             address(this),
@@ -1287,7 +1287,7 @@ contract AlloUnit is Test {
         }
 
         // it should revert
-        vm.expectRevert(Errors.NOT_ENOUGH_FUNDS.selector);
+        vm.expectRevert(Errors.ETH_MISMATCH.selector);
 
         allo.call__createPool(
             address(this),
