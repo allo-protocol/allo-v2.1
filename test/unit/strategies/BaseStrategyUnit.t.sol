@@ -47,7 +47,7 @@ contract BaseStrategy is Test {
         baseStrategy.set__poolId(_currentPoolId);
 
         // It should revert
-        vm.expectRevert(IBaseStrategy.BaseStrategy_ALREADY_INITIALIZED.selector);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_AlreadyInitialized.selector);
 
         baseStrategy.call___BaseStrategy_init(_poolId);
     }
@@ -56,7 +56,7 @@ contract BaseStrategy is Test {
         baseStrategy.mock_call__checkOnlyAllo();
 
         // It should revert
-        vm.expectRevert(IBaseStrategy.BaseStrategy_INVALID_POOL_ID.selector);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_InvalidPoolId.selector);
 
         baseStrategy.call___BaseStrategy_init(0);
     }
@@ -226,7 +226,7 @@ contract BaseStrategy is Test {
         baseStrategy.set__poolAmount(_poolAmount);
 
         // It should revert
-        vm.expectRevert(IBaseStrategy.BaseStrategy_WITHDRAW_MORE_THAN_POOL_AMOUNT.selector);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_WithdrawMoreThanPoolAmount.selector);
 
         baseStrategy.withdraw(_token, _amount, _recipient);
     }
@@ -306,7 +306,7 @@ contract BaseStrategy is Test {
         vm.assume(_caller != address(baseStrategy.getAllo()));
 
         // It should revert
-        vm.expectRevert(IBaseStrategy.BaseStrategy_UNAUTHORIZED.selector);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_Unauthorized.selector);
 
         vm.prank(_caller);
         baseStrategy.call__checkOnlyAllo();
@@ -336,7 +336,7 @@ contract BaseStrategy is Test {
         );
 
         // It should revert
-        vm.expectRevert(IBaseStrategy.BaseStrategy_UNAUTHORIZED.selector);
+        vm.expectRevert(IBaseStrategy.BaseStrategy_Unauthorized.selector);
 
         baseStrategy.call__checkOnlyPoolManager(address(this));
     }
