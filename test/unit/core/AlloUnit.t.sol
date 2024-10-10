@@ -1163,7 +1163,7 @@ contract AlloUnit is Test {
         // we change the allo address so it reverts here
         vm.mockCall(_strategy, abi.encodeWithSelector(IBaseStrategy.getAllo.selector), abi.encode(address(0)));
         // it should revert
-        vm.expectRevert(Errors.ARRAY_MISMATCH.selector);
+        vm.expectRevert(Errors.MISMATCH.selector);
 
         allo.call__createPool(
             address(this),
