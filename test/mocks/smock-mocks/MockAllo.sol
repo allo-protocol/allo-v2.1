@@ -106,7 +106,7 @@ contract MockAllo is Allo {
     }
 
     function setPool(uint256 _poolId, IAllo.Pool memory _pool) public {
-        pools[_poolId] = _pool;
+        _pools[_poolId] = _pool;
     }
 
     function getNonce(address _caller) public view returns (uint256) {
