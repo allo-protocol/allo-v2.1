@@ -71,6 +71,7 @@ contract DirectAllocationTest is Test {
 
         address[] memory _tokens = new address[](1);
         _tokens[0] = makeAddr("token");
+        vm.etch(_tokens[0], new bytes(0x1)); // Prevents error: Address: call to non-contract
 
         bytes memory _data = abi.encode(_tokens);
 

@@ -1351,6 +1351,7 @@ contract AlloUnit is Test {
         );
         vm.mockCall(_strategy, abi.encodeWithSelector(IBaseStrategy.getPoolId.selector), abi.encode(poolId));
         vm.mockCall(_strategy, abi.encodeWithSelector(IBaseStrategy.getAllo.selector), abi.encode(address(allo)));
+        allo.mock_call__fundPool(_amount, address(this), poolId, IBaseStrategy(_strategy));
         for (uint256 i = 0; i < _managers.length; i++) {
             allo.mock_call__addPoolManager(poolId, _managers[i]);
         }
