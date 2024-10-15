@@ -173,7 +173,7 @@ abstract contract RecipientsExtension is BaseStrategy, IRecipientsExtension, Err
     /// @dev This will revert if the registration has not started or if the registration has ended.
     function _checkOnlyActiveRegistration() internal view virtual {
         if (!_isPoolActive()) {
-            revert REGISTRATION_NOT_ACTIVE();
+            revert RecipientsExtension_RegistrationNotActive();
         }
     }
 
