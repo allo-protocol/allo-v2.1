@@ -111,7 +111,8 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     /// @param _strategyName The name of the strategy
     /// @param _directTransfer false if allocations must be manually claimed, true if they are sent during allocation.
     constructor(address _allo, string memory _strategyName, bool _directTransfer)
-        RecipientsExtension(_allo, _strategyName, false)
+        RecipientsExtension(false)
+        BaseStrategy(_allo, _strategyName)
     {
         DIRECT_TRANSFER = _directTransfer;
     }

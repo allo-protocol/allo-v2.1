@@ -55,7 +55,10 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
     /// ========= Constructor =========
     /// ===============================
 
-    constructor(address _allo, string memory _strategyName) RecipientsExtension(_allo, _strategyName, false) {}
+    constructor(address _allo, string memory _strategyName)
+        RecipientsExtension(false)
+        BaseStrategy(_allo, _strategyName)
+    {}
 
     /// ===============================
     /// ========= Initialize ==========

@@ -45,7 +45,7 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
 
     /// @notice Constructor for the RFP Simple Strategy
     /// @param _allo The 'Allo' contract
-    constructor(address _allo) RecipientsExtension(_allo, "RFPSimple", true) {}
+    constructor(address _allo) RecipientsExtension(true) BaseStrategy(_allo, "RFPSimple") {}
 
     /// ===============================
     /// ========= Initialize ==========
