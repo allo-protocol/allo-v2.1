@@ -72,6 +72,7 @@ contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, Reentr
 
     /// @notice Maps the pool ID to the pool details
     /// @dev 'Pool.id' -> 'Pool'
+    /// @dev pool ID is incremental and starts from 1, there is no _pools[0]
     mapping(uint256 => Pool) internal _pools;
 
     /// @custom:oz-upgrades-renamed-from cloneableStrategies
