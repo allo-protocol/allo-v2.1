@@ -713,8 +713,8 @@ contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, Reentr
     // =========================
 
     /// @notice Getter for the fee denominator
-    /// @return FEE_DENOMINATOR The fee denominator is (1e18) which represents 100%
-    function getFeeDenominator() public pure returns (uint256 FEE_DENOMINATOR) {
+    /// @return The fee denominator is (1e18) which represents 100%
+    function getFeeDenominator() public pure returns (uint256) {
         return 1e18;
     }
 
