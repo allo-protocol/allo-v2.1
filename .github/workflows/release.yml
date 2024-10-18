@@ -1,0 +1,56 @@
+name: Release
+
+on: [push]
+
+jobs:
+  release:
+    name: Release
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        export_type: ['interfaces', 'all']
+
+    env:
+      PROJECT_NAME: '@allo-protocol/allo-v2.1'
+      EXPORT_NAME: ${{ matrix.export_type == 'interfaces' && '-interfaces' || '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+          fetch-depth: 1
+
+      - name: Setup bun env
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Smock
+        run: bun smock
+        id: smock
+
+      - name: Build project and generate out directory
+        run: forge build
+
+      - name: Export Solidity - Export Type ${{ matrix.export_type }}
+        uses: defi-wonderland/solidity-exporter-action@v2.1.0
+        with:
+          package_name: ${{ env.PROJECT_NAME }}
+          out: 'out'
+          interfaces: 'contracts/core/interfaces'
+          contracts: 'contracts/core'
+          libraries: "contracts/core/libraries"
+          export_type: '${{ matrix.export_type }}'
+
+      - name: Publish to NPM
+        run: cd export/${{ env.PROJECT_NAME }}${{ env.EXPORT_NAME }} && npm publish --access public --tag latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
