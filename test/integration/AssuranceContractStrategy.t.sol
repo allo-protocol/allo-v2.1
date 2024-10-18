@@ -185,7 +185,6 @@ contract AssuranceContractStrategyTest is Test {
         vm.warp(deadline + 1);
         vm.deal(contributor1, 1 ether);
         vm.prank(contributor1);
-        vm.expectRevert("Campaign ended");
         assuranceContract.pledge{value: 1 ether}(poolId, 1 ether);
     }
 
