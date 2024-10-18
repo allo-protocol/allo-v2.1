@@ -77,8 +77,6 @@ contract AssuranceContract is BaseStrategy {
     function pledge(uint256 _poolId, uint256 _amount) external payable {
         Campaign storage campaign = campaigns[_poolId];
 
-        // Ensure the campaign hasn't ended
-        require(block.timestamp < campaign.deadline, "Campaign ended");
         // Ensure the campaign hasn't been finalized
         require(!campaign.finalized, "Campaign already finalized");
 
