@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 // Core Contracts
 import {BaseStrategy} from "strategies/BaseStrategy.sol";
 import {BountyExtension} from "strategies/extensions/bounties/BountyExtension.sol";
+import {RecipientExtension} from "strategies/extensions/recipients/RecipientsExtension.sol";
 
 // NOTE: Singleton contracts will require different extensions
 // NOTE: Why do the extensions have constructors ?
@@ -27,7 +28,7 @@ import {BountyExtension} from "strategies/extensions/bounties/BountyExtension.so
 /// @notice Strategy that allows allo profiles to create and manage bounties under one instance
 // Every profile on the registry would deploy their own instance of this strategy
 // and then manage all the bounties for that profile.
-contract MultipleBountyDistributions is BaseStrategy, BountyExtension {
+contract MultipleBountyDistributions is BaseStrategy, RecipientExtension, BountyExtension {
     /// ===============================
     /// ======== Constructor ==========
     /// ===============================
@@ -53,7 +54,7 @@ contract MultipleBountyDistributions is BaseStrategy, BountyExtension {
         internal
         override
     {
-      // nothing to do
+        // nothing to do
     }
 
     function _transferDistribution(address _recipientId, uint256 _bountyId, bytes memory _data) internal override {
