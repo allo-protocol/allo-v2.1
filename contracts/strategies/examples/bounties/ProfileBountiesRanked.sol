@@ -27,7 +27,7 @@ import {BountyExtension} from "strategies/extensions/bounties/BountyExtension.so
 /// @notice Strategy that allows allo profiles to create and manage bounties under one instance
 // Every profile on the registry would deploy their own instance of this strategy
 // and then manage all the bounties for that profile.
-contract ProfileBounties is BaseStrategy, BountyExtension {
+contract ProfileBountiesRanked is BaseStrategy, BountyExtension {
     /// ===============================
     /// ======== Constructor ==========
     /// ===============================
@@ -43,7 +43,7 @@ contract ProfileBounties is BaseStrategy, BountyExtension {
         emit Initialized(_poolId, _data);
     }
 
-    function _getBountyIdFromExtraData(bytes memory _data) internal view override returns (uint256) {
+    function _getBountyIdFromExtraData(bytes memory _data) internal view virtual returns (uint256) {
         return abi.decode(_data, (uint256));
     }
 }
