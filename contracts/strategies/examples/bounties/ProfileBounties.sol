@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.19;
 
-// Internal Imports
-// Interfaces
-import {IAllo} from "contracts/core/interfaces/IAllo.sol";
 // Core Contracts
 import {BaseStrategy} from "strategies/BaseStrategy.sol";
 // Internal Libraries
@@ -29,7 +26,7 @@ import {ProfileBountiesStorage} from "./ProfileBountiesStorage.sol";
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠙⠋⠛⠙⠋⠛⠙⠋⠛⠙⠋⠃⠀⠀⠀⠀⠀⠀⠀⠀⠠⠿⠻⠟⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠟⠿⠟⠿⠆⠀⠸⠿⠿⠟⠯⠀⠀⠀⠸⠿⠿⠿⠏⠀⠀⠀⠀⠀⠈⠉⠻⠻⡿⣿⢿⡿⡿⠿⠛⠁⠀⠀⠀⠀⠀⠀
 //                    allo.gitcoin.co
 
-/// @title ProfileBounties Strategy 
+/// @title ProfileBounties Strategy
 /// @notice Strategy that allows allo profiles to create and manage bounties under one instance
 // Every profile on the registry would deploy their own instance of this strategy
 // and then manage all the bounties for that profile.
@@ -42,6 +39,10 @@ contract ProfileBounties is BaseStrategy, ProfileBountiesStorage {
 
     event BountyCreated(uint256 indexed bountyId, Bounty bounty);
 
+    error ProfileBounties_InvalidData();
+    error ProfileBounties_NotImplemented();
+    error ProfileBounties_AlreadyDistributed();
+
     /// ===============================
     /// ======== Constructor ==========
     /// ===============================
@@ -52,7 +53,7 @@ contract ProfileBounties is BaseStrategy, ProfileBountiesStorage {
     /// ===============================
     function initialize(uint256 _poolId, bytes memory _data) external override {
         __BaseStrategy_init(_poolId);
-        // NOTE: can this entire function be moved to the BaseStrategy ? 
+        // NOTE: can this entire function be moved to the BaseStrategy ?
         // and have another internal function which strategies can override
         emit Initialized(_poolId, _data);
     }
@@ -61,16 +62,8 @@ contract ProfileBounties is BaseStrategy, ProfileBountiesStorage {
     /// ============ Internal ==============
     /// ====================================
 
-    function _createBounty(
-        address _token,
-        uint256 _amount,
-        Metadata memory _metadata
-    ) internal {
-        Bounty _bounty = new Bounty({
-            token: _token,
-            amount: _amount,
-            metadata: _metadata
-        });
+    function _createBounty(address _token, uint256 _amount, Metadata memory _metadata) internal {
+        Bounty memory _bounty = Bounty({token: _token, acceptedRecipient: address(0), amount: _amount, metadata: _metadata});
 
         bountyIdCounter++;
         bounties[bountyIdCounter] = _bounty;
@@ -78,17 +71,33 @@ contract ProfileBounties is BaseStrategy, ProfileBountiesStorage {
         emit BountyCreated(bountyIdCounter, _bounty);
     }
 
+    function _revertInvalidBounty(uint256 _bountyId) internal {
+        Bounty memory bounty = bounties[_bountyId];
+        if (bounty.token == address(0) || bounty.acceptedRecipient != address(0)) {
+            revert ProfileBounties_InvalidData();
+        }
+    }
 
-    function _processRecipient(address _recipientId, bool _isUsingRegistryAnchor, Metadata memory _metadata, bytes memory _extraData) internal override {
-        
+    function _processRecipient(
+        address _recipientId,
+        bool _isUsingRegistryAnchor,
+        Metadata memory _metadata,
+        bytes memory _extraData
+    ) internal override {
         uint256 bountyId = abi.decode(_extraData, (uint256));
-        // TODO: implement
+        _revertInvalidBounty(bountyId);
 
+        BountyApplication memory _bountyApplication =
+            BountyApplication({bountyId: bountyId, recipientId: _recipientId, metadata: _metadata});
+        // add additional fields here
+
+        bountyApplications[bountyId][_recipientId] = _bountyApplication;
+        // should we emit an event here or can we rely on the Registered Event?
     }
 
     /// @inheritdoc BaseStrategy
     function _allocate(address[] memory, uint256[] memory, bytes memory, address) internal virtual override {
-        revert NOT_IMPLEMENTED();
+        revert ProfileBounties_NotImplemented();
     }
 
     function _distribute(address[] memory _recipientIds, bytes memory _data, address _sender)
@@ -96,48 +105,45 @@ contract ProfileBounties is BaseStrategy, ProfileBountiesStorage {
         virtual
         override
     {
-        uint256[] _bountyIds = abi.decode(_extraData, (uint256));
+        uint256[] memory _bountyIds = abi.decode(_data, (uint256[]));
 
         uint256 _bountiesLength = _bountyIds.length;
 
         if (_recipientIds.length != _bountiesLength) {
-            revert INVALID_DATA();
+            revert ProfileBounties_InvalidData();
         }
 
         for (uint256 i = 0; i < _bountiesLength; i++) {
-            Bounty storage _bounty = bounties[bountyIds[i]];
-            _bounty.status = BountyStatus.Closed;
-            _bounty.token.transfer(_recipientIds[i], _bounty.amount);
+            uint256 bountyId = _bountyIds[i];
+            address recipientId = _recipientIds[i];
+            _revertInvalidBounty(bountyId);
+
+            if(bountyApplications[bountyId][recipientId].bountyId != bountyId) {
+                revert ProfileBounties_InvalidData();
+            }
+
+            Bounty storage _bounty = bounties[bountyId];
+            _bounty.acceptedRecipient = recipientId;
+            // todo: _bounty.token.transfer(recipientId, _bounty.amount);
         }
-        
+
         // emit Distribute(_recipientIds, _data, _sender);
-
     }
-
- 
-
 
     /// ====================================
     /// ============ External ==============
     /// ====================================
 
-    function createBounties(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        Metadata[] memory _metadata
-    ) external {
+    function createBounties(address[] memory _tokens, uint256[] memory _amounts, Metadata[] memory _metadata)
+        external
+    {
         uint256 _tokensLength = _tokens.length;
         if (_tokensLength != _amounts.length || _tokensLength != _metadata.length) {
-            revert INVALID_DATA();
+            revert ProfileBounties_InvalidData();
         }
 
         for (uint256 i = 0; i < _tokensLength; i++) {
             _createBounty(_tokens[i], _amounts[i], _metadata[i]);
         }
     }
-
-    z
-
-
-
 }
