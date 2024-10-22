@@ -4,20 +4,19 @@ pragma solidity ^0.8.24;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
-// import {
-//     MaxEndHints,
-//     MaxEndHintsImpl,
-//     StreamConfig,
-//     StreamConfigImpl,
-//     Streams,
-//     StreamsHistory,
-//     StreamReceiver
-// } from "./Streams.sol";
-// import {Managed} from "./Managed.sol";
-// import {Splits, SplitsReceiver} from "./Splits.sol";
-// import {IERC20, SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 
-// using SafeERC20 for IERC20;
+type StreamConfig is uint256;
+
+/// @notice A stream receiver
+struct StreamReceiver {
+    /// @notice The account ID.
+    uint256 accountId;
+    /// @notice The stream configuration.
+    StreamConfig config;
+}
+
+
+
 
 /// @notice Drips protocol contract. Automatically streams and splits funds between accounts.
 ///
@@ -52,6 +51,10 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 ///
 /// The contract can store at most `type(int128).max` which is `2 ^ 127 - 1` units of each token.
 interface IDrips {
+
+        uint160 public constant AMT_PER_SEC_MULTIPLIER = 1_000_000_000;
+
+
     /// @notice Registers a driver.
     /// The driver is assigned a unique ID and a range of account IDs it can control.
     /// That range consists of all 2^224 account IDs with highest 32 bits equal to the driver ID.
@@ -342,6 +345,8 @@ interface IDrips {
         StreamReceiver[] memory currReceivers,
         uint32 timestamp
     ) public view returns (uint128 balance) ;
+
+
     /// @notice Sets the account's streams configuration.
     /// Requires that the tokens used to increase the streams balance
     /// are already sent to Drips and are withdrawable.

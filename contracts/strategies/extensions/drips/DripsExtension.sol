@@ -2,14 +2,22 @@
 pragma solidity ^0.8.19;
 
 import "./IDrips.sol";
+import { StreamConfigImpl } from "./StreamConfigImpl.sol";
 
 contract DripsExtension {
 
 
     IDrips public drips;
 
-    constructor(address dripsAddress) {
+
+     mapping (address => uint32) private driverIds;
+
+     uint32 private ownerDriverID;
+     address private token;
+
+    constructor(address dripsAddress, address tokenAddress) {
         drips = Drips(dripsAddress);
+        token = tokenAddress;
     }
 
 
@@ -22,9 +30,17 @@ contract DripsExtension {
         external
         payable
         returns (address[] memory _recipientIs) {
+
+            // create a driver ID for every recipient
+            uint256 recipientLength = _recipients.length;
+            for(uint256 i = 0 ; i < recipientLength; i++){
+                driverIds[_recipients[i]] = drips.registerDriver(_recipients[i]);
+            }
             
-            //create or validate existince of drips account for each recipient
-            // might need to track something here to map IDs
+            // track the driver id of the fund sender
+            ownerDriverID = drips.registerDriver(_sender);
+            
+         
 
         }
 
@@ -37,9 +53,39 @@ contract DripsExtension {
         external
         payable {
 
-            // create a stream with the recipients
+            // create a stream with the recipients.  this is capped at 100...
+            uint8 size = _recipients.length() > 100 ? 100 : _recipients.length();
+            StreamReceiver[] receivers = new StreamReceiver[size];
 
+            // start immediatly  but it's empty...?
+            StreamConfig config = StreamConfigImpl.create(0, 10 * drips.AMT_PER_SEC_MULTIPLIER, 0, 0);
+
+            uint256 recipientLength = _recipients.length;
+            for(uint256 i = 0 ; i < recipientLength; i++){
+                receivers[i] = new StreamReceiver(driverIds[_recipients[i]], config);                
+            }
+
+            drips.setStreams(
+                ownerDriverID,
+                token,
+                [],
+                0,
+                receivers,
+                0
+            );
         }
+
+
+    // function setStreams(
+    //     uint256 accountId,
+    //     IERC20 erc20,
+    //     StreamReceiver[] memory currReceivers,
+    //     int128 balanceDelta,
+    //     StreamReceiver[] memory newReceivers,
+    //     MaxEndHints maxEndHints
+    // ) public onlyDriver(accountId) returns (int128 realBalanceDelta);
+
+        
 
     /// @notice Distributes funds to recipients.
     /// @param _recipientIds The IDs of the recipients
@@ -48,7 +94,10 @@ contract DripsExtension {
     function distribute(address[] memory _recipientIds, bytes memory _data, address _sender) external {
 
         // enable the stream
-        
+
+
+    
+
 
 
     }
