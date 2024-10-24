@@ -1,0 +1,63 @@
+name: Canary Release
+
+on: workflow_dispatch
+
+jobs:
+  export:
+    name: Generate Interfaces And Contracts
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        export_type: ['interfaces', 'all']
+
+    env:
+      PROJECT_NAME: '@allo-protocol/allo-v2.1'
+      EXPORT_NAME: ${{ matrix.export_type == 'interfaces' && '-interfaces' || '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+          fetch-depth: 1
+
+      - name: Setup bun env
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Smock
+        run: bun smock
+        id: smock
+
+      - name: Build project and generate out directory
+        run: forge build
+
+      - name: Export Solidity - Export Type ${{ matrix.export_type }}
+        uses: defi-wonderland/solidity-exporter-action@v2.1.0
+        with:
+          package_name: ${{ env.PROJECT_NAME }}
+          out: 'out'
+          interfaces: 'contracts/core/interfaces'
+          contracts: 'contracts/core'
+          libraries: "contracts/core/libraries"
+          export_type: '${{ matrix.export_type }}'
+
+      - name: Update version
+        run: cd export/${{ env.PROJECT_NAME }}${{ env.EXPORT_NAME }} && yarn version --new-version "0.0.0-${GITHUB_SHA::8}" --no-git-tag-version
+
+      - name: Configure npm for Publishing
+        run: |
+          echo "registry=https://registry.npmjs.org/" > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
+      - name: Publish to NPM - Export Type ${{ matrix.export_type }}
+        run: cd export/${{ env.PROJECT_NAME }}${{ env.EXPORT_NAME }} && npm publish --access public --tag canary
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
