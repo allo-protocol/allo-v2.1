@@ -167,7 +167,7 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
             // sum up the voice credits to allocate
             _voiceCreditsToAllocate += _amounts[i];
 
-            emit Allocated(__recipients[i], _sender, _voiceCreditsToAllocate, _data);
+            emit Allocated(__recipients[i], _sender, _amounts[i], _data);
         }
 
         // check that the allocator has voice credits left to allocate
