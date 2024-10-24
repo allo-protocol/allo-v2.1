@@ -67,7 +67,10 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
     /// @notice Constructor for the Donation Voting Onchain strategy
     /// @param _allo The 'Allo' contract
     /// @param _strategyName The name of the strategy
-    constructor(address _allo, string memory _strategyName) RecipientsExtension(_allo, _strategyName, false) {}
+    constructor(address _allo, string memory _strategyName)
+        RecipientsExtension(false)
+        BaseStrategy(_allo, _strategyName)
+    {}
 
     /// ===============================
     /// ========= Initialize ==========
