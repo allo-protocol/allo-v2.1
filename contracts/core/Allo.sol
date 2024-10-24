@@ -318,8 +318,7 @@ contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, Reentr
     /// @param _recipient The recipient
     function recoverFunds(address _token, address _recipient) external onlyOwner {
         // Get the amount of the token to transfer, which is always the entire balance of the contract address
-        uint256 _amount =
-            _token == Transfer.NATIVE ? address(this).balance : IERC20Upgradeable(_token).balanceOf(address(this));
+        uint256 _amount = _token.getBalance(address(this));
 
         // Transfer the amount to the recipient (pool owner)
         _token.transferAmount(_recipient, _amount);
