@@ -380,7 +380,6 @@ contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, Reentr
         if (_amount == 0) revert INVALID();
 
         Pool memory _pool = _pools[_poolId];
-        if (_pool.token == Transfer.NATIVE && _amount != msg.value) revert ETH_MISMATCH();
 
         // Call the internal fundPool() function
         _fundPool(_amount, _msgSender(), _poolId, _pool.strategy);
