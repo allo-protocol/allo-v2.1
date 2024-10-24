@@ -10,9 +10,7 @@ contract HandlerAllo is Setup {
 
     function handler_createPool(uint256 _msgValue) public {
         // Get the profile ID
-        IRegistry.Profile memory profile = registry.getProfileByAnchor(
-            _ghost_anchorOf[msg.sender]
-        );
+        IRegistry.Profile memory profile = registry.getProfileByAnchor(_ghost_anchorOf[msg.sender]);
 
         // Avoid EOA
         if (profile.anchor == address(0)) return;
@@ -36,11 +34,7 @@ contract HandlerAllo is Setup {
         if (succ) ghost_poolIds.push(abi.decode(ret, (uint256)));
     }
 
-    function handler_updatePoolMetadata(
-        uint256 _idSeed,
-        uint256 _metadataProtocol,
-        string calldata _data
-    ) public {
+    function handler_updatePoolMetadata(uint256 _idSeed, uint256 _metadataProtocol, string calldata _data) public {
         // Needs at least one pool
         if (ghost_poolIds.length == 0) return;
 
@@ -48,50 +42,26 @@ contract HandlerAllo is Setup {
         uint256 poolId = ghost_poolIds[_idSeed];
 
         // Get the profile ID
-        IRegistry.Profile memory profile = registry.getProfileByAnchor(
-            _ghost_anchorOf[msg.sender]
-        );
+        IRegistry.Profile memory profile = registry.getProfileByAnchor(_ghost_anchorOf[msg.sender]);
 
         // Avoid EOA
         if (profile.anchor == address(0)) return;
 
-        Metadata memory metadata = Metadata({
-            protocol: _metadataProtocol,
-            pointer: _data
-        });
+        Metadata memory metadata = Metadata({protocol: _metadataProtocol, pointer: _data});
 
         // Update the pool metadata - will revert on wrong anchor
-        targetCall(
-            address(allo),
-            0,
-            abi.encodeWithSelector(
-                IAllo.updatePoolMetadata.selector,
-                poolId,
-                metadata
-            )
-        );
+        targetCall(address(allo), 0, abi.encodeWithSelector(IAllo.updatePoolMetadata.selector, poolId, metadata));
     }
 
     function handler_updatePercentFee(uint256 _newPercentFee) public {
         _newPercentFee = bound(_newPercentFee, 0, 1e18);
 
         // Update the percent fee - will revert if wrong caller
-        targetCall(
-            address(allo),
-            0,
-            abi.encodeWithSelector(
-                IAllo.updatePercentFee.selector,
-                _newPercentFee
-            )
-        );
+        targetCall(address(allo), 0, abi.encodeWithSelector(IAllo.updatePercentFee.selector, _newPercentFee));
     }
 
     function handler_updateBaseFee(uint256 _newBaseFee) public {
         // Update the base fee - will revert if wrong caller
-        targetCall(
-            address(allo),
-            0,
-            abi.encodeWithSelector(IAllo.updateBaseFee.selector, _newBaseFee)
-        );
+        targetCall(address(allo), 0, abi.encodeWithSelector(IAllo.updateBaseFee.selector, _newBaseFee));
     }
 }

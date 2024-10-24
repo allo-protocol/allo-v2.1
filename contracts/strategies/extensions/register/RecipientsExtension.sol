@@ -53,13 +53,9 @@ abstract contract RecipientsExtension is BaseStrategy, IRecipientsExtension, Err
     /// ========== Constructor =============
     /// ====================================
 
-    /// @notice Constructor to set the Allo contract
-    /// @param _allo Address of the Allo contract.
-    /// @param _strategyName Name of the strategy.
+    /// @notice Constructor to set the RecipientsExtension
     /// @param _reviewEachStatus true if custom review logic was added.
-    constructor(address _allo, string memory _strategyName, bool _reviewEachStatus)
-        BaseStrategy(_allo, _strategyName)
-    {
+    constructor(bool _reviewEachStatus) {
         REVIEW_EACH_STATUS = _reviewEachStatus;
     }
 
