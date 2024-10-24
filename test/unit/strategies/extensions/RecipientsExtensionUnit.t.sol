@@ -14,7 +14,7 @@ contract RecipientsExtensionUnit is Test {
     MockMockRecipientsExtension recipientsExtension;
 
     function setUp() public {
-        recipientsExtension = new MockMockRecipientsExtension(address(0), true);
+        recipientsExtension = new MockMockRecipientsExtension(address(0), "MockRecipientsExtension", true);
     }
 
     function _boundStatuses(IRecipientsExtension.ApplicationStatus[] memory _statuses)
@@ -249,52 +249,24 @@ contract RecipientsExtensionUnit is Test {
         assertEq(recipientsExtension.registrationEndTime(), _registrationEndTime);
     }
 
-    function test__checkOnlyActiveRegistrationWhenParametersAreCorrect(
-        uint64 _registrationStartTime,
-        uint64 _registrationEndTime,
-        uint64 _blockTimestamp
-    ) external {
-        vm.assume(_registrationStartTime < _registrationEndTime);
-        vm.assume(_registrationStartTime < _blockTimestamp);
-        vm.assume(_registrationEndTime > _blockTimestamp);
-        recipientsExtension.set_registrationStartTime(_registrationStartTime);
-        recipientsExtension.set_registrationEndTime(_registrationEndTime);
-        vm.warp(_blockTimestamp);
+    function test__checkOnlyActiveRegistrationWhenPoolIsActive() external {
+        recipientsExtension.mock_call__isPoolActive(true);
+
+        // It should call _isPoolActive
+        recipientsExtension.expectCall__isPoolActive();
 
         // It should execute successfully
         recipientsExtension.call__checkOnlyActiveRegistration();
     }
 
-    function test__checkOnlyActiveRegistrationRevertWhen_RegistrationStartTimeIsMoreThanBlockTimestamp(
-        uint64 _registrationStartTime,
-        uint64 _registrationEndTime,
-        uint64 _blockTimestamp
-    ) external {
-        vm.assume(_registrationStartTime < _registrationEndTime);
-        vm.assume(_registrationStartTime > _blockTimestamp);
-        recipientsExtension.set_registrationStartTime(_registrationStartTime);
-        recipientsExtension.set_registrationEndTime(_registrationEndTime);
-        vm.warp(_blockTimestamp);
+    function test__checkOnlyActiveRegistrationWhenPoolIsNotActive() external {
+        recipientsExtension.mock_call__isPoolActive(false);
+
+        // It should call _isPoolActive
+        recipientsExtension.expectCall__isPoolActive();
 
         // It should revert
-        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
-
-        recipientsExtension.call__checkOnlyActiveRegistration();
-    }
-
-    function test__checkOnlyActiveRegistrationRevertWhen_RegistrationEndTimeIsLessThanBlockTimestamp(
-        uint64 _registrationStartTime,
-        uint64 _registrationEndTime,
-        uint64 _blockTimestamp
-    ) external {
-        vm.assume(_registrationStartTime < _registrationEndTime);
-        vm.assume(_registrationEndTime < _blockTimestamp);
-        recipientsExtension.set_registrationStartTime(_registrationStartTime);
-        recipientsExtension.set_registrationEndTime(_registrationEndTime);
-        vm.warp(_blockTimestamp);
-
-        // It should revert
-        vm.expectRevert(Errors.REGISTRATION_NOT_ACTIVE.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_RegistrationNotActive.selector);
 
         recipientsExtension.call__checkOnlyActiveRegistration();
     }
@@ -435,7 +407,9 @@ contract RecipientsExtensionUnit is Test {
         }
 
         // It should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.RECIPIENT_ERROR.selector, _recipientIds[0]));
+        vm.expectRevert(
+            abi.encodeWithSelector(IRecipientsExtension.RecipientsExtension_RecipientError.selector, _recipientIds[0])
+        );
 
         bytes memory _datas = abi.encode(_dataArray);
         recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);
@@ -461,7 +435,7 @@ contract RecipientsExtensionUnit is Test {
         }
 
         // It should revert
-        vm.expectRevert(Errors.INVALID_METADATA.selector);
+        vm.expectRevert(IRecipientsExtension.RecipientsExtension_InvalidMetada.selector);
 
         bytes memory _datas = abi.encode(_dataArray);
         recipientsExtension.call__register(_fixedArrayToMemory(_recipients), _datas, _sender);

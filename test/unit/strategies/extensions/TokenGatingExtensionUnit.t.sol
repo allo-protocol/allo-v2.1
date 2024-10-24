@@ -10,21 +10,23 @@ contract TokenGatingExtensionUnit is Test {
     MockMockTokenGatingExtension tokenGatingExtension;
 
     function setUp() external {
-        tokenGatingExtension = new MockMockTokenGatingExtension(address(0));
+        tokenGatingExtension = new MockMockTokenGatingExtension(address(0), "MockTokenGatingExtension");
     }
 
     function test_RevertWhen_TokenAddressIsZero(uint256 _amount, address _actor) external {
         // It should revert
-        vm.expectRevert(TokenGatingExtension.TokenGatingExtension_INVALID_TOKEN.selector);
+        vm.expectRevert(TokenGatingExtension.TokenGatingExtension_InvalidToken.selector);
 
         tokenGatingExtension.call__checkOnlyWithToken(address(0), _amount, _actor);
     }
 
     function test_RevertWhen_ActorAddressIsZero(address _token, uint256 _amount) external {
         vm.assume(_token != address(0));
+        vm.assume(_token != address(vm));
+        assumeNotPrecompile(_token);
 
         // It should revert
-        vm.expectRevert(TokenGatingExtension.TokenGatingExtension_INVALID_ACTOR.selector);
+        vm.expectRevert(TokenGatingExtension.TokenGatingExtension_InvalidActor.selector);
 
         tokenGatingExtension.call__checkOnlyWithToken(_token, _amount, address(0));
     }
@@ -38,11 +40,13 @@ contract TokenGatingExtensionUnit is Test {
         vm.assume(_token != address(0));
         vm.assume(_actor != address(0));
         vm.assume(_balance < _amount);
+        vm.assume(_token != address(vm));
+        assumeNotPrecompile(_token);
 
         vm.mockCall(address(_token), abi.encodeWithSelector(IERC20.balanceOf.selector, _actor), abi.encode(_balance));
 
         // It should revert
-        vm.expectRevert(TokenGatingExtension.TokenGatingExtension_INSUFFICIENT_BALANCE.selector);
+        vm.expectRevert(TokenGatingExtension.TokenGatingExtension_InsufficientBalance.selector);
 
         tokenGatingExtension.call__checkOnlyWithToken(_token, _amount, _actor);
     }
@@ -51,6 +55,8 @@ contract TokenGatingExtensionUnit is Test {
         vm.assume(_token != address(0));
         vm.assume(_actor != address(0));
         vm.assume(_balance > _amount);
+        vm.assume(_token != address(vm));
+        assumeNotPrecompile(_token);
 
         vm.mockCall(address(_token), abi.encodeWithSelector(IERC20.balanceOf.selector, _actor), abi.encode(_balance));
 
