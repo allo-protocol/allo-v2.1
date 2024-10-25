@@ -87,7 +87,7 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
     ///        address _allocationToken,
     ///        bool _isUsingAllocationMetadata
     ///    )
-    function initialize(uint256 _poolId, bytes memory _data) external virtual override {
+    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal virtual override {
         (
             RecipientInitializeData memory _recipientExtensionInitializeData,
             uint64 _allocationStartTime,
@@ -99,13 +99,10 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
 
         withdrawalCooldown = _withdrawalCooldown;
 
-        __BaseStrategy_init(_poolId);
         __RecipientsExtension_init(_recipientExtensionInitializeData);
         address[] memory _allowedTokens = new address[](1);
         _allowedTokens[0] = _allocationToken;
         __AllocationExtension_init(_allowedTokens, _allocationStartTime, _allocationEndTime, _isUsingAllocationMetadata);
-
-        emit Initialized(_poolId, _data);
     }
 
     /// ====================================

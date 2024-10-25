@@ -12,7 +12,7 @@ contract MockRecipientsExtension is BaseStrategy, RecipientsExtension {
         BaseStrategy(_allo, _strategyName)
     {}
 
-    function initialize(uint256 _poolId, bytes memory _data) external {
+    function initialize(uint256 _poolId, bytes memory _data) external override {
         __BaseStrategy_init(_poolId);
 
         RecipientInitializeData memory _initializeData = abi.decode(_data, (RecipientInitializeData));

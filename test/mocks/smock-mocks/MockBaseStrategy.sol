@@ -6,10 +6,6 @@ import {BaseStrategy} from "contracts/strategies/BaseStrategy.sol";
 contract MockBaseStrategy is BaseStrategy {
     constructor(address _allo, string memory _strategyName) BaseStrategy(_allo, _strategyName) {}
 
-    function initialize(uint256 _poolId, bytes memory) external override {
-        __BaseStrategy_init(_poolId);
-    }
-
     function __BaseStrategy_init(uint256 _poolId) internal virtual override {
         super.__BaseStrategy_init(_poolId);
     }

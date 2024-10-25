@@ -31,18 +31,6 @@ contract DirectAllocationStrategy is BaseStrategy, Errors {
 
     constructor(address _allo) BaseStrategy(_allo, "DirectAllocation") {}
 
-    /// ===============================
-    /// ========= Initialize ==========
-    /// ===============================
-
-    /// @notice Initialize the strategy
-    /// @param _poolId The pool id
-    /// @param _data The data to initialize the strategy
-    function initialize(uint256 _poolId, bytes memory _data) external virtual override {
-        __BaseStrategy_init(_poolId);
-        emit Initialized(_poolId, _data);
-    }
-
     /// ====================================
     /// ============ Internal ==============
     /// ====================================

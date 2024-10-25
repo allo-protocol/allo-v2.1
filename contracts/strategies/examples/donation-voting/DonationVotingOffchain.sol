@@ -132,7 +132,8 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     ///        address[] _allowedTokens,
     ///        bool _isUsingAllocationMetadata
     ///    )
-    function initialize(uint256 _poolId, bytes memory _data) external virtual override {
+    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal override {
+        // Decode _data and initialize the specific strategy data
         (
             RecipientInitializeData memory _recipientExtensionInitializeData,
             uint64 _allocationStartTime,
@@ -142,13 +143,12 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
             bool _isUsingAllocationMetadata
         ) = abi.decode(_data, (RecipientInitializeData, uint64, uint64, uint64, address[], bool));
 
+        // Custom initialization logic
         withdrawalCooldown = _withdrawalCooldown;
 
-        __BaseStrategy_init(_poolId);
+        // Initialize other extensions using the decoded data
         __RecipientsExtension_init(_recipientExtensionInitializeData);
         __AllocationExtension_init(_allowedTokens, _allocationStartTime, _allocationEndTime, _isUsingAllocationMetadata);
-
-        emit Initialized(_poolId, _data);
     }
 
     /// ===============================

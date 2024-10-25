@@ -141,14 +141,11 @@ contract SQFSuperfluid is
     /// @dev This will revert if the strategy is already initialized and 'msg.sender' is not the 'Allo' contract.
     /// @param _poolId ID of the pool
     /// @param _data The data to be decoded
-    function initialize(uint256 _poolId, bytes memory _data) external override {
+    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal override {
         (
             RecipientInitializeData memory _recipientExtensionInitializeData,
             SQFSuperfluidInitializeParams memory _sqfSuperfluidInitializeParams
         ) = abi.decode(_data, (RecipientInitializeData, SQFSuperfluidInitializeParams));
-
-        // Initialize the BaseStrategy with the '_poolId'
-        __BaseStrategy_init(_poolId);
 
         // Initialize the RecipientsExtension
         __RecipientsExtension_init(_recipientExtensionInitializeData);

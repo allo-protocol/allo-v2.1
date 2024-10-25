@@ -67,9 +67,7 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
     /// @notice Initialize the strategy
     /// @param _poolId The pool id
     /// @param _data The data to initialize the strategy (Must include RecipientInitializeData and QVSimpleInitializeData)
-    function initialize(uint256 _poolId, bytes memory _data) external virtual override {
-        __BaseStrategy_init(_poolId);
-
+    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal virtual override {
         (
             IRecipientsExtension.RecipientInitializeData memory _recipientInitializeData,
             QVSimpleInitializeData memory _qvSimpleInitializeData
@@ -84,8 +82,6 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
         );
 
         maxVoiceCreditsPerAllocator = _qvSimpleInitializeData.maxVoiceCreditsPerAllocator;
-
-        emit Initialized(_poolId, _data);
     }
 
     /// ======================
