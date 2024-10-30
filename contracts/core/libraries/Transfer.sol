@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 // External Imports
-import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ISignatureTransfer} from "permit2/ISignatureTransfer.sol";
 import {IERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -28,7 +28,7 @@ import {IDAI} from "contracts/core/interfaces/IDAI.sol";
 /// @notice A helper library to transfer tokens within Allo protocol
 /// @dev Handles the transfer of tokens to an address
 library Transfer {
-    using SafeTransferLib for address;
+    using SafeERC20 for IERC20;
 
     /// @notice Address of the native token
     address public constant NATIVE = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
@@ -65,9 +65,9 @@ library Transfer {
     function transferAmountFrom(address _token, address _from, address _to, uint256 _amount) internal {
         if (_token == NATIVE) {
             // '_from' is ignored. The contract's balance is used.
-            if (_to != address(this)) _to.safeTransferETH(_amount);
+            if (_to != address(this)) payable(_to).transfer(_amount);
         } else {
-            _token.safeTransferFrom(_from, _to, _amount);
+            IERC20(_token).safeTransferFrom(_from, _to, _amount);
         }
     }
 
@@ -77,9 +77,9 @@ library Transfer {
     /// @param _amount The amount to transfer
     function transferAmount(address _token, address _to, uint256 _amount) internal {
         if (_token == NATIVE) {
-            _to.safeTransferETH(_amount);
+            payable(_to).transfer(_amount);
         } else {
-            _token.safeTransfer(_to, _amount);
+            IERC20(_token).safeTransfer(_to, _amount);
         }
     }
 
@@ -87,7 +87,7 @@ library Transfer {
     /// @param _to The address to transfer to
     /// @param _amount The amount to transfer
     function transferAmountNative(address _to, uint256 _amount) internal {
-        _to.safeTransferETH(_amount);
+        payable(_to).transfer(_amount);
     }
 
     /// @notice Get the balance of a token for an account
@@ -98,7 +98,7 @@ library Transfer {
         if (_token == NATIVE) {
             return payable(_account).balance;
         } else {
-            return _token.balanceOf(_account);
+            return IERC20(_token).balanceOf(_account);
         }
     }
 

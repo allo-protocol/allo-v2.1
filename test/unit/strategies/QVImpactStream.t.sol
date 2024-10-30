@@ -155,12 +155,13 @@ contract QVImpactStreamTest is Test {
         IAllo.Pool memory poolData = IAllo.Pool({
             profileId: keccak256(abi.encodePacked(recipient1)),
             strategy: IBaseStrategy(address(qvImpactStream)),
-            token: address(0),
+            token: makeAddr("token"),
             metadata: Metadata({protocol: 0, pointer: ""}),
             managerRole: keccak256("MANAGER_ROLE"),
             adminRole: keccak256("ADMIN_ROLE")
         });
         vm.mockCall(mockAlloAddress, abi.encodeWithSelector(IAllo.getPool.selector, 1), abi.encode(poolData));
+        vm.etch(poolData.token, new bytes(0x1)); // Prevents error: Address: call to non-contract
 
         // it should emit event
         vm.expectEmit(true, true, true, true);
