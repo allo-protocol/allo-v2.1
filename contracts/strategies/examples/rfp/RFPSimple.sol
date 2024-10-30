@@ -45,7 +45,7 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
 
     /// @notice Constructor for the RFP Simple Strategy
     /// @param _allo The 'Allo' contract
-    constructor(address _allo) RecipientsExtension(_allo, "RFPSimple", true) {}
+    constructor(address _allo) RecipientsExtension(true) BaseStrategy(_allo, "RFPSimple") {}
 
     /// ===============================
     /// ========= Initialize ==========
@@ -55,13 +55,11 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
     /// @param _poolId ID of the pool
     /// @param _data The data to be decoded
     /// @custom:data (RecipientInitializeData _recipientExtensionInitializeData, uint256 _maxBid)
-    function initialize(uint256 _poolId, bytes memory _data) external virtual override {
+    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal virtual override {
         (RecipientInitializeData memory _recipientExtensionInitializeData, uint256 _maxBid) =
             abi.decode(_data, (RecipientInitializeData, uint256));
-        __BaseStrategy_init(_poolId);
         __RecipientsExtension_init(_recipientExtensionInitializeData);
         __MilestonesExtension_init(_maxBid);
-        emit Initialized(_poolId, _data);
     }
 
     /// ====================================

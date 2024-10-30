@@ -72,6 +72,7 @@ contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, Reentr
 
     /// @notice Maps the pool ID to the pool details
     /// @dev 'Pool.id' -> 'Pool'
+    /// @dev pool ID is incremental and starts from 1, there is no _pools[0]
     mapping(uint256 => Pool) internal _pools;
 
     /// @custom:oz-upgrades-renamed-from cloneableStrategies
@@ -317,8 +318,7 @@ contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, Reentr
     /// @param _recipient The recipient
     function recoverFunds(address _token, address _recipient) external onlyOwner {
         // Get the amount of the token to transfer, which is always the entire balance of the contract address
-        uint256 _amount =
-            _token == Transfer.NATIVE ? address(this).balance : IERC20Upgradeable(_token).balanceOf(address(this));
+        uint256 _amount = _token.getBalance(address(this));
 
         // Transfer the amount to the recipient (pool owner)
         _token.transferAmount(_recipient, _amount);
@@ -379,7 +379,6 @@ contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, Reentr
         if (_amount == 0) revert INVALID();
 
         Pool memory _pool = _pools[_poolId];
-        if (_pool.token == Transfer.NATIVE && _amount != msg.value) revert ETH_MISMATCH();
 
         // Call the internal fundPool() function
         _fundPool(_amount, _msgSender(), _poolId, _pool.strategy);
@@ -713,8 +712,8 @@ contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, Reentr
     // =========================
 
     /// @notice Getter for the fee denominator
-    /// @return FEE_DENOMINATOR The fee denominator is (1e18) which represents 100%
-    function getFeeDenominator() public pure returns (uint256 FEE_DENOMINATOR) {
+    /// @return The fee denominator is (1e18) which represents 100%
+    function getFeeDenominator() public pure returns (uint256) {
         return 1e18;
     }
 

@@ -711,19 +711,6 @@ contract AlloUnit is Test {
         allo.fundPool(_poolId, 0);
     }
 
-    function test_FundPoolRevertWhen_TokenIsNativeAndValueDoesNotMatchAmount(uint256 _poolId, uint256 _amount)
-        external
-    {
-        vm.assume(_amount > 0);
-
-        fakePool.token = NATIVE;
-
-        allo.setPool(_poolId, fakePool);
-        // it should revert
-        vm.expectRevert(Errors.ETH_MISMATCH.selector);
-        allo.fundPool(_poolId, _amount);
-    }
-
     function test_FundPoolWhenCalledWithProperParams(address _caller, uint256 _poolId, uint256 _amount) external {
         vm.assume(_amount > 0);
         fakePool.token = makeAddr("token");

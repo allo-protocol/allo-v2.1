@@ -5,18 +5,14 @@ import {BaseStrategy} from "strategies/BaseStrategy.sol";
 import {EASGatingExtension} from "strategies/extensions/gating/EASGatingExtension.sol";
 import {NFTGatingExtension} from "strategies/extensions/gating/NFTGatingExtension.sol";
 import {TokenGatingExtension} from "strategies/extensions/gating/TokenGatingExtension.sol";
-import {MockBaseStrategy} from "./MockBaseStrategy.sol";
 
 contract MockGatingExtension is EASGatingExtension, NFTGatingExtension, TokenGatingExtension {
     constructor(address _allo, string memory _strategyName) BaseStrategy(_allo, _strategyName) {}
 
-    function initialize(uint256 _poolId, bytes memory _data) public {
-        __BaseStrategy_init(_poolId);
-
+    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal override {
         address _eas = abi.decode(_data, (address));
 
         __EASGatingExtension_init(_eas);
-        emit Initialized(_poolId, _data);
     }
 
     // this is called via allo.sol to register recipients

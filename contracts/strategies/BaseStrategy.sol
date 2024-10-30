@@ -38,6 +38,20 @@ abstract contract BaseStrategy is IBaseStrategy {
         _STRATEGY_ID = keccak256(abi.encode(_strategyName));
     }
 
+    /// ===============================
+    /// ========= Initialize ==========
+    /// ===============================
+
+    /// @notice Initialize the strategy
+    /// @param __poolId The pool id
+    /// @param _data custom data to be used to initialize the strategy
+    function initialize(uint256 __poolId, bytes memory _data) external virtual override {
+        __BaseStrategy_init(__poolId);
+        _initializeStrategy(__poolId, _data);
+
+        emit Initialized(__poolId, _data);
+    }
+
     /// ====================================
     /// =========== Modifiers ==============
     /// ====================================
@@ -293,6 +307,11 @@ abstract contract BaseStrategy is IBaseStrategy {
     /// @param _data The data to use to distribute to the recipients
     /// @param _sender The address of the sender
     function _afterDistribute(address[] memory _recipientIds, bytes memory _data, address _sender) internal virtual {}
+
+    /// @notice Hook called to initialize the strategy
+    /// @param __poolId The pool id
+    /// @param _data The data to use to initialize the strategy
+    function _initializeStrategy(uint256 __poolId, bytes memory _data) internal virtual {}
 
     /// @notice Strategies should be able to receive native token
     /// @dev By default onlyAllo should be able to call this to fund the pool
