@@ -45,15 +45,19 @@
 <tbody>
     <tr>
         <td>Registry</td>
-        <td></td>
+        <td>
+            <a href="https://sepolia.etherscan.io/address/0x4AAcca72145e1dF2aeC137E1f3C5E3D75DB8b5f3">0x4AAcca72145e1dF2aeC137E1f3C5E3D75DB8b5f3
+        </td>
     </tr>
     <tr>
         <td>Allo Proxy</td>
         <td></td>
     </tr>
     <tr>
-        <td>Allo Implementation</td>
-        <td></td>
+        <td>Allo Implementation (Preview)</td>
+        <td>
+            <a href="https://sepolia.etherscan.io/address/0x80bb3db54139A230dD82bf81490c8723FA7E2a85">0x80bb3db54139A230dD82bf81490c8723FA7E2a85
+        </td>
     </tr>
 </tbody>
 </table>
