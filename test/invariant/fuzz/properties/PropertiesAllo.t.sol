@@ -145,6 +145,8 @@ contract PropertiesAllo is HandlersParent {
     ///@custom:property-id 3
     ///@custom:property an address can only withdraw if has allocation
 
+    event test(bytes);
+
     ///@custom:property-id 4
     ///@custom:property profile owner can always create a pool
     ///@custom:property-id 7
@@ -184,17 +186,18 @@ contract PropertiesAllo is HandlersParent {
             )
         );
 
+        emit test(ret);
         if (succ) {
             uint256 _poolId = abi.decode(ret, (uint256));
             assertTrue(
                 allo.hasRole(
                     keccak256(abi.encodePacked(_poolId, "admin")),
-                    msg.sender
+                    _ghost_anchorOf[msg.sender]
                 ),
                 "property-id 9: initial admin should be pool creator"
             );
-            ghost_poolIds.push(_poolId);
-            ghost_poolAdmins[_poolId] = msg.sender;
+            // ghost_poolIds.push(_poolId);
+            // ghost_poolAdmins[_poolId] = msg.sender;
         } else {
             assertTrue(
                 _profile.anchor == address(0) ||

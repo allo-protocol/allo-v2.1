@@ -32,6 +32,8 @@ contract Actors is Utils {
 
     event ActorsLog(string);
 
+    event Test(bytes);
+
     function targetCall(
         address target,
         uint256 msgValue,
@@ -53,6 +55,8 @@ contract Actors is Utils {
         (success, returnData) = address(anchor).call{value: msgValue}(
             abi.encodeCall(Anchor.execute, (target, msgValue, payload))
         );
+
+        returnData = abi.decode(returnData, (bytes));
     }
 
     function _addAnchorToActor(address _actor, address _anchor) internal {
