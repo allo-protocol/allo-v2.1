@@ -13,8 +13,6 @@ import {Errors} from "contracts/core/libraries/Errors.sol";
 import {FuzzERC20, ERC20} from "../helpers/FuzzERC20.sol";
 
 contract PropertiesAllo is HandlersParent {
-    event test(bytes32);
-
     ///@custom:property-id 1-a
     ///@custom:property one should always be able to allocate for recipient
     function prop_userShouldBeAbleToAllocateForRecipient(
@@ -102,7 +100,7 @@ contract PropertiesAllo is HandlersParent {
 
         IBaseStrategy _strategy = allo.getPool(_poolId).strategy;
 
-        // For now, only DirectAllocation strategy is supported
+        // Direct allocation only in this contract
         if (
             _strategy.getStrategyId() !=
             keccak256(abi.encode("DirectAllocation"))
@@ -113,39 +111,23 @@ contract PropertiesAllo is HandlersParent {
         uint256 _recipientPreviousBalance = token.balanceOf(_recipient);
 
         token.transfer(address(_strategy), _amount);
-        _recipientPreviousBalance = token.balanceOf(_recipient);
         uint256 _poolAmount = _strategy.getPoolAmount();
 
         vm.prank(_manager);
-        (bool _success, ) = address(allo).call(
+        (bool _success, bytes memory _ret) = address(allo).call(
             abi.encodeCall(allo.distribute, (_poolId, _recipients, _data))
         );
 
         if (_success) {
-            assertEq(
-                token.balanceOf(_recipient),
-                _recipientPreviousBalance + _amount,
-                "property-id 1-b: distribute succeed but wrong recipient balance"
-            );
-
-            _assertValidWithdraw(address(_strategy), _amount);
+            assert(false); // Should not reach here
         } else {
-            assertTrue(
-                _amount > _poolAmount,
+            assertEq(
+                abi.decode(_ret, (bytes4)),
+                Errors.NOT_IMPLEMENTED.selector,
                 "property-id 1-b: distribute failed with correct amounts"
             );
-
-            _assertInvalidWithdraw(address(_strategy), _amount);
         }
     }
-
-    ///@custom:property-id 2
-    ///@custom:property a token allocation never “disappears” (withdraw cannot impact an allocation)
-
-    ///@custom:property-id 3
-    ///@custom:property an address can only withdraw if has allocation
-
-    event test(bytes);
 
     ///@custom:property-id 4
     ///@custom:property profile owner can always create a pool
@@ -196,8 +178,6 @@ contract PropertiesAllo is HandlersParent {
                 ),
                 "property-id 9: initial admin should be pool creator"
             );
-            // ghost_poolIds.push(_poolId);
-            // ghost_poolAdmins[_poolId] = msg.sender;
         } else {
             assertTrue(
                 _profile.anchor == address(0) ||
@@ -471,9 +451,6 @@ contract PropertiesAllo is HandlersParent {
         }
     }
 
-    ///@custom:property-id 12
-    ///@custom:property pool manager can always withdraw within strategy limits/logic
-
     ///@custom:property-id 13
     ///@custom:property pool manager can always change metadata
     function prop_poolManagerCanAlwaysChangeMetadata(
@@ -709,12 +686,6 @@ contract PropertiesAllo is HandlersParent {
             );
         }
     }
-
-    ///@custom:property-id 17
-    ///@custom:property only funds not allocated can be withdrawn
-
-    ///@custom:property-id 18
-    ///@custom:property anyone can increase fund in a pool, if strategy (hook) logic allows so and if more than base fee
 
     ///@custom:property-id 19
     ///@custom:property every deposit/pool creation must take the correct fee on the amount deposited, forwarded to the treasury

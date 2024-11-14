@@ -150,16 +150,6 @@ contract Pools is Utils {
             );
     }
 
-    function _assertValidWithdraw(
-        address _strategy,
-        uint256 _amount
-    ) internal {}
-
-    function _assertInvalidWithdraw(
-        address _strategy,
-        uint256 _amount
-    ) internal {}
-
     //
     // Getters
     //
