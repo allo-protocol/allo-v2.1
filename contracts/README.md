@@ -56,7 +56,7 @@
     <tr>
         <td>Allo Implementation (Preview)</td>
         <td>
-            <a href="https://sepolia.etherscan.io/address/0x80bb3db54139A230dD82bf81490c8723FA7E2a85">0x80bb3db54139A230dD82bf81490c8723FA7E2a85
+            <a href="https://sepolia.etherscan.io/address/0x086b2A2Da1A5EF007a2A34231055DAefbbCdfcD0">0x086b2A2Da1A5EF007a2A34231055DAefbbCdfcD0
         </td>
     </tr>
 </tbody>
