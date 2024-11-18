@@ -168,7 +168,6 @@ contract PropertiesAllo is HandlersParent {
             )
         );
 
-        emit test(ret);
         if (succ) {
             uint256 _poolId = abi.decode(ret, (uint256));
             assertTrue(
