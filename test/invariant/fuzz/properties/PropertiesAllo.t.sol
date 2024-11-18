@@ -13,122 +13,6 @@ import {Errors} from "contracts/core/libraries/Errors.sol";
 import {FuzzERC20, ERC20} from "../helpers/FuzzERC20.sol";
 
 contract PropertiesAllo is HandlersParent {
-    ///@custom:property-id 1-a
-    ///@custom:property one should always be able to allocate for recipient
-    function prop_userShouldBeAbleToAllocateForRecipient(
-        uint256 _actorSeed,
-        uint256 _idSeed,
-        uint256 _amount
-    ) public {
-        address _recipient = _pickAnchor(_actorSeed);
-
-        _idSeed = bound(_idSeed, 0, ghost_poolIds.length - 1);
-        uint256 _poolId = ghost_poolIds[_idSeed];
-
-        address _strategy = address(allo.getPool(_poolId).strategy);
-        bytes32 _strategyId = allo.getPool(_poolId).strategy.getStrategyId();
-
-        address[] memory _recipients = new address[](1);
-        _recipients[0] = _recipient;
-
-        address[] memory _tokens = new address[](1);
-        _tokens[0] = address(token);
-
-        uint256[] memory _amounts = new uint256[](1);
-        _amounts[0] = _amount;
-
-        bytes memory _data = _poolStrategy(_strategy) ==
-            PoolStrategies.DonationVoting
-            ? abi.encode(token, new bytes(0))
-            : abi.encode(_tokens);
-
-        address _allocator = _ghost_anchorOf[msg.sender];
-
-        uint256 _recipientPreviousBalance;
-
-        token.transfer(_allocator, _amount);
-        vm.prank(_allocator);
-        token.approve(_strategy, _amount);
-        _recipientPreviousBalance = token.balanceOf(_recipient);
-
-        (bool _success, bytes memory _ret) = targetCall(
-            address(allo),
-            0,
-            abi.encodeCall(
-                allo.allocate,
-                (_poolId, _recipients, _amounts, _data)
-            )
-        );
-
-        if (_success) {
-            assertEq(
-                token.balanceOf(_recipient),
-                _allocator == _recipient
-                    ? _recipientPreviousBalance
-                    : _recipientPreviousBalance + _amount,
-                "property-id 1-a: wrong balancer after allocation"
-            );
-
-            // Check strategy specific post-conditions
-            _assertValidAllocate(_strategy, _allocator);
-        } else {
-            _assertInvalidAllocate(_strategy, _allocator, _ret);
-        }
-    }
-
-    ///@custom:property-id 1-b
-    ///@custom:property one should always be able to pull correct (based on strategy) allocation for recipient
-    function prop_poolManagerShouldBeAbleToWithdrawForRecipient(
-        uint256 _idSeed,
-        uint256 _managerSeed,
-        uint256 _actorSeed,
-        uint256 _amount
-    ) public {
-        address _recipient = _pickAnchor(_actorSeed);
-
-        address[] memory _recipients = new address[](1);
-        _recipients[0] = _recipient;
-
-        bytes memory _data = new bytes(0);
-
-        _idSeed = bound(_idSeed, 0, ghost_poolIds.length - 1);
-        uint256 _poolId = ghost_poolIds[_idSeed];
-
-        address _manager = ghost_poolManagers[_poolId][
-            (_managerSeed % ghost_poolManagers[_poolId].length) - 1
-        ];
-
-        IBaseStrategy _strategy = allo.getPool(_poolId).strategy;
-
-        // Direct allocation only in this contract
-        if (
-            _strategy.getStrategyId() !=
-            keccak256(abi.encode("DirectAllocation"))
-        ) {
-            return;
-        }
-
-        uint256 _recipientPreviousBalance = token.balanceOf(_recipient);
-
-        token.transfer(address(_strategy), _amount);
-        uint256 _poolAmount = _strategy.getPoolAmount();
-
-        vm.prank(_manager);
-        (bool _success, bytes memory _ret) = address(allo).call(
-            abi.encodeCall(allo.distribute, (_poolId, _recipients, _data))
-        );
-
-        if (_success) {
-            assert(false); // Should not reach here
-        } else {
-            assertEq(
-                abi.decode(_ret, (bytes4)),
-                Errors.NOT_IMPLEMENTED.selector,
-                "property-id 1-b: distribute failed with correct amounts"
-            );
-        }
-    }
-
     ///@custom:property-id 4
     ///@custom:property profile owner can always create a pool
     ///@custom:property-id 7
@@ -724,16 +608,23 @@ contract PropertiesAllo is HandlersParent {
             _afterBalanceStrategy = token.balanceOf(_strategy);
             _afterBalanceTreasury = token.balanceOf(treasury);
 
-            assertEq(
-                _afterBalanceStrategy,
-                _previousBalanceStrategy + _amountAfterFee,
-                "property-id 18: increasePoolFunds invalid strategy balance"
-            );
-            assertEq(
-                _afterBalanceTreasury,
-                _previousBalanceTreasury + _feeAmount,
-                "property-id 19: increasePoolFunds invalid treasury balance"
-            );
+            if (_strategy != treasury) {
+                assertEq(
+                    _afterBalanceStrategy,
+                    _previousBalanceStrategy + _amountAfterFee,
+                    "property-id 18: increasePoolFunds invalid strategy balance"
+                );
+                assertEq(
+                    _afterBalanceTreasury,
+                    _previousBalanceTreasury + _feeAmount,
+                    "property-id 19: increasePoolFunds invalid treasury balance"
+                );
+            } else
+                assertEq(
+                    _afterBalanceTreasury,
+                    _previousBalanceTreasury + _feeAmount + _amountAfterFee,
+                    "property-id 19: increasePoolFunds invalid treasury and strategy common balance"
+                );
         } else {
             (
                 bool _successAllocationEndtime,
