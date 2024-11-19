@@ -37,16 +37,26 @@ library QVHelper {
         if (_recipients.length != _voiceCredits.length) revert QVHelper_LengthMissmatch();
 
         for (uint256 i; i < _recipients.length; i++) {
-            /// Add the voice credits to the recipient
-            _state.recipientVoiceCredits[_recipients[i]] += _voiceCredits[i];
-            uint256 _votes = FixedPointMathLib.sqrt(_voiceCredits[i]);
-            /// Add the votes to the recipient
-            _state.recipientVotes[_recipients[i]] += _votes;
-            /// Add the total voice credits
-            _state.totalVoiceCredits += _voiceCredits[i];
-            /// Add the total votes
-            _state.totalVotes += _votes;
+            voteSingleWithVoiceCredits(_state, _recipients[i], _voiceCredits[i]);
         }
+    }
+
+    /// @notice Votes for a single recipient
+    /// @param _state The voting state
+    /// @param _recipient The recipient to vote
+    /// @param _voiceCredits The amount of voice credits to cast
+    function voteSingleWithVoiceCredits(VotingState storage _state, address _recipient, uint256 _voiceCredits)
+        internal
+    {
+        // Add the voice credits to the recipient
+        _state.recipientVoiceCredits[_recipient] += _voiceCredits;
+        uint256 _votes = FixedPointMathLib.sqrt(_voiceCredits);
+        // Add the votes to the recipient
+        _state.recipientVotes[_recipient] += _votes;
+        // Add the total voice credits
+        _state.totalVoiceCredits += _voiceCredits;
+        // Add the total votes
+        _state.totalVotes += _votes;
     }
 
     /// @notice Votes for recipients
@@ -59,17 +69,25 @@ library QVHelper {
         if (_recipients.length != _votes.length) revert QVHelper_LengthMissmatch();
 
         for (uint256 i; i < _recipients.length; i++) {
-            /// Add the votes to the recipient
-            _state.recipientVotes[_recipients[i]] += _votes[i];
-            /// Add the total votes
-            _state.totalVotes += _votes[i];
-            /// voiceCredits = votes^2
-            uint256 _voiceCredits = _votes[i] * _votes[i];
-            /// Add the voice credits to the recipient
-            _state.recipientVoiceCredits[_recipients[i]] += _voiceCredits;
-            /// Add total voice credits
-            _state.totalVoiceCredits += _voiceCredits;
+            voteSingle(_state, _recipients[i], _votes[i]);
         }
+    }
+
+    /// @notice Votes for a single recipient
+    /// @param _state The voting state
+    /// @param _recipient The recipient to vote
+    /// @param _votes The amount of votes to cast
+    function voteSingle(VotingState storage _state, address _recipient, uint256 _votes) internal {
+        // Add the votes to the recipient
+        _state.recipientVotes[_recipient] += _votes;
+        // Add the total votes
+        _state.totalVotes += _votes;
+        // voiceCredits = votes^2
+        uint256 _voiceCredits = _votes * _votes;
+        // Add the voice credits to the recipient
+        _state.recipientVoiceCredits[_recipient] += _voiceCredits;
+        // Add total voice credits
+        _state.totalVoiceCredits += _voiceCredits;
     }
 
     /// @notice Calculate the payout for each recipient
