@@ -608,7 +608,19 @@ contract PropertiesAllo is HandlersParent {
             _afterBalanceStrategy = token.balanceOf(_strategy);
             _afterBalanceTreasury = token.balanceOf(treasury);
 
-            if (_strategy != treasury) {
+            if (treasury == _strategy)
+                assertEq(
+                    _afterBalanceTreasury,
+                    _previousBalanceTreasury + _feeAmount + _amountAfterFee,
+                    "property-id 19: increasePoolFunds invalid treasury and strategy common balance"
+                );
+            else if (treasury == _funder) {
+                assertEq(
+                    _afterBalanceTreasury,
+                    _previousBalanceStrategy - _amountAfterFee + _feeAmount,
+                    "property-id 19: increasePoolFunds invalid treasury balance when funder"
+                );
+            } else {
                 assertEq(
                     _afterBalanceStrategy,
                     _previousBalanceStrategy + _amountAfterFee,
@@ -619,12 +631,7 @@ contract PropertiesAllo is HandlersParent {
                     _previousBalanceTreasury + _feeAmount,
                     "property-id 19: increasePoolFunds invalid treasury balance"
                 );
-            } else
-                assertEq(
-                    _afterBalanceTreasury,
-                    _previousBalanceTreasury + _feeAmount + _amountAfterFee,
-                    "property-id 19: increasePoolFunds invalid treasury and strategy common balance"
-                );
+            }
         } else {
             (
                 bool _successAllocationEndtime,
