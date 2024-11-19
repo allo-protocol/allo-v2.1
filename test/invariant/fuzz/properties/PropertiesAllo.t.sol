@@ -608,13 +608,13 @@ contract PropertiesAllo is HandlersParent {
             _afterBalanceStrategy = token.balanceOf(_strategy);
             _afterBalanceTreasury = token.balanceOf(treasury);
 
-            if (treasury == _strategy)
+            if (treasury == _strategy) {
                 assertEq(
                     _afterBalanceTreasury,
                     _previousBalanceTreasury + _feeAmount + _amountAfterFee,
                     "property-id 19: increasePoolFunds invalid treasury and strategy common balance"
                 );
-            else if (treasury == _funder) {
+            } else if (treasury == _funder) {
                 assertEq(
                     _afterBalanceTreasury,
                     _previousBalanceStrategy - _amountAfterFee + _feeAmount,
