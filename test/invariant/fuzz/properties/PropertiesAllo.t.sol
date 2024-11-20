@@ -436,7 +436,13 @@ contract PropertiesAllo is HandlersParent {
                 _newTreasury,
                 "property-id 15-a: updateTreasury failed"
             );
-            treasury = payable(_newTreasury);
+
+            // revert the change
+            vm.prank(allo.owner());
+            (bool _success, ) = address(allo).call(
+                abi.encodeCall(allo.updateTreasury, payable(_newTreasury))
+            );
+            assert(_success);
         } else {
             assertTrue(
                 _newTreasury == address(0),
@@ -584,7 +590,8 @@ contract PropertiesAllo is HandlersParent {
         uint256 _feeAmount = (_amount * allo.getPercentFee()) /
             allo.getFeeDenominator();
         uint256 _amountAfterFee = _amount - _feeAmount;
-
+        emit test("feeamt", _feeAmount);
+        emit test("amt without fee", _amountAfterFee);
         uint256 _previousBalanceStrategy;
         uint256 _previousBalanceTreasury;
 
@@ -608,37 +615,16 @@ contract PropertiesAllo is HandlersParent {
             uint256 _afterBalanceTreasury;
             _afterBalanceStrategy = token.balanceOf(_strategy);
             _afterBalanceTreasury = token.balanceOf(treasury);
-
-            if (treasury == _strategy) {
-                assertEq(
-                    _afterBalanceTreasury,
-                    _previousBalanceTreasury + _feeAmount + _amountAfterFee,
-                    "property-id 19: increasePoolFunds invalid treasury and strategy (t=s)"
-                );
-            } else if (treasury == _funder) {
-                assertEq(
-                    _afterBalanceTreasury,
-                    _previousBalanceTreasury - _amountAfterFee + _feeAmount,
-                    "property-id 19: increasePoolFunds invalid treasury balance (t=f)"
-                );
-
-                assertEq(
-                    _afterBalanceStrategy,
-                    _previousBalanceStrategy + _amountAfterFee,
-                    "property-id 18: increasePoolFunds invalid strategy balance (t=f)"
-                );
-            } else {
-                assertEq(
-                    _afterBalanceStrategy,
-                    _previousBalanceStrategy + _amountAfterFee,
-                    "property-id 18: increasePoolFunds invalid strategy balance"
-                );
-                assertEq(
-                    _afterBalanceTreasury,
-                    _previousBalanceTreasury + _feeAmount,
-                    "property-id 19: increasePoolFunds invalid treasury balance"
-                );
-            }
+            assertEq(
+                _afterBalanceStrategy,
+                _previousBalanceStrategy + _amountAfterFee,
+                "property-id 18: increasePoolFunds invalid strategy balance"
+            );
+            assertEq(
+                _afterBalanceTreasury,
+                _previousBalanceTreasury + _feeAmount,
+                "property-id 19: increasePoolFunds invalid treasury balance"
+            );
         } else {
             (
                 bool _successAllocationEndtime,
