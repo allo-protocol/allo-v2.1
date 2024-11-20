@@ -590,8 +590,7 @@ contract PropertiesAllo is HandlersParent {
         uint256 _feeAmount = (_amount * allo.getPercentFee()) /
             allo.getFeeDenominator();
         uint256 _amountAfterFee = _amount - _feeAmount;
-        emit test("feeamt", _feeAmount);
-        emit test("amt without fee", _amountAfterFee);
+
         uint256 _previousBalanceStrategy;
         uint256 _previousBalanceTreasury;
 
