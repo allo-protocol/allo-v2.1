@@ -439,8 +439,8 @@ contract PropertiesAllo is HandlersParent {
 
             // revert the change
             vm.prank(allo.owner());
-            (bool _success, ) = address(allo).call(
-                abi.encodeCall(allo.updateTreasury, payable(_newTreasury))
+            (_success, ) = address(allo).call(
+                abi.encodeCall(allo.updateTreasury, payable(treasury))
             );
             assert(_success);
         } else {
@@ -650,8 +650,8 @@ contract PropertiesAllo is HandlersParent {
             assertTrue(
                 _amount == 0 ||
                     (_successAllocationEndtime &&
-                        _allocationEndTime < block.timestamp),
-                    || _amount < allo.getBaseFee(),
+                        _allocationEndTime < block.timestamp) ||
+                    _amount < allo.getBaseFee(),
                 "property-id 18: increasePoolFunds failed"
             );
         }

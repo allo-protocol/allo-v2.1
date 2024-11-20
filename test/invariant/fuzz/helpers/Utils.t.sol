@@ -117,6 +117,17 @@ contract Utils {
         }
     }
 
+    function assertGt(uint256 a, uint256 b) internal {
+        assertGt(a, b, "assertGt: a <= b");
+    }
+
+    function assertGt(uint256 a, uint256 b, string memory reason) internal {
+        if (a <= b) {
+            emit TestFailure(reason);
+            assert(false);
+        }
+    }
+
     function assertTrue(bool a) internal {
         assertTrue(a, "assertTrue: !a");
     }
