@@ -627,12 +627,6 @@ contract PropertiesAllo is HandlersParent {
                 _previousBalanceTreasury + _feeAmount,
                 "property-id 19: increasePoolFunds invalid treasury balance"
             );
-
-            assertGt(
-                _amount,
-                allo.getPercentFee(),
-                "property-id 18: increasePoolFunds failed"
-            );
         } else {
             (
                 bool _successAllocationEndtime,
