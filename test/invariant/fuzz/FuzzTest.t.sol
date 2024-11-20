@@ -15,21 +15,5 @@ contract FuzzTest is PropertiesParent {
         assertTrue(allo.isTrustedForwarder(forwarder), "sanity check");
     }
 
-    function test_debug() public {
-        vm.prank(0x0000000000000000000000000000000000060000);
-        vm.warp(363880);
-        vm.roll(7847);
-        this.prop_onlyProfileOwnerCanAddProfileMember(
-            60631582292742362849026949271476756118785624581464653091202846223898848146691,
-            89282359687353882127807534269204883388438548566703146330431871473520306843085
-        );
-
-        vm.prank(0x0000000000000000000000000000000000020000);
-        vm.warp(724500);
-        vm.roll(46047);
-        this.prop_profileOwnerCanAlwaysCreateAPool(
-            0,
-            32210232866365689975362222313107238028207728485110902278053676665585564356325
-        );
-    }
+    function test_debug() public {}
 }

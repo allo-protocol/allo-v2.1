@@ -32,14 +32,13 @@ contract Actors is Utils {
 
     event ActorsLog(string);
 
-    event Test(bytes);
-
     function targetCall(
         address target,
         uint256 msgValue,
         bytes memory payload
     ) internal returns (bool success, bytes memory returnData) {
         address anchorOwner = msg.sender;
+
         address anchor = _ghost_anchorOf[anchorOwner];
 
         if (anchor == address(0)) revert();

@@ -577,7 +577,7 @@ contract PropertiesAllo is HandlersParent {
     }
 
     ///@custom:property-id 18
-    ///@custom:property anyone can increase fund in a pool, if strategy (hook) logic allows so and if more than base fee
+    ///@custom:property anyone can increase fund in a pool, if strategy (hook) logic allows so
     ///@custom:property-id 19
     ///@custom:property every deposit/pool creation must take the correct fee on the amount deposited, forwarded to the treasury
     function prop_anyoneCanIncreaseFundInAPool(
@@ -630,7 +630,7 @@ contract PropertiesAllo is HandlersParent {
 
             assertGt(
                 _amount,
-                allo.getBaseFee(),
+                allo.getPercentFee(),
                 "property-id 18: increasePoolFunds failed"
             );
         } else {
@@ -651,7 +651,7 @@ contract PropertiesAllo is HandlersParent {
                 _amount == 0 ||
                     (_successAllocationEndtime &&
                         _allocationEndTime < block.timestamp) ||
-                    _amount < allo.getBaseFee(),
+                    _amount < allo.getPercentFee(),
                 "property-id 18: increasePoolFunds failed"
             );
         }
