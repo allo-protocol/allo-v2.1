@@ -581,7 +581,8 @@ contract PropertiesAllo is HandlersParent {
 
         address _strategy = allo.getStrategy(_poolId);
 
-        uint256 _feeAmount = (_amount * percentFee) / allo.getFeeDenominator();
+        uint256 _feeAmount = (_amount * allo.getPercentFee()) /
+            allo.getFeeDenominator();
         uint256 _amountAfterFee = _amount - _feeAmount;
 
         uint256 _previousBalanceStrategy;
