@@ -613,13 +613,19 @@ contract PropertiesAllo is HandlersParent {
                 assertEq(
                     _afterBalanceTreasury,
                     _previousBalanceTreasury + _feeAmount + _amountAfterFee,
-                    "property-id 19: increasePoolFunds invalid treasury and strategy common balance"
+                    "property-id 19: increasePoolFunds invalid treasury and strategy (t=s)"
                 );
             } else if (treasury == _funder) {
                 assertEq(
                     _afterBalanceTreasury,
-                    _previousBalanceStrategy - _amountAfterFee + _feeAmount,
-                    "property-id 19: increasePoolFunds invalid treasury balance when funder"
+                    _previousBalanceTreasury - _amountAfterFee + _feeAmount,
+                    "property-id 19: increasePoolFunds invalid treasury balance (t=f)"
+                );
+
+                assertEq(
+                    _afterBalanceStrategy,
+                    _previousBalanceStrategy + _amountAfterFee,
+                    "property-id 18: increasePoolFunds invalid strategy balance (t=f)"
                 );
             } else {
                 assertEq(
