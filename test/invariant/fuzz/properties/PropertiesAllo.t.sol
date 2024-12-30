@@ -578,6 +578,7 @@ contract PropertiesAllo is HandlersParent {
 
     ///@custom:property-id 18
     ///@custom:property anyone can increase fund in a pool, if strategy (hook) logic allows so
+    ///@dev This covers the case where the fees are 1e18 (ie 100% in fees)
     ///@custom:property-id 19
     ///@custom:property every deposit/pool creation must take the correct fee on the amount deposited, forwarded to the treasury
     function prop_anyoneCanIncreaseFundInAPool(

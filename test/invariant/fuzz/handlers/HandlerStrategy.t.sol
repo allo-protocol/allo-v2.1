@@ -5,6 +5,9 @@ import {HandlerAllo, IAllo} from "./HandlerAllo.t.sol";
 import {BaseStrategy} from "contracts/strategies/BaseStrategy.sol";
 
 contract HandlerStrategy is HandlerAllo {
+    mapping(uint256 _poolId => uint256 _amount) ghost_totalAllocated;
+    mapping(uint256 _poolId => mapping(address _owner => uint256 _amount)) ghost_allocations;
+
     function handler_withdraw(uint256 _poolSeed, uint256 _amount) public {
         address _recipient = makeAddr("IAmRecipient");
 

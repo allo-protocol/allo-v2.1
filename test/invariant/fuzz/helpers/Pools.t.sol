@@ -38,35 +38,20 @@ contract Pools is Utils {
     mapping(uint256 _poolId => address _poolAdmin) internal ghost_poolAdmins;
     mapping(uint256 _poolId => address[] _managers) ghost_poolManagers;
 
-    mapping(PoolStrategies _strategy => address _implementation)
-        internal _strategyImplementations;
+    mapping(PoolStrategies _strategy => address _implementation) internal _strategyImplementations;
 
     //
     // Initializers
     //
-
     function _initImplementations(address _allo) internal {
-        _strategyImplementations[PoolStrategies.DirectAllocation] = address(
-            new DirectAllocationStrategy(_allo)
-        );
-        _strategyImplementations[PoolStrategies.DonationVoting] = address(
-            new DonationVotingOnchain(_allo, "MyFancyName")
-        );
-        _strategyImplementations[PoolStrategies.EasyRPGF] = address(
-            new EasyRPGF(_allo)
-        );
-        _strategyImplementations[PoolStrategies.ImpactStream] = address(
-            new QVImpactStream(_allo)
-        );
-        _strategyImplementations[PoolStrategies.QuadraticVoting] = address(
-            new QVSimple(_allo, "MyFancyName")
-        );
-        _strategyImplementations[PoolStrategies.RFP] = address(
-            new RFPSimple(_allo)
-        );
-        _strategyImplementations[PoolStrategies.SQFSuperfluid] = address(
-            new SQFSuperfluid(_allo)
-        );
+        _strategyImplementations[PoolStrategies.DirectAllocation] = address(new DirectAllocationStrategy(_allo));
+        _strategyImplementations[PoolStrategies.DonationVoting] =
+            address(new DonationVotingOnchain(_allo, "MyFancyName"));
+        _strategyImplementations[PoolStrategies.EasyRPGF] = address(new EasyRPGF(_allo));
+        _strategyImplementations[PoolStrategies.ImpactStream] = address(new QVImpactStream(_allo));
+        _strategyImplementations[PoolStrategies.QuadraticVoting] = address(new QVSimple(_allo, "MyFancyName"));
+        _strategyImplementations[PoolStrategies.RFP] = address(new RFPSimple(_allo));
+        _strategyImplementations[PoolStrategies.SQFSuperfluid] = address(new SQFSuperfluid(_allo));
 
         allo = Allo(_allo);
     }
@@ -83,30 +68,24 @@ contract Pools is Utils {
     function _poolStrategy(uint256 _poolId) internal returns (PoolStrategies) {
         IAllo.Pool memory _pool = allo.getPool(_poolId);
         for (uint256 i = 1; i <= uint256(type(PoolStrategies).max); i++) {
-            if (
-                _strategyImplementations[PoolStrategies(i)] ==
-                address(_pool.strategy)
-            ) return PoolStrategies(i);
+            if (_strategyImplementations[PoolStrategies(i)] == address(_pool.strategy)) return PoolStrategies(i);
         }
 
         emit TestFailure("Wrong pool strategy implementation id");
     }
 
     // reverse lookup pool address -> strategy type
-    function _poolStrategy(
-        address _strategy
-    ) internal returns (PoolStrategies) {
+    function _poolStrategy(address _strategy) internal returns (PoolStrategies) {
         for (uint256 i = 1; i <= uint256(type(PoolStrategies).max); i++) {
-            if (_strategyImplementations[PoolStrategies(i)] == _strategy)
+            if (_strategyImplementations[PoolStrategies(i)] == _strategy) {
                 return PoolStrategies(i);
+            }
         }
 
         emit TestFailure("Wrong pool strategy implementation address");
     }
 
-    function _strategyHasImplementation(
-        PoolStrategies _strategy
-    ) internal returns (bool) {
+    function _strategyHasImplementation(PoolStrategies _strategy) internal returns (bool) {
         for (uint256 i; i < ghost_poolIds.length; i++) {
             if (_poolStrategy(ghost_poolIds[i]) == _strategy) return true;
         }
@@ -120,9 +99,7 @@ contract Pools is Utils {
         return ghost_poolIds[_idSeed % ghost_poolIds.length];
     }
 
-    function _pickPoolId(
-        uint256[] memory _seeds
-    ) internal view returns (uint256[] memory) {
+    function _pickPoolId(uint256[] memory _seeds) internal view returns (uint256[] memory) {
         uint256[] memory _poolIds = new uint256[](_seeds.length);
 
         for (uint256 _i; _i < _seeds.length; ++_i) {
@@ -132,10 +109,7 @@ contract Pools is Utils {
         return _poolIds;
     }
 
-    function _isManager(
-        address _sende,
-        uint256 _poolId
-    ) internal returns (bool __isManager) {
+    function _isManager(address _sende, uint256 _poolId) internal returns (bool __isManager) {
         for (uint256 _i; _i < ghost_poolManagers[_poolId].length; _i++) {
             if (msg.sender == ghost_poolManagers[_poolId][_i]) {
                 __isManager = true;
