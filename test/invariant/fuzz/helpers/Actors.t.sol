@@ -24,19 +24,27 @@ contract Actors is Utils {
         address target,
         uint256 msgValue,
         bytes memory payload
-    ) public returns (bool success, bytes memory returnData) {
+    ) public returns (bool, bytes memory) {
         emit ActorsLog(
             string.concat("call using anchor of ", vm.toString(address(this)))
         );
 
         vm.deal(payable(address(this)), msgValue);
 
-        (success, returnData) = controlledAnchor.call{value: msgValue}(
+        (bool succ, bytes memory ret) = controlledAnchor.call{value: msgValue}(
             abi.encodeCall(Anchor.execute, (target, msgValue, payload))
         );
 
-        if (returnData.length != 0)
-            returnData = abi.decode(returnData, (bytes));
+        if (!succ) {
+            emit ActorsLog(vm.toString(ret));
+            return (succ, ret);
+        }
+
+        if (ret.length != 0) {
+            ret = abi.decode(ret, (bytes));
+        }
+
+        return (succ, ret);
     }
 
     function directCall(
@@ -74,7 +82,9 @@ contract HandlerActors is Utils, GhostStorage {
 
     function _currentActor() internal view returns (Actors _actor) {
         uint256 _seed = uint256(uint160(msg.sender));
-        _actor = Actors(payable(_ghost_actors[_seed % _ghost_actors.length]));
+        _actor = Actors(
+            payable(_ghost_actors[(_seed % _ghost_actors.length) - 1])
+        );
     }
 
     function _randomActor(uint256 _seed) internal view returns (Actors _actor) {

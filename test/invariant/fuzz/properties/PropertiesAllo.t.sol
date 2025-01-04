@@ -79,7 +79,7 @@ contract PropertiesAllo is HandlersParent {
             allo.getFeeDenominator();
         uint256 _amountAfterFee = _amount - _feeAmount;
 
-        token.transfer(address(_actor), _amount);
+        token.transfer(_actor.controlledAnchor(), _amount);
         _actor.callThroughAnchor(
             address(token),
             0,

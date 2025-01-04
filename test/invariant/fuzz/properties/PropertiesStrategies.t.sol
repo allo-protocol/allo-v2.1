@@ -188,54 +188,6 @@ contract PropertiesStrategies is HandlersParent {
         }
     }
 
-    ///@custom:property-id 2
-    ///@custom:property a token allocation never “disappears” (withdraw cannot impact an allocation)
-    function prop_allocationPersists(
-        uint256 _poolSeed,
-        uint256 _withdrawAmount
-    ) public {
-        uint256 _poolId = _pickPoolId(_poolSeed);
-        address _strategy = allo.getStrategy(_poolId);
-
-        // Track pre-withdrawal allocations
-        uint256[] memory preAllocations = new uint256[](
-            ghost_recipients[_poolId].length
-        );
-        for (uint256 i = 0; i < ghost_recipients[_poolId].length; i++) {
-            preAllocations[i] = ghost_allocations[_poolId][
-                ghost_recipients[_poolId][i]
-            ];
-        }
-
-        // Execute withdrawal
-        Actors _actor = _currentActor();
-        (bool success, ) = _actor.callThroughAnchor(
-            address(_strategy),
-            0,
-            abi.encodeCall(
-                IBaseStrategy.withdraw,
-                (address(token), _withdrawAmount, msg.sender)
-            )
-        );
-
-        if (success) {
-            // Verify allocations unchanged
-            for (uint256 i = 0; i < ghost_recipients[_poolId].length; i++) {
-                assertEq(
-                    ghost_allocations[_poolId][ghost_recipients[_poolId][i]],
-                    preAllocations[i],
-                    "property-id 2: Allocation changed after withdrawal"
-                );
-            }
-        } else {
-            assertEq(
-                uint256(_poolStrategy(_strategy)),
-                uint256(PoolStrategies.DirectAllocation),
-                "Property 2: Withdraw failed"
-            );
-        }
-    }
-
     //TODO: review 3
 
     ///@custom:property-id 3

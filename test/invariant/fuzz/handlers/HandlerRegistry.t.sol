@@ -138,19 +138,20 @@ contract HandlerRegistry is Setup {
     // }
 
     function handler_addMembers(uint256 _seed) public {
-        uint256 _membersToAdd = _seed % _ghost_actors.length;
-        address[] memory _members = new address[](_membersToAdd);
-        for (uint256 i = 0; i < _membersToAdd; i++) {
-            _members[i] = _ghost_actors[i];
-        }
+        Actors _actor = _currentActor();
+
+        uint256 _memberToAdd = _seed % _ghost_actors.length;
+
+        address[] memory _members = new address[](1);
+        _members[0] = Actors(payable(_ghost_actors[_memberToAdd]))
+            .controlledAnchor();
 
         // Get the profile ID
         IRegistry.Profile memory profile = registry.getProfileByAnchor(
-            _ghost_anchorOf[msg.sender]
+            _actor.controlledAnchor()
         );
 
-        Actors _actor = _currentActor();
-        (bool succ, bytes memory ret) = _actor.callThroughAnchor(
+        (bool succ, bytes memory ret) = _actor.directCall(
             address(registry),
             0,
             abi.encodeWithSelector(
@@ -161,9 +162,7 @@ contract HandlerRegistry is Setup {
         );
 
         if (succ) {
-            for (uint256 i = 0; i < _membersToAdd; i++) {
-                _ghost_roleMembers[profile.id].push(_members[i]);
-            }
+            _ghost_roleMembers[profile.id].push(_members[0]);
         }
     }
 

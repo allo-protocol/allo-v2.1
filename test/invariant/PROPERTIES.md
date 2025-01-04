@@ -5,13 +5,13 @@
 | id  | property                                                                                                          | covered |
 | --- | :---------------------------------------------------------------------------------------------------------------- | ------- |
 | 1   | one should always be able to allocate/distribute correct (based on strategy) amount for recipient                       | [x]      |
-| 2   | a token allocation never “disappears” (withdraw cannot impact an allocation)                                      | [x]      |
 | 3   | an address can only receive from a strategy if has allocation                                                                    | [x]      |
 | 4   | profile owner can always create a pool                                                                            | [x]      |
 | 17  | only funds not allocated can be withdrawn                                                                       | []      |
 | 18  | anyone can increase fund in a pool, if strategy (hook) logic allows so and if more than base fee                  | [x]      |
 | 19  | every deposit/pool creation must take the correct fee on the amount deposited, forwarded to the treasury          | [x]      |
 
+|    | a token allocation never “disappears” (withdraw cannot impact an allocation) - covered by accounting                                     | [x]      |
 
 | UT | pool manager can always withdraw within strategy limits/logic                                                     | []      |
 | UT  | allo owner can always recover funds from allo contract ( (non-)native token )                                     | [x]      |

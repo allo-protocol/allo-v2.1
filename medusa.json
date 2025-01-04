@@ -53,7 +53,7 @@
       },
       "propertyTesting": {
         "enabled": true,
-        "testPrefixes": ["property_"]
+        "testPrefixes": ["prop_"]
       },
       "optimizationTesting": {
         "enabled": true,

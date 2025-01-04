@@ -74,7 +74,8 @@ contract Setup is HandlerActors, Pools {
         // Deploy token
         token = ERC20(address(new FuzzERC20()));
 
-        // Deploy actors and create profile for all actors
+        // Deploy actors, create profile for all actors, add a
+        // member to each profile
         for (uint256 i; i < numberOfActors; i++) {
             Actors _newActor = new Actors();
 
@@ -103,15 +104,17 @@ contract Setup is HandlerActors, Pools {
         defaultWithdrawalCooldown = 1 days;
         DEFAULT_MAX_BID = 1000;
 
-        for (uint256 i = 1; i <= uint256(type(PoolStrategies).max); i++) {
-            Actors _deployer = Actors(payable(_ghost_actors[i - 1]));
+        for (uint256 i; i <= uint256(type(PoolStrategies).max); i++) {
+            Actors _deployer = Actors(payable(_ghost_actors[i]));
             IRegistry.Profile memory profile = registry.getProfileByAnchor(
                 _deployer.controlledAnchor()
             );
 
             bytes memory _metadata;
 
-            if (PoolStrategies(i) == PoolStrategies.DirectAllocation) {
+            if (PoolStrategies(i) == PoolStrategies.FuzzBaseStrategy) {
+                _metadata = "";
+            } else if (PoolStrategies(i) == PoolStrategies.DirectAllocation) {
                 _metadata = "";
             } else if (PoolStrategies(i) == PoolStrategies.DonationVoting) {
                 _metadata = abi.encode(
@@ -170,6 +173,9 @@ contract Setup is HandlerActors, Pools {
                 return;
             }
 
+            address[] memory managers = new address[](1);
+            managers[0] = address(_deployer.controlledAnchor());
+
             (bool succ, bytes memory ret) = _deployer.directCall(
                 address(allo),
                 0,
@@ -182,21 +188,16 @@ contract Setup is HandlerActors, Pools {
                         address(token),
                         0,
                         profile.metadata,
-                        new address[](0)
+                        managers
                     )
                 )
             );
-            uint256 _poolId = abi.decode(ret, (uint256));
 
-            // uint256 _poolId = allo.createPool(
-            //     profile.id,
-            //     _strategyImplementations[PoolStrategies(i)],
-            //     _metadata,
-            //     address(token),
-            //     0,
-            //     profile.metadata,
-            //     new address[](0)
-            // );
+            if (!succ) {
+                revert("Failed to create pool");
+            }
+
+            uint256 _poolId = abi.decode(ret, (uint256));
 
             // Update the implementation used (as it's cloned)
             _strategyImplementations[PoolStrategies(i)] = allo.getStrategy(
