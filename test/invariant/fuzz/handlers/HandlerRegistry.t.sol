@@ -5,10 +5,6 @@ import {Setup, Metadata} from "../Setup.t.sol";
 import {IRegistry} from "contracts/core/Registry.sol";
 
 contract HandlerRegistry is Setup {
-    uint256 internal _ghost_nonce;
-    bytes32[] internal _ghost_pendingOwnershipChange;
-    mapping(bytes32 _profileId => address[] _members) internal _ghost_roleMembers;
-
     // create a new profile and discard it for now
     function handler_createProfile(uint256 _numberOfMembers) public {
         _numberOfMembers = bound(_numberOfMembers, 0, _ghost_actors.length);

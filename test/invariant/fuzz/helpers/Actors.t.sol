@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Utils} from "./Utils.t.sol";
 import {Anchor} from "contracts/core/Anchor.sol";
+import {GhostStorage} from "./GhostStorage.t.sol";
 
 // Actors handler, reusing the msg.sender used by echidna (defined in the json)
 // and tracking them, allowing to aggregate balances for instance.
@@ -14,22 +15,7 @@ import {Anchor} from "contracts/core/Anchor.sol";
 // to the target contract, anchor are called by their owner only (for now?)
 //
 // For convenience, EOA used all have an anchor, used by default to call the end-target
-contract Actors is Utils {
-    address[] internal _ghost_actors = [
-        address(0x10000),
-        address(0x20000),
-        address(0x30000),
-        address(0x40000),
-        address(0x50000),
-        address(0x60000),
-        address(0x70000),
-        address(0x80000),
-        address(0x90000),
-        address(0xa0000)
-    ];
-
-    mapping(address actor => address anchor) internal _ghost_anchorOf;
-
+contract Actors is Utils, GhostStorage {
     event ActorsLog(string);
 
     function targetCall(
@@ -55,7 +41,8 @@ contract Actors is Utils {
             abi.encodeCall(Anchor.execute, (target, msgValue, payload))
         );
 
-        returnData = abi.decode(returnData, (bytes));
+        if (returnData.length != 0)
+            returnData = abi.decode(returnData, (bytes));
     }
 
     function _addAnchorToActor(address _actor, address _anchor) internal {

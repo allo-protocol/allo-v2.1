@@ -3,12 +3,10 @@ pragma solidity ^0.8.19;
 
 import {Setup} from "../Setup.t.sol";
 import {IRegistry} from "contracts/core/Registry.sol";
-import {Allo, IAllo, Metadata} from "contracts/core/Allo.sol";
+import {Allo, IAllo, Metadata, IBaseStrategy} from "contracts/core/Allo.sol";
 import {FuzzERC20} from "../helpers/FuzzERC20.sol";
 
 contract HandlerAllo is Setup {
-    mapping(uint256 _poolId => address[] _recipients) ghost_recipients;
-
     function handler_updatePoolMetadata(
         uint256 _idSeed,
         uint256 _metadataProtocol,

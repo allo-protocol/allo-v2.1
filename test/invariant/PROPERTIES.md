@@ -4,25 +4,63 @@
 
 | id  | property                                                                                                          | covered |
 | --- | :---------------------------------------------------------------------------------------------------------------- | ------- |
-| 1   | one should always be able to pull/push correct (based on strategy) allocation for recipient                       | [x]      |
-| 2   | a token allocation never “disappears” (withdraw cannot impact an allocation)                                      | []      |
-| 3   | an address can only withdraw if has allocation                                                                    | []      |
+| 1   | one should always be able to allocate/distribute correct (based on strategy) amount for recipient                       | [x]      |
+| 2   | a token allocation never “disappears” (withdraw cannot impact an allocation)                                      | [x]      |
+| 3   | an address can only receive from a strategy if has allocation                                                                    | [x]      |
 | 4   | profile owner can always create a pool                                                                            | [x]      |
-| 5   | profile owner is the only one who can always add/remove/modify profile members (name ⇒ new anchor())              | [x]      |
-| 6   | profile owner is the only one who can always initiate a change of profile owner (2 steps)                         | [x]      |
-| 7   | profile member can always create a pool                                                                           | [x]      |
-| 8   | only profile owner or member can create a pool                                                                    | [x]      |
-| 9   | initial admin is always the creator of the pool                                                                   | [x]      |
-| 10  | pool admin can always change admin (but not to address(0))                                                        | [x]      |
-| 11  | pool admin can always add/remove pool managers                                                                    | [x]      |
-| 12  | pool manager can always withdraw within strategy limits/logic                                                     | []      |
-| 13  | pool manager can always change metadata                                                                           | [x]      |
-| 14  | allo owner can always change base fee (flat) and percent flee (./. funding amt) to any arbitrary value (max 100%) | [x]      |
-| 15  | allo owner can always change the treasury address/trustred forwarded/etc                                          | [x]      |
-| 16  | allo owner can always recover funds from allo contract ( (non-)native token )                                     | [x]      |
-| 17  | only funds not allocated can be withdrawn                                                                         | []      |
+| 17  | only funds not allocated can be withdrawn                                                                       | []      |
 | 18  | anyone can increase fund in a pool, if strategy (hook) logic allows so and if more than base fee                  | [x]      |
 | 19  | every deposit/pool creation must take the correct fee on the amount deposited, forwarded to the treasury          | [x]      |
+
+
+| UT | pool manager can always withdraw within strategy limits/logic                                                     | []      |
+| UT  | allo owner can always recover funds from allo contract ( (non-)native token )                                     | [x]      |
+| UT | profile owner is the only one who can always add/remove/modify profile members (name ⇒ new anchor())              | [x]      |
+| UT | profile owner is the only one who can always initiate a change of profile owner (2 steps)                         | [x]      |
+| UT | profile member can always create a pool                                                                           | [x]      |
+| UT | only profile owner or member can create a pool                                                                    | [x]      |
+| UT | initial admin is always the creator of the pool                                                                   | [x]      |
+| UT | pool admin can always change admin (but not to address(0))                                                        | [x]      |
+| UT | pool admin can always add/remove pool managers                                                                    | [x]      |
+| UT | pool manager can always change metadata                                                                           | [x]      |
+| UT | allo owner can always change base fee (flat) and percent flee (./. funding amt) to any arbitrary value (max 100%) | [x]      |
+| UT | allo owner can always change the treasury address/trustred forwarded/etc                                          | [x]      |
+
+
+Protocol balance sheet: should be balanced
+asset                             | liabilities
+                                  |
+unallocated tokens in strategies  | fund available to allocate
+(unaccounted tokens in strategies)  | tokens allocated but not withdrawn
+
+bookholding writings (allocate should be a reclassification instead, kept double-writing for clarity)
+- createPool, fundPool: credit: unallocated tokens in strategies, debit: fund available to allocate for a pool
+- allocate, batchAllocate: credit: tokens allocated but not withdrawn, debit: unallocated tokens in strategies
+- distribute: credit: token sent to recipient, debit: tokens allocated but not withdrawn
+
+- direct transfer to pool: credit: unaccounted tokens in strategies, debit: fund received
+- withdraw: credit: token sent to poolOwner, debit: unaccounted tokens in strategies
+
+These 2 are omitted:
+- direct transfer to protocol contract: credit: tokens in core protocol contract, debit: fund received
+- recoverFunds: credit: token send to protocol owner, debit: tokens in core protocol contract
+
+
+Assets
+1. All of the unallocated funds in strategies
+-> +: createPool, fundPool ; -: allocate, batchAllocate, withdraw
+
+2. Tokens sitting in its various contracts (including the treasury -> EOA tho?)‬
+-> +: ; -: recoverFunds (allo and registry)
+
+Liabilities
+1. Tokens that are allocated but have not been withdrawn‬
+-> +: allocate, batchAllocate ; -: distribute
+
+2. Fee tokens owed to the deployer, but not yet withdrawn from the treasury contract‬
+-> +: ~~createPool~~ (baseFee transfered), ~~fundPool~~ (percentFee transfered) ; -:
+
+-> Allo and Registry balances should always be 0 (no direct transfer handler)
 
 
 ## Other leads

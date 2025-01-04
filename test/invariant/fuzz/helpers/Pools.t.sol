@@ -3,8 +3,10 @@ pragma solidity ^0.8.19;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Utils} from "./Utils.t.sol";
+import {GhostStorage} from "./GhostStorage.t.sol";
+
 import {Anchor} from "contracts/core/Anchor.sol";
-import {Allo, IAllo} from "contracts/core/Allo.sol";
+import {Allo, IAllo, IBaseStrategy} from "contracts/core/Allo.sol";
 
 import {DirectAllocationStrategy} from "contracts/strategies/examples/direct-allocation/DirectAllocation.sol";
 import {DonationVotingOnchain} from "contracts/strategies/examples/donation-voting/DonationVotingOnchain.sol";
@@ -20,7 +22,7 @@ import {IAllocationExtension} from "contracts/strategies/extensions/allocate/IAl
 import {IRecipientsExtension} from "contracts/strategies/extensions/register/IRecipientsExtension.sol";
 import {IAllocatorsAllowlistExtension} from "contracts/strategies/extensions/allocate/IAllocatorsAllowlistExtension.sol";
 
-contract Pools is Utils {
+contract Pools is Utils, GhostStorage {
     Allo private allo;
 
     enum PoolStrategies {
@@ -33,10 +35,6 @@ contract Pools is Utils {
         RFP,
         SQFSuperfluid
     }
-
-    uint256[] internal ghost_poolIds;
-    mapping(uint256 _poolId => address _poolAdmin) internal ghost_poolAdmins;
-    mapping(uint256 _poolId => address[] _managers) ghost_poolManagers;
 
     mapping(PoolStrategies _strategy => address _implementation) internal _strategyImplementations;
 
@@ -63,6 +61,18 @@ contract Pools is Utils {
     //
     // Getters
     //
+    function _aggregatePoolBalances() internal returns (uint256 _aggregateBalance) {
+        // Cumulative sum based on the pool internal balances, we're assessing
+        // its accuracy in a property (avoid "hiding" bad debt in unaccounted
+        // tokens)
+        uint256 _totalPoolBalances;
+        for (uint256 i; i < ghost_poolIds.length; i++) {
+            uint256 poolId = ghost_poolIds[i];
+
+            _totalPoolBalances += IBaseStrategy(allo.getPool(poolId).strategy).getPoolAmount();
+        }
+        return _totalPoolBalances;
+    }
 
     // reverse lookup pool id -> strategy type
     function _poolStrategy(uint256 _poolId) internal returns (PoolStrategies) {
