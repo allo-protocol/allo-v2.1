@@ -51,9 +51,6 @@ contract Actors is Utils {
         vm.deal(payable(address(this)), msgValue);
 
         (success, returnData) = target.call{value: msgValue}(payload);
-
-        if (returnData.length != 0)
-            returnData = abi.decode(returnData, (bytes));
     }
 
     function changeAnchor(address newAnchor) public {

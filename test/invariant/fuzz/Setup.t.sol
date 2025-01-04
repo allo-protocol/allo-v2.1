@@ -104,10 +104,9 @@ contract Setup is HandlerActors, Pools {
         DEFAULT_MAX_BID = 1000;
 
         for (uint256 i = 1; i <= uint256(type(PoolStrategies).max); i++) {
-            address _deployer = _ghost_actors[i % 4]; // First 4 actors have an associated anchor
-
+            Actors _deployer = Actors(payable(_ghost_actors[i - 1]));
             IRegistry.Profile memory profile = registry.getProfileByAnchor(
-                _ghost_anchorOf[_deployer]
+                _deployer.controlledAnchor()
             );
 
             bytes memory _metadata;
@@ -171,25 +170,42 @@ contract Setup is HandlerActors, Pools {
                 return;
             }
 
-            vm.prank(_deployer);
-            uint256 _poolId = allo.createPool(
-                profile.id,
-                _strategyImplementations[PoolStrategies(i)],
-                _metadata,
-                address(token),
+            (bool succ, bytes memory ret) = _deployer.directCall(
+                address(allo),
                 0,
-                profile.metadata,
-                new address[](0)
+                abi.encodeCall(
+                    allo.createPool,
+                    (
+                        profile.id,
+                        _strategyImplementations[PoolStrategies(i)],
+                        _metadata,
+                        address(token),
+                        0,
+                        profile.metadata,
+                        new address[](0)
+                    )
+                )
             );
+            uint256 _poolId = abi.decode(ret, (uint256));
+
+            // uint256 _poolId = allo.createPool(
+            //     profile.id,
+            //     _strategyImplementations[PoolStrategies(i)],
+            //     _metadata,
+            //     address(token),
+            //     0,
+            //     profile.metadata,
+            //     new address[](0)
+            // );
 
             // Update the implementation used (as it's cloned)
             _strategyImplementations[PoolStrategies(i)] = allo.getStrategy(
                 _poolId
             );
 
-            ghost_poolAdmins[_poolId] = _deployer;
+            ghost_poolAdmins[_poolId] = address(_deployer);
             assertTrue(
-                allo.isPoolAdmin(_poolId, _deployer),
+                allo.isPoolAdmin(_poolId, address(_deployer)),
                 "Admin not set _initPools_"
             );
 

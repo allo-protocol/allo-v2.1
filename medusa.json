@@ -20,7 +20,10 @@
       "0x40000",
       "0x50000",
       "0x60000",
-      "0x70000"
+      "0x70000",
+      "0x80000",
+      "0x90000",
+      "0xa0000"
     ],
     "blockNumberDelayMax": 60480,
     "blockTimestampDelayMax": 604800,
