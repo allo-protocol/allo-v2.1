@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import {HandlerAllo, IAllo} from "./HandlerAllo.t.sol";
 import {BaseStrategy} from "contracts/strategies/BaseStrategy.sol";
+import {Actors} from "../helpers/Actors.t.sol";
 
 contract HandlerStrategy is HandlerAllo {
     mapping(uint256 _poolId => uint256 _amount) ghost_totalAllocated;
@@ -19,12 +20,21 @@ contract HandlerStrategy is HandlerAllo {
         IAllo.Pool memory _pool = allo.getPool(ghost_poolIds[_poolSeed]);
 
         // Withdraw
-        (bool succ,) = targetCall(
-            address(_pool.strategy), 0, abi.encodeCall(BaseStrategy.withdraw, (_pool.token, _amount, _recipient))
+        Actors _actor = _currentActor();
+        (bool succ, ) = _actor.callThroughAnchor(
+            address(_pool.strategy),
+            0,
+            abi.encodeCall(
+                BaseStrategy.withdraw,
+                (_pool.token, _amount, _recipient)
+            )
         );
     }
 
-    function handler_increasePoolAmount(uint256 _poolSeed, uint256 _amount) public {
+    function handler_increasePoolAmount(
+        uint256 _poolSeed,
+        uint256 _amount
+    ) public {
         _poolSeed = bound(_poolSeed, 0, ghost_poolIds.length - 1);
         uint256 _poolId = ghost_poolIds[_poolSeed];
 
@@ -34,7 +44,11 @@ contract HandlerStrategy is HandlerAllo {
         IAllo.Pool memory _pool = allo.getPool(ghost_poolIds[_poolSeed]);
 
         // Increase the pool amount
-        (bool succ,) =
-            targetCall(address(_pool.strategy), 0, abi.encodeCall(BaseStrategy.increasePoolAmount, (_amount)));
+        Actors _actor = _currentActor();
+        (bool succ, ) = _actor.callThroughAnchor(
+            address(_pool.strategy),
+            0,
+            abi.encodeCall(BaseStrategy.increasePoolAmount, (_amount))
+        );
     }
 }

@@ -11,25 +11,25 @@ import {IBaseStrategy} from "contracts/strategies/BaseStrategy.sol";
 import {Errors} from "contracts/core/libraries/Errors.sol";
 
 import {FuzzERC20, ERC20} from "../helpers/FuzzERC20.sol";
+import {Actors} from "../helpers/Actors.t.sol";
 
 contract PropertiesAllo is HandlersParent {
     ///@custom:property-id 4
     ///@custom:property Non-reversion: profile owner can always create a pool
-    function prop_profileOwnerCanAlwaysCreateAPool(
-        uint256 _msgValue,
-        uint256 _anchorSeed
-    ) public {
+    function prop_profileOwnerCanAlwaysCreateAPool(uint256 _msgValue) public {
+        Actors _actor = _currentActor();
+
         IRegistry.Profile memory _profile = registry.getProfileByAnchor(
-            _pickAnchor(_anchorSeed)
+            _actor.controlledAnchor()
         );
 
         bool _isOwnerOrMember = registry.isOwnerOrMemberOfProfile(
             _profile.id,
-            _ghost_anchorOf[msg.sender]
+            _actor.controlledAnchor()
         );
 
         // Create a pool
-        (bool succ, bytes memory ret) = targetCall(
+        (bool succ, bytes memory ret) = _actor.callThroughAnchor(
             address(allo),
             _msgValue,
             abi.encodeCall(
@@ -68,6 +68,8 @@ contract PropertiesAllo is HandlersParent {
         uint256 _idSeed,
         uint256 _amount
     ) public {
+        Actors _actor = _currentActor();
+
         _idSeed = bound(_idSeed, 0, ghost_poolIds.length - 1);
         uint256 _poolId = ghost_poolIds[_idSeed];
 
@@ -77,37 +79,31 @@ contract PropertiesAllo is HandlersParent {
             allo.getFeeDenominator();
         uint256 _amountAfterFee = _amount - _feeAmount;
 
-        uint256 _previousBalanceStrategy;
-        uint256 _previousBalanceTreasury;
+        token.transfer(address(_actor), _amount);
+        _actor.callThroughAnchor(
+            address(token),
+            0,
+            abi.encodeCall(ERC20.approve, (address(allo), type(uint256).max))
+        );
 
-        address _funder = _ghost_anchorOf[msg.sender];
+        uint256 _previousBalanceStrategy = token.balanceOf(_strategy);
+        uint256 _previousBalanceTreasury = token.balanceOf(treasury);
 
-        token.transfer(_funder, _amount);
-        vm.prank(_funder);
-        token.approve(address(allo), type(uint256).max);
-
-        _previousBalanceStrategy = token.balanceOf(_strategy);
-        _previousBalanceTreasury = token.balanceOf(treasury);
-
-        (bool _success, ) = targetCall(
+        (bool _success, ) = _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.fundPool, (_poolId, _amount))
         );
 
         if (_success) {
-            uint256 _afterBalanceStrategy;
-            uint256 _afterBalanceTreasury;
-            _afterBalanceStrategy = token.balanceOf(_strategy);
-            _afterBalanceTreasury = token.balanceOf(treasury);
             assertEq(
-                _afterBalanceStrategy,
+                token.balanceOf(_strategy),
                 _previousBalanceStrategy + _amountAfterFee,
                 "property-id 18: increasePoolFunds invalid strategy balance"
             );
 
             assertEq(
-                _afterBalanceTreasury,
+                token.balanceOf(treasury),
                 _previousBalanceTreasury + _feeAmount,
                 "property-id 19: increasePoolFunds invalid treasury balance"
             );

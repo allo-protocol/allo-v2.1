@@ -15,29 +15,23 @@ import {GhostStorage} from "./GhostStorage.t.sol";
 // to the target contract, anchor are called by their owner only (for now?)
 //
 // For convenience, EOA used all have an anchor, used by default to call the end-target
-contract Actors is Utils, GhostStorage {
+contract Actors is Utils {
     event ActorsLog(string);
 
-    function targetCall(
+    address public controlledAnchor;
+
+    function callThroughAnchor(
         address target,
         uint256 msgValue,
         bytes memory payload
-    ) internal returns (bool success, bytes memory returnData) {
-        address anchorOwner = msg.sender;
-
-        address anchor = _ghost_anchorOf[anchorOwner];
-
-        if (anchor == address(0)) revert();
-
+    ) public returns (bool success, bytes memory returnData) {
         emit ActorsLog(
-            string.concat("call using anchor of ", vm.toString(anchorOwner))
+            string.concat("call using anchor of ", vm.toString(address(this)))
         );
 
         vm.deal(payable(address(this)), msgValue);
-        payable(anchorOwner).transfer(msgValue);
 
-        vm.prank(anchorOwner);
-        (success, returnData) = address(anchor).call{value: msgValue}(
+        (success, returnData) = controlledAnchor.call{value: msgValue}(
             abi.encodeCall(Anchor.execute, (target, msgValue, payload))
         );
 
@@ -45,6 +39,31 @@ contract Actors is Utils, GhostStorage {
             returnData = abi.decode(returnData, (bytes));
     }
 
+    function directCall(
+        address target,
+        uint256 msgValue,
+        bytes memory payload
+    ) public returns (bool success, bytes memory returnData) {
+        emit ActorsLog(
+            string.concat("call using actor ", vm.toString(address(this)))
+        );
+
+        vm.deal(payable(address(this)), msgValue);
+
+        (success, returnData) = target.call{value: msgValue}(payload);
+
+        if (returnData.length != 0)
+            returnData = abi.decode(returnData, (bytes));
+    }
+
+    function changeAnchor(address newAnchor) public {
+        controlledAnchor = newAnchor;
+    }
+
+    receive() external payable {}
+}
+
+contract HandlerActors is Utils, GhostStorage {
     function _addAnchorToActor(address _actor, address _anchor) internal {
         _ghost_anchorOf[_actor] = _anchor;
     }
@@ -56,11 +75,12 @@ contract Actors is Utils, GhostStorage {
         delete _ghost_anchorOf[_actor];
     }
 
-    function _pickAnchor(uint256 _seed) internal view returns (address _actor) {
-        _actor = _ghost_anchorOf[_ghost_actors[_seed % _ghost_actors.length]];
+    function _currentActor() internal view returns (Actors _actor) {
+        uint256 _seed = uint256(uint160(msg.sender));
+        _actor = Actors(payable(_ghost_actors[_seed % _ghost_actors.length]));
     }
 
-    function _pickActor(uint256 _seed) internal view returns (address _actor) {
-        _actor = _ghost_actors[_seed % _ghost_actors.length];
+    function _randomActor(uint256 _seed) internal view returns (Actors _actor) {
+        _actor = Actors(payable(_ghost_actors[_seed % _ghost_actors.length]));
     }
 }

@@ -13,12 +13,12 @@ import {SQFSuperfluid} from "contracts/strategies/examples/sqf-superfluid/SQFSup
 
 import {IRecipientsExtension} from "strategies/extensions/register/IRecipientsExtension.sol";
 
-import {Actors} from "./helpers/Actors.t.sol";
+import {HandlerActors, Actors} from "./helpers/Actors.t.sol";
 import {Pools} from "./helpers/Pools.t.sol";
 import {Utils} from "./helpers/Utils.t.sol";
 import {FuzzERC20, ERC20} from "./helpers/FuzzERC20.sol";
 
-contract Setup is Actors, Pools {
+contract Setup is HandlerActors, Pools {
     uint256 percentFee;
     uint256 baseFee;
 
@@ -74,20 +74,21 @@ contract Setup is Actors, Pools {
         // Deploy token
         token = ERC20(address(new FuzzERC20()));
 
-        // Create profile for all addresses
-        for (uint256 i; i < _ghost_actors.length; i++) {
+        // Deploy actors and create profile for all actors
+        for (uint256 i; i < numberOfActors; i++) {
+            Actors _newActor = new Actors();
+
             bytes32 _id = registry.createProfile(
                 0,
                 "a",
                 Metadata({protocol: i + 1, pointer: ""}),
-                _ghost_actors[i],
+                address(_newActor),
                 new address[](0)
             );
 
-            _addAnchorToActor(
-                _ghost_actors[i],
-                registry.getProfileById(_id).anchor
-            );
+            _newActor.changeAnchor(registry.getProfileById(_id).anchor);
+
+            _ghost_actors.push(address(_newActor));
         }
 
         // Create pools for each strategy

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
-import {Setup} from "../Setup.t.sol";
+import {Setup, Actors} from "../Setup.t.sol";
 import {IRegistry} from "contracts/core/Registry.sol";
 import {Allo, IAllo, Metadata, IBaseStrategy} from "contracts/core/Allo.sol";
 import {FuzzERC20} from "../helpers/FuzzERC20.sol";
@@ -33,7 +33,9 @@ contract HandlerAllo is Setup {
         });
 
         // Update the pool metadata - will revert on wrong anchor
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.updatePoolMetadata, (poolId, metadata))
@@ -44,7 +46,9 @@ contract HandlerAllo is Setup {
         _newPercentFee = bound(_newPercentFee, 0, 1e18);
 
         // Update the percent fee - will revert if caller is not the owner
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.updatePercentFee, (_newPercentFee))
@@ -53,7 +57,9 @@ contract HandlerAllo is Setup {
 
     function handler_updateBaseFee(uint256 _newBaseFee) public {
         // Update the base fee - will revert if caller is not the owner
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.updateBaseFee, (_newBaseFee))
@@ -62,7 +68,9 @@ contract HandlerAllo is Setup {
 
     function handler_updateRegistry(address _newRegistry) public {
         // Update the registry - will revert if caller is not the owner or if the new registry is zero
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.updateRegistry, (_newRegistry))
@@ -71,7 +79,9 @@ contract HandlerAllo is Setup {
 
     function handler_updateTreasury(address _newTreasury) public {
         // Update the treasury - will revert if caller is not the owner or if the new treasury is zero
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.updateTreasury, (payable(_newTreasury)))
@@ -80,7 +90,9 @@ contract HandlerAllo is Setup {
 
     function handler_updateTrustedForwarder(address _newForwarder) public {
         // Update the trusted forwarder - will revert if caller is not the owner or if the new forwarder is zero
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(Allo.updateTrustedForwarder, (_newForwarder))
@@ -101,7 +113,9 @@ contract HandlerAllo is Setup {
         }
 
         // Add pool managers - will revert if caller is not the pool admin of the pool id
-        (bool _succ, ) = targetCall(
+        Actors _actor = _currentActor();
+
+        (bool _succ, ) = _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.addPoolManagers, (_poolId, _managers))
@@ -119,7 +133,9 @@ contract HandlerAllo is Setup {
         address[] memory _managers = ghost_poolManagers[_poolId];
 
         // Remove pool managers - will revert if caller is not a pool admin of the pool id
-        (bool _succ, ) = targetCall(
+        Actors _actor = _currentActor();
+
+        (bool _succ, ) = _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.removePoolManagers, (_poolId, _managers))
@@ -132,7 +148,9 @@ contract HandlerAllo is Setup {
 
     function handler_recoverFunds(address _recipient) public {
         // Recover funds - will revert if caller is not the owner
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.recoverFunds, (address(token), _recipient))
@@ -161,7 +179,9 @@ contract HandlerAllo is Setup {
         }
 
         // Register recipient
-        (bool succ, ) = targetCall(
+        Actors _actor = _currentActor();
+
+        (bool _succ, ) = _actor.callThroughAnchor(
             address(allo),
             _msgValue,
             abi.encodeCall(
@@ -171,7 +191,7 @@ contract HandlerAllo is Setup {
         );
 
         // todo: double-check there is no way a recipient is registered twice
-        if (succ) {
+        if (_succ) {
             for (uint256 i; i < _recipientAddresses.length; i++) {
                 ghost_recipients[_poolId].push(_recipientAddresses[i]);
             }
@@ -195,7 +215,9 @@ contract HandlerAllo is Setup {
         }
 
         // Fund pool - will revert if the amount is zero or if pool token is native and message value is != amount
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             _msgValue,
             abi.encodeCall(allo.fundPool, (_poolId, _amount))
@@ -227,7 +249,9 @@ contract HandlerAllo is Setup {
         }
 
         // Allocate - allocate to a recipient or multiple recipients
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             _msgValue,
             abi.encodeCall(
@@ -245,7 +269,9 @@ contract HandlerAllo is Setup {
         uint256 _poolId = _pickPoolId(_idSeed);
 
         // Distribute - distribute to a recipient or multiple recipients
-        targetCall(
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(
@@ -260,7 +286,8 @@ contract HandlerAllo is Setup {
         address _newAdmin = _ghost_actors[_seedAdmin % _ghost_actors.length];
 
         // Change admin - will revert if caller is not the pool admin
-        (bool success, ) = targetCall(
+        Actors _actor = _currentActor();
+        (bool success, ) = _actor.callThroughAnchor(
             address(allo),
             0,
             abi.encodeCall(allo.changeAdmin, (_poolId, _newAdmin))

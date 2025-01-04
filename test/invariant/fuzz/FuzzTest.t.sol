@@ -14,6 +14,4 @@ contract FuzzTest is PropertiesParent {
         assertEq(baseFee, allo.getBaseFee(), "sanity check");
         assertTrue(allo.isTrustedForwarder(forwarder), "sanity check");
     }
-
-    function test_debug() public {}
 }
