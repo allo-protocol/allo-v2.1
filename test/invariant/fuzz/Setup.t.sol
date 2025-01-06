@@ -205,9 +205,16 @@ contract Setup is HandlerActors, Pools {
             );
 
             ghost_poolAdmins[_poolId] = address(_deployer);
+            ghost_poolManagers[_poolId].push(managers[0]);
+
             assertTrue(
                 allo.isPoolAdmin(_poolId, address(_deployer)),
                 "Admin not set _initPools_"
+            );
+
+            assertTrue(
+                allo.isPoolManager(_poolId, managers[0]),
+                "Manager not set _initPools_"
             );
 
             _recordPool(_poolId);

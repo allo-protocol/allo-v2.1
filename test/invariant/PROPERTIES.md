@@ -7,7 +7,7 @@
 | 1   | one should always be able to allocate/distribute correct (based on strategy) amount for recipient                       | [x]      |
 | 3   | an address can only receive from a strategy if has allocation                                                                    | [x]      |
 | 4   | profile owner can always create a pool                                                                            | [x]      |
-| 17  | only funds not allocated can be withdrawn                                                                       | []      |
+| 17  | only funds outside the poolAmount can be withdrawn from a pool                                                                      | []      |
 | 18  | anyone can increase fund in a pool, if strategy (hook) logic allows so and if more than base fee                  | [x]      |
 | 19  | every deposit/pool creation must take the correct fee on the amount deposited, forwarded to the treasury          | [x]      |
 

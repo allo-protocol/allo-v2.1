@@ -69,17 +69,6 @@ contract Actors is Utils {
 }
 
 contract HandlerActors is Utils, GhostStorage {
-    function _addAnchorToActor(address _actor, address _anchor) internal {
-        _ghost_anchorOf[_actor] = _anchor;
-    }
-
-    function _removeAnchorFromActor(
-        address _actor,
-        bytes32 _profileId
-    ) internal {
-        delete _ghost_anchorOf[_actor];
-    }
-
     function _currentActor() internal view returns (Actors _actor) {
         uint256 _seed = uint256(uint160(msg.sender));
         _actor = Actors(

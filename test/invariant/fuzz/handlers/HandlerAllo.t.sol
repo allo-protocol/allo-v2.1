@@ -21,7 +21,7 @@ contract HandlerAllo is Setup {
 
         // Get the profile ID
         IRegistry.Profile memory profile = registry.getProfileByAnchor(
-            _ghost_anchorOf[msg.sender]
+            _currentActor().controlledAnchor()
         );
 
         // Avoid EOA
