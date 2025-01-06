@@ -14,6 +14,7 @@ import {IAllocatorsAllowlistExtension} from "contracts/strategies/extensions/all
 import {Errors} from "contracts/core/libraries/Errors.sol";
 
 import {FuzzERC20, ERC20} from "../helpers/FuzzERC20.sol";
+import {FuzzBaseStrategy} from "../helpers/FuzzBaseStrategy.t.sol";
 import {Actors} from "../helpers/Actors.t.sol";
 
 contract PropertiesStrategies is HandlersParent {
@@ -49,7 +50,7 @@ contract PropertiesStrategies is HandlersParent {
     ///@custom:property manager should be able to allocate for recipient (based on strategy)
     function prop_userShouldBeAbleToAllocateForRecipient(uint256 _actorSeed, uint256 _idSeed, uint256 _amount) public {
         Actors _actor = _currentActor();
-        address _allocator = _actor.controlledAnchor();
+        address _allocator = _currentActor().controlledAnchor();
 
         address _recipient = address(_randomActor(_actorSeed));
 
@@ -72,24 +73,17 @@ contract PropertiesStrategies is HandlersParent {
             ? abi.encode(token, new bytes(0))
             : abi.encode(_tokens);
 
+        // Needed for direct allocation
         token.transfer(_allocator, _amount);
-        _actor.callThroughAnchor(address(token), 0, abi.encodeCall(ERC20.approve, (_strategy, _amount)));
-
-        uint256 _recipientPreviousBalance = token.balanceOf(_recipient);
+        _actor.callThroughAnchor(address(token), 0, abi.encodeCall(ERC20.approve, (address(_strategy), _amount)));
 
         (bool _success, bytes memory _ret) = _actor.callThroughAnchor(
             address(allo), 0, abi.encodeCall(allo.allocate, (_poolId, _recipients, _amounts, _data))
         );
 
         if (_success) {
-            assertEq(
-                token.balanceOf(_recipient),
-                _recipientPreviousBalance + _amount,
-                "property-id 1-a: wrong balancer after allocation"
-            );
-
             // Check strategy specific post-conditions
-            _assertValidAllocate(_strategy, _allocator);
+            _assertValidAllocate(payable(_strategy), _allocator, _recipient, _amount);
 
             ghost_totalAllocatedNotDistributed += _amount;
 
@@ -251,7 +245,9 @@ contract PropertiesStrategies is HandlersParent {
     //
 
     // Check strategy dependent post-conditions if a call to allocate is successful
-    function _assertValidAllocate(address _strategy, address _allocator) internal {
+    function _assertValidAllocate(address payable _strategy, address _allocator, address _recipient, uint256 _amount)
+        internal
+    {
         if (
             _poolStrategy(_strategy) == PoolStrategies.QuadraticVoting
                 || _poolStrategy(_strategy) == PoolStrategies.ImpactStream
@@ -265,6 +261,10 @@ contract PropertiesStrategies is HandlersParent {
                 IAllocationExtension(_strategy).allocationStartTime() <= block.timestamp
                     && IAllocationExtension(_strategy).allocationEndTime() >= block.timestamp,
                 "property-id 1-a: allocate outside of allocation window"
+            );
+        } else if (_poolStrategy(_strategy) == PoolStrategies.FuzzBaseStrategy) {
+            assertTrue(
+                FuzzBaseStrategy(_strategy).allocated(_recipient) == _amount, "property-id 1-a: wrong amount allocated"
             );
         }
     }

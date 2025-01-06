@@ -19,11 +19,8 @@ contract FuzzBaseStrategy is BaseStrategy {
     function _register(address[] memory _recipients, bytes memory _data, address _sender)
         internal
         override
-        onlyPoolManager(_sender)
         returns (address[] memory _recipientIds)
     {
-        //if (!_ALLO.isPoolManager(_poolId, _sender)) revert BaseStrategy_Unauthorized();
-
         recipients = _recipients;
         _recipientIds = new address[](_recipients.length);
         for (uint256 i = 0; i < _recipients.length; i++) {
@@ -34,18 +31,13 @@ contract FuzzBaseStrategy is BaseStrategy {
     function _allocate(address[] memory _recipients, uint256[] memory _amounts, bytes memory _data, address _sender)
         internal
         override
-        onlyPoolManager(_sender)
     {
         for (uint256 i = 0; i < _recipients.length; i++) {
             allocated[_recipients[i]] = _amounts[i];
         }
     }
 
-    function _distribute(address[] memory _recipientIds, bytes memory _data, address _sender)
-        internal
-        override
-        onlyPoolManager(_sender)
-    {
+    function _distribute(address[] memory _recipientIds, bytes memory _data, address _sender) internal override {
         ERC20 _token = ERC20(_ALLO.getPool(_poolId).token);
         for (uint256 i = 0; i < _recipientIds.length; i++) {
             _token.transfer(_recipientIds[i], allocated[_recipientIds[i]]);
