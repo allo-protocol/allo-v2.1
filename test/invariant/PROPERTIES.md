@@ -1,17 +1,81 @@
 # Properties & invariants
 
-## Actors-based
+## General invariants
 
 | id  | property                                                                                                          | covered |
 | --- | :---------------------------------------------------------------------------------------------------------------- | ------- |
-| 1   | one should always be able to allocate/distribute correct (based on strategy) amount for recipient                       | [x]      |
-| 3   | an address can only receive from a strategy if has allocation                                                                    | [x]      |
+| 1   | one should always be able to allocate/distribute correct (based on strategy) amount for                           | [x]      |
+| 3   | an address can only receive from a strategy if has allocation                                                     | [x]      |
 | 4   | profile owner can always create a pool                                                                            | [x]      |
-| 17  | only funds outside the poolAmount can be withdrawn from a pool                                                                      | []      |
+| 17  | only funds outside the poolAmount can be withdrawn from a pool                                                    | []      |
 | 18  | anyone can increase fund in a pool, if strategy (hook) logic allows so and if more than base fee                  | [x]      |
 | 19  | every deposit/pool creation must take the correct fee on the amount deposited, forwarded to the treasury          | [x]      |
+|    | a token allocation never “disappears” (withdraw cannot impact an allocation) - covered by accounting               | [x]      |
 
-|    | a token allocation never “disappears” (withdraw cannot impact an allocation) - covered by accounting                                     | [x]      |
+## Accounting invariants
+
+| ACC-1 | Balance sheet is balanced    | [x] |
+| ACC-2 | No bad debt in the system    | [x] |
+| ACC-3 | Each pool is solvable        | [x] |
+
+
+Protocol balance sheet:
+| asset                              | liabilities                        |
+| ---------------------------------- | ---------------------------------- |
+| unallocated tokens in strategies   | fund available to allocate         |
+| (unaccounted tokens in strategies) | tokens allocated but not withdrawn |
+
+bookholding writings (allocate should be a simple reclassification, kept it as a double-writing for clarity)
+- createPool, fundPool: credit: unallocated tokens in strategies, debit: fund available to allocate for a pool
+- allocate, batchAllocate: credit: tokens allocated but not withdrawn, debit: unallocated tokens in strategies
+- distribute: credit: token sent to recipient, debit: tokens allocated but not withdrawn
+- direct transfer to pool: credit: unaccounted tokens in strategies, debit: fund received
+- withdraw: credit: token sent to poolOwner, debit: unaccounted tokens in strategies
+
+These 2 are omitted:
+- direct transfer to protocol contract: credit: tokens in core protocol contract, debit: fund received
+- recoverFunds: credit: token send to protocol owner, debit: tokens in core protocol contract
+
+## Strategy specific invariants
+
+These invariants are existing in the example strategies (src/strategies/example). Their implementation might serve as inspiration
+for new pool strategies. These are to be understood as additional invariant, on top of the ones described above.
+
+### Direct Allocation
+
+No allocation persists, allocating effectively split the token in accordingly
+Distribute and registering recipient are not implemented
+
+### Donation Voting
+
+property 1 should hold based on the amount allocated as vote for a recipient
+Only whitelisted allocator can allocate
+Only whitelisted recipient can receive
+
+### Easy RPGF
+
+No allocation persits, distribution to an arbitratry array of addresses
+
+### Quadratic Voting Simple
+
+Allocate gives voice to recipient
+Only whitelisted allocator can allocate
+Only whitelisted recipient can receive
+Cannot vote more than nb of voices held
+
+
+### QV Impact Stream
+
+Same but with a list of payouts
+
+### RFP
+
+### SQF SuperFluid
+
+
+
+
+## Other important invariant, covered by the unit tests
 
 | UT | pool manager can always withdraw within strategy limits/logic                                                     | []      |
 | UT  | allo owner can always recover funds from allo contract ( (non-)native token )                                     | [x]      |
@@ -25,46 +89,6 @@
 | UT | pool manager can always change metadata                                                                           | [x]      |
 | UT | allo owner can always change base fee (flat) and percent flee (./. funding amt) to any arbitrary value (max 100%) | [x]      |
 | UT | allo owner can always change the treasury address/trustred forwarded/etc                                          | [x]      |
-
-
-Protocol balance sheet: should be balanced
-asset                             | liabilities
-                                  |
-unallocated tokens in strategies  | fund available to allocate
-(unaccounted tokens in strategies)  | tokens allocated but not withdrawn
-
-bookholding writings (allocate should be a reclassification instead, kept double-writing for clarity)
-- createPool, fundPool: credit: unallocated tokens in strategies, debit: fund available to allocate for a pool
-- allocate, batchAllocate: credit: tokens allocated but not withdrawn, debit: unallocated tokens in strategies
-- distribute: credit: token sent to recipient, debit: tokens allocated but not withdrawn
-
-- direct transfer to pool: credit: unaccounted tokens in strategies, debit: fund received
-- withdraw: credit: token sent to poolOwner, debit: unaccounted tokens in strategies
-
-These 2 are omitted:
-- direct transfer to protocol contract: credit: tokens in core protocol contract, debit: fund received
-- recoverFunds: credit: token send to protocol owner, debit: tokens in core protocol contract
-
-
-Assets
-1. All of the unallocated funds in strategies
--> +: createPool, fundPool ; -: allocate, batchAllocate, withdraw
-
-2. Tokens sitting in its various contracts (including the treasury -> EOA tho?)‬
--> +: ; -: recoverFunds (allo and registry)
-
-Liabilities
-1. Tokens that are allocated but have not been withdrawn‬
--> +: allocate, batchAllocate ; -: distribute
-
-2. Fee tokens owed to the deployer, but not yet withdrawn from the treasury contract‬
--> +: ~~createPool~~ (baseFee transfered), ~~fundPool~~ (percentFee transfered) ; -:
-
--> Allo and Registry balances should always be 0 (no direct transfer handler)
-
-
-## Other leads
-
 - After a pool creation, getting a pool should always return valid data for profileId and strategy address. [STATE TRANSITION]
 - Allo must be initialised before creating/managing pools [VALID STATE]
 - `percentFee` should never be more than 1e18 [VARIABLE TRANSITION]

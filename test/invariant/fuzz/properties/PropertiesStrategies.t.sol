@@ -129,6 +129,7 @@ contract PropertiesStrategies is HandlersParent {
             }
 
             ghost_availableToAllocate -= _amount;
+            ghost_allocations[_poolId][_recipient] += _amount;
         } else {
             _assertInvalidAllocate(_strategy, _allocator, _ret);
         }
@@ -187,8 +188,6 @@ contract PropertiesStrategies is HandlersParent {
         }
     }
 
-    //TODO: review 3
-
     ///@custom:property-id 3
     ///@custom:property an address can only receive from a strategy if it has an allocation
     function prop_distributionRequiresAllocation(
@@ -234,6 +233,8 @@ contract PropertiesStrategies is HandlersParent {
         );
 
         if (_success) {
+            uint256 _recipientNewBalance = token.balanceOf(_recipient);
+
             assertTrue(
                 hasAllocation,
                 "property-id 3: Distribution succeeded without allocation"
