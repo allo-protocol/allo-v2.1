@@ -109,7 +109,6 @@ contract PropertiesAllo is HandlersParent {
             );
 
             ghost_totalReceived += _amountAfterFee;
-            ghost_availableToAllocate += _amountAfterFee;
         } else {
             // Edge-case of some strategies: only allocation during a defined period
             (

@@ -71,9 +71,7 @@ contract Actors is Utils {
 contract HandlerActors is Utils, GhostStorage {
     function _currentActor() internal view returns (Actors _actor) {
         uint256 _seed = uint256(uint160(msg.sender));
-        _actor = Actors(
-            payable(_ghost_actors[(_seed % _ghost_actors.length) - 1])
-        );
+        _actor = Actors(payable(_ghost_actors[(_seed % _ghost_actors.length)]));
     }
 
     function _randomActor(uint256 _seed) internal view returns (Actors _actor) {

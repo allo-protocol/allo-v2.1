@@ -10,29 +10,19 @@
 | 4  | profile owner can always create a pool                                                                            |
 | 5  | anyone can increase fund in a pool, if strategy (hook) logic allows so and if more than base fee                  |
 | 6  | every deposit/pool creation must take the correct fee on the amount deposited, forwarded to the treasury          |
-| ACC-1 | Balance sheet is balanced, no bad debt    |
+| ACC-1 | There is no token which has left the protocol without being accounted for    |
 | ACC-2 | Each pool is solvable                     |
 
-The last 2 invariants are general procotol accounting, based on the following balance sheet:
+The last 2 invariants are general procotol accounting, one based on the actual overal "cash-flow" and one based on the individual pool accounting.
 
 Protocol balance sheet:
-| asset                              | liabilities                        |
-| ---------------------------------- | ---------------------------------- |
-| unallocated tokens in strategies   | fund available to allocate         |
-| (unaccounted tokens in strategies) | tokens allocated but not withdrawn |
+| asset                              | liabilities                          |
+| ---------------------------------- | ------------------------------------ |
+|         tokens in strategies       | withdrawable tokens (unallocated)    |
+| (unaccounted tokens in strategies) | tokens to distribute                 |
 
-The following operations are covered by this accounting
-bookholding writings (allocate should be a simple reclassification, kept it as a double-writing for clarity)
-- createPool, fundPool: credit: unallocated tokens in strategies, debit: fund available to allocate for a pool
-- allocate, batchAllocate: credit: tokens allocated but not withdrawn, debit: unallocated tokens in strategies
-- distribute: credit: token sent to recipient, debit: tokens allocated but not withdrawn
-- direct transfer to pool: credit: unaccounted tokens in strategies, debit: fund received
-- withdraw: credit: token sent to poolOwner, debit: unaccounted tokens in strategies
-
-These 2 are omitted, as they're covered by unit tests:
-- direct transfer to protocol contract: credit: tokens in core protocol contract, debit: fund received
-- recoverFunds: credit: token send to protocol owner, debit: tokens in core protocol contract
-
+Note: Allocation doesn't imply token movement. Instead, it set the *future* balance sheet movements,
+which will effectively occur when distributing or withdrawing tokens (accounting wise, it's a requalification of liabilities).
 
 ## Other important invariant, covered by the unit tests
 

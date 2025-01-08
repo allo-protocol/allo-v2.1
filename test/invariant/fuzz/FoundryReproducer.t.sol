@@ -5,7 +5,5 @@ import {FuzzTest} from "./FuzzTest.t.sol";
 import {Actors} from "./Setup.t.sol";
 
 contract FoundryReproducer is FuzzTest {
-    function test_reproduce() public {
-        assert(true);
-    }
+    function test_reproduce() public {}
 }

@@ -14,22 +14,7 @@ contract HandlerStrategy is HandlerAllo {
         IAllo.Pool memory _pool = allo.getPool(ghost_poolIds[_poolSeed]);
 
         ERC20(_pool.token).transfer(address(_pool.strategy), _amount);
-    }
 
-    function handler_withdraw(uint256 _poolSeed, uint256 _amount) public {
-        address _recipient = makeAddr("IAmRecipient");
-
-        // Needs at least one pool
-        if (ghost_poolIds.length == 0) return;
-
-        // Get the pool
-        _poolSeed = _poolSeed % ghost_poolIds.length;
-        IAllo.Pool memory _pool = allo.getPool(ghost_poolIds[_poolSeed]);
-
-        // Withdraw
-        Actors _actor = _currentActor();
-        (bool succ,) = _actor.callThroughAnchor(
-            address(_pool.strategy), 0, abi.encodeCall(BaseStrategy.withdraw, (_pool.token, _amount, _recipient))
-        );
+        ghost_totalReceived += _amount;
     }
 }

@@ -65,16 +65,18 @@ contract Pools is Utils, GhostStorage {
     //
     // Getters
     //
+    event AggregatePoolBalances(uint256);
+
     function _aggregatePoolBalances() internal returns (uint256 _aggregateBalance) {
-        // Cumulative sum based on the pool internal balances, we're assessing
-        // its accuracy in a property (avoid "hiding" bad debt in unaccounted
-        // tokens)
         uint256 _totalPoolBalances;
         for (uint256 i; i < ghost_poolIds.length; i++) {
             uint256 poolId = ghost_poolIds[i];
 
-            _totalPoolBalances += IBaseStrategy(allo.getPool(poolId).strategy).getPoolAmount();
+            IERC20 token = IERC20(allo.getPool(poolId).token);
+
+            _totalPoolBalances += token.balanceOf(address(allo.getPool(poolId).strategy));
         }
+        emit AggregatePoolBalances(_totalPoolBalances);
         return _totalPoolBalances;
     }
 

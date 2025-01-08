@@ -10,9 +10,7 @@ contract GhostStorage {
 
     mapping(uint256 _poolId => address[] _recipients) ghost_recipients;
 
-    uint256 ghost_totalReceived; // only net amounts, after fee (direct transfer)
-    uint256 ghost_availableToAllocate;
-    uint256 ghost_totalAllocatedNotDistributed;
+    uint256 ghost_totalReceived; // only net amounts, after fee (which is directly transfered)
     uint256 ghost_totalWithdrawn;
 
     mapping(uint256 _poolId => mapping(address _owner => uint256 _amount)) ghost_allocations;
