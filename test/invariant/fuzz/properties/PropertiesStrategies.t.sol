@@ -8,7 +8,7 @@ import {IAllo, Allo, Metadata} from "contracts/core/Allo.sol";
 import {IRegistry, Registry} from "contracts/core/Registry.sol";
 import {IBaseStrategy} from "contracts/strategies/BaseStrategy.sol";
 import {IAllocationExtension} from "contracts/strategies/extensions/allocate/IAllocationExtension.sol";
-import {IRecipientsExtension} from "contracts/strategies/extensions/register/IRecipientsExtension.sol";
+import {RecipientsExtension, IRecipientsExtension} from "contracts/strategies/extensions/register/RecipientsExtension.sol";
 import {IAllocatorsAllowlistExtension} from "contracts/strategies/extensions/allocate/IAllocatorsAllowlistExtension.sol";
 
 import {Errors} from "contracts/core/libraries/Errors.sol";
@@ -19,7 +19,7 @@ import {Actors} from "../helpers/Actors.t.sol";
 
 contract PropertiesStrategies is HandlersParent {
     ///@custom:property-id ACC-1
-    ///@custom:property Balance sheet is balanced
+    ///@custom:property Balance sheet is balanced / no bad debt
     function property_checkBalanceSheet() public {
         assertTrue(
             ghost_totalReceived ==
@@ -31,15 +31,6 @@ contract PropertiesStrategies is HandlersParent {
     }
 
     ///@custom:property-id ACC-2
-    ///@custom:property No bad debt exists
-    function property_checkProtocolBadDebt() public {
-        assertTrue(
-            _aggregatePoolBalances() >= ghost_totalAllocatedNotDistributed,
-            "Accounting: bad debt"
-        );
-    }
-
-    ///@custom:property-id ACC-3
     ///@custom:property Each pool internal balance is consistent with the real balance
     function property_checkPoolSolvability() public {
         for (uint256 i; i < ghost_poolIds.length; i++) {
@@ -60,7 +51,7 @@ contract PropertiesStrategies is HandlersParent {
         }
     }
 
-    ///@custom:property-id 1-a
+    ///@custom:property-id 1
     ///@custom:property manager should be able to allocate for recipient (based on strategy)
     function prop_userShouldBeAbleToAllocateForRecipient(
         uint256 _actorSeed,
@@ -122,7 +113,7 @@ contract PropertiesStrategies is HandlersParent {
 
             if (_poolStrategy(_strategy) != PoolStrategies.DirectAllocation) {
                 ghost_allocations[_poolId][address(_recipient)] += _amount;
-
+            } else {
                 // allocation is directly distributed
                 ghost_totalAllocatedNotDistributed -= _amount;
                 ghost_totalWithdrawn += _amount;
@@ -135,69 +126,15 @@ contract PropertiesStrategies is HandlersParent {
         }
     }
 
-    ///@custom:property-id 1-b
-    ///@custom:property manager should be able to pull correct (based on strategy) allocation for recipient
-    ///TODO: For now, this is only handling direct allocation (which has now allocation/distribution)
+    ///@custom:property-id 2
+    ///@custom:property manager should be able to distribute correct (based on strategy) allocation for recipient
     function prop_poolManagerShouldBeAbleToDistributeToRecipient(
         uint256 _idSeed,
         uint256 _managerSeed,
         uint256 _actorSeed,
         uint256 _amount
     ) public {
-        Actors _actor = _currentActor();
-        address _recipient = _actor.controlledAnchor();
-
-        address[] memory _recipients = new address[](1);
-        _recipients[0] = _recipient;
-
-        bytes memory _data = new bytes(0);
-
-        _idSeed = bound(_idSeed, 0, ghost_poolIds.length - 1);
-        uint256 _poolId = ghost_poolIds[_idSeed];
-
-        address _manager = ghost_poolManagers[_poolId][
-            (_managerSeed % ghost_poolManagers[_poolId].length)
-        ];
-
-        IBaseStrategy _strategy = allo.getPool(_poolId).strategy;
-
-        uint256 _recipientPreviousBalance = token.balanceOf(_recipient);
-
-        token.transfer(address(_strategy), _amount);
-        uint256 _poolAmount = _strategy.getPoolAmount();
-
-        vm.prank(_manager);
-        (bool _success, bytes memory _ret) = address(allo).call(
-            abi.encodeCall(allo.distribute, (_poolId, _recipients, _data))
-        );
-
-        if (_success) {
-            ghost_totalAllocatedNotDistributed -= _amount;
-            ghost_totalWithdrawn += _amount;
-        } else {
-            if (
-                _strategy.getStrategyId() ==
-                keccak256(abi.encode("DirectAllocation"))
-            ) {
-                assertEq(
-                    abi.decode(_ret, (bytes4)),
-                    Errors.NOT_IMPLEMENTED.selector,
-                    "property-id 1-b: distribute failed with correct amounts"
-                );
-            }
-        }
-    }
-
-    ///@custom:property-id 3
-    ///@custom:property an address can only receive from a strategy if it has an allocation
-    function prop_distributionRequiresAllocation(
-        uint256 _idSeed,
-        uint256 _actorSeed,
-        uint256 _managerSeed,
-        uint256 _amount
-    ) public {
         address _recipient = address(_currentActor());
-
         address[] memory _recipients = new address[](1);
         _recipients[0] = _recipient;
 
@@ -212,47 +149,48 @@ contract PropertiesStrategies is HandlersParent {
 
         IBaseStrategy _strategy = allo.getPool(_poolId).strategy;
 
-        bool hasAllocation = ghost_allocations[_poolId][_recipient] > 0;
-
-        // Direct allocation only in this contract
-        // if (
-        //     _strategy.getStrategyId() !=
-        //     keccak256(abi.encode("DirectAllocation"))
-        // ) {
-        //     return;
-        // }
-
+        bool _hasAllocation = ghost_allocations[_poolId][_recipient] > 0;
         uint256 _recipientPreviousBalance = token.balanceOf(_recipient);
-
-        token.transfer(address(_strategy), _amount);
         uint256 _poolAmount = _strategy.getPoolAmount();
+
+        // Direct allocation's allocate does a direct transfer
+        if (
+            _strategy.getStrategyId() ==
+            keccak256(abi.encode("DirectAllocation"))
+        ) {
+            token.transfer(address(_strategy), _amount);
+        }
 
         vm.prank(_manager);
         (bool _success, bytes memory _ret) = address(allo).call(
             abi.encodeCall(allo.distribute, (_poolId, _recipients, _data))
         );
 
+        // General (non-)revertion assertion, should be common to all strategies
         if (_success) {
             uint256 _recipientNewBalance = token.balanceOf(_recipient);
 
             assertTrue(
-                hasAllocation,
+                _hasAllocation,
                 "property-id 3: Distribution succeeded without allocation"
             );
 
             ghost_totalAllocatedNotDistributed -= _amount;
             ghost_totalWithdrawn += _amount;
         } else {
+            // Revert because: no allocation, not enough token for allocation,
+            // allocation not implemented
             assertTrue(
-                !hasAllocation ||
-                    _poolStrategy(address(_strategy)) ==
-                    PoolStrategies.DirectAllocation,
-                "property-id 3: Distribution failed while allocation"
+                !_hasAllocation ||
+                    _totalAllocatedInPool(_poolId) > _poolAmount ||
+                    abi.decode(_ret, (bytes4)) ==
+                    Errors.NOT_IMPLEMENTED.selector,
+                "property-id 3: Distribution failed while allocation should be valid"
             );
         }
     }
 
-    ///@custom:property-id 17
+    ///@custom:property-id 3
     ///@custom:property only funds outside the poolAmount can be withdrawn from a pool
     function prop_onlyUnallocatedWithdrawable(
         uint256 _poolSeed,
@@ -282,18 +220,18 @@ contract PropertiesStrategies is HandlersParent {
         if (success) {
             assertTrue(
                 _actor.controlledAnchor() == _manager,
-                "caller not manager"
+                "property-id 3: Caller not manager"
             );
 
             assertTrue(
                 _amount <= poolActualBalance - poolInternalBalance,
-                "property-id 17: Withdrew allocated funds"
+                "property-id 3: Withdrew allocated funds"
             );
         } else {
             assertTrue(
                 _actor.controlledAnchor() != _manager ||
                     _amount > poolActualBalance - poolInternalBalance,
-                "property-id 12: Withdraw failed"
+                "property-id 3: Withdraw failed"
             );
         }
     }
@@ -316,7 +254,7 @@ contract PropertiesStrategies is HandlersParent {
             assertTrue(
                 IAllocatorsAllowlistExtension(address(_strategy))
                     .allowedAllocators(_allocator),
-                "property-id 1-a: allocator not allowed"
+                "property-id 1 QV/IS: allocator not allowed"
             );
         } else if (_poolStrategy(_strategy) == PoolStrategies.DonationVoting) {
             assertTrue(
@@ -324,14 +262,22 @@ contract PropertiesStrategies is HandlersParent {
                     block.timestamp &&
                     IAllocationExtension(_strategy).allocationEndTime() >=
                     block.timestamp,
-                "property-id 1-a: allocate outside of allocation window"
+                "property-id 1 DV: allocate outside of allocation window"
             );
         } else if (
             _poolStrategy(_strategy) == PoolStrategies.FuzzBaseStrategy
         ) {
             assertTrue(
                 FuzzBaseStrategy(_strategy).allocated(_recipient) == _amount,
-                "property-id 1-a: wrong amount allocated"
+                "property-id 1 Fuzz: wrong amount allocated"
+            );
+        } else if (
+            _poolStrategy(_strategy) == PoolStrategies.DirectAllocation
+        ) {
+            // Empty
+        } else {
+            fail(
+                "property-id 1: allocate call succeeded but should have failed"
             );
         }
     }
@@ -348,7 +294,7 @@ contract PropertiesStrategies is HandlersParent {
             assertFalse(
                 IAllocatorsAllowlistExtension(address(_strategy))
                     .allowedAllocators(_allocator),
-                "property-id 1-a: allocator allowed but failed"
+                "property-id 2 QV/IS: allocator allowed but failed"
             );
         } else if (
             _poolStrategy(_strategy) == PoolStrategies.RFP ||
@@ -357,7 +303,7 @@ contract PropertiesStrategies is HandlersParent {
             assertEq(
                 abi.decode(_ret, (bytes4)),
                 bytes4(Errors.NOT_IMPLEMENTED.selector),
-                "property-id 1-a: wrong allocate() revert"
+                "property-id 2 RFP/RPGF: wrong allocate() revert"
             );
         }
         // allocate not implemented
@@ -377,7 +323,8 @@ contract PropertiesStrategies is HandlersParent {
                     IAllocationExtension(_strategy).allocationStartTime() >
                         block.timestamp ||
                         IAllocationExtension(_strategy).allocationEndTime() <
-                        block.timestamp
+                        block.timestamp,
+                    "property 2 DV: Allocation failed in correct period"
                 );
             }
         } else if (
@@ -385,11 +332,11 @@ contract PropertiesStrategies is HandlersParent {
         ) {
             assertTrue(
                 !_isManager(_allocator, IBaseStrategy(_strategy).getPoolId()),
-                "property-id 1-a: wrong allocate() revert for FuzzBaseStrategy"
+                "property-id 2: wrong allocate() revert for FuzzBaseStrategy"
             );
         } else {
             fail(
-                "property-id 1-a: allocate call failed but should have succeeded"
+                "property-id 2: allocate call failed but should have succeeded"
             );
         }
     }

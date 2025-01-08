@@ -59,10 +59,10 @@ contract PropertiesAllo is HandlersParent {
             );
     }
 
-    ///@custom:property-id 18
+    ///@custom:property-id 5
     ///@custom:property anyone can increase fund in a pool, if strategy (hook) logic allows so
     ///@dev This covers the case where the fees are 1e18 (ie 100% in fees)
-    ///@custom:property-id 19
+    ///@custom:property-id 6
     ///@custom:property every deposit/pool creation must take the correct fee on the amount deposited, forwarded to the treasury
     function prop_anyoneCanIncreaseFundInAPool(
         uint256 _idSeed,
@@ -99,13 +99,13 @@ contract PropertiesAllo is HandlersParent {
             assertEq(
                 token.balanceOf(_strategy),
                 _previousBalanceStrategy + _amountAfterFee,
-                "property-id 18: increasePoolFunds invalid strategy balance"
+                "property-id 5: increasePoolFunds invalid strategy balance"
             );
 
             assertEq(
                 token.balanceOf(treasury),
                 _previousBalanceTreasury + _feeAmount,
-                "property-id 19: increasePoolFunds invalid treasury balance"
+                "property-id 6: increasePoolFunds invalid treasury balance"
             );
 
             ghost_totalReceived += _amountAfterFee;
@@ -129,7 +129,7 @@ contract PropertiesAllo is HandlersParent {
                     (_successAllocationEndtime &&
                         _allocationEndTime < block.timestamp) ||
                     _amount < allo.getPercentFee(),
-                "property-id 18: increasePoolFunds failed"
+                "property-id 5: increasePoolFunds failed"
             );
         }
     }
