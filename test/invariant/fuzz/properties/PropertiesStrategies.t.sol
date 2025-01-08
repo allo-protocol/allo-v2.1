@@ -20,13 +20,9 @@ import {FuzzBaseStrategy} from "../helpers/FuzzBaseStrategy.t.sol";
 import {Actors} from "../helpers/Actors.t.sol";
 
 contract PropertiesStrategies is HandlersParent {
-    event log(uint256);
-
     ///@custom:property-id ACC-1
     ///@custom:property There is no token which has left the protocol without being accounted for
     function property_checkNoTokenOutUnaccounted() public {
-        emit log(_aggregatePoolBalances());
-        emit log(ghost_totalWithdrawn);
         assertTrue(
             ghost_totalReceived == _aggregatePoolBalances() + ghost_totalWithdrawn,
             "Accounting: token out unaccounted for"
