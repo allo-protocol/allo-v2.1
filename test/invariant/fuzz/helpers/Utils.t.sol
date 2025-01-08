@@ -77,6 +77,47 @@ contract Utils {
         }
     }
 
+    function assertEq(bytes32 a, bytes32 b) internal {
+        assertEq(a, b, "assertEq: a != b");
+    }
+
+    function assertEq(bytes32 a, bytes32 b, string memory reason) internal {
+        if (a != b) {
+            emit TestFailure(reason);
+            assert(false);
+        }
+    }
+
+    function assertEq(string memory a, string memory b) internal {
+        assertEq(
+            keccak256(abi.encode(a)),
+            keccak256(abi.encode(b)),
+            "assertEq: a != b"
+        );
+    }
+
+    function assertEq(
+        string memory a,
+        string memory b,
+        string memory reason
+    ) internal {
+        if (keccak256(abi.encode(a)) != keccak256(abi.encode(b))) {
+            emit TestFailure(reason);
+            assert(false);
+        }
+    }
+
+    function assertGt(uint256 a, uint256 b) internal {
+        assertGt(a, b, "assertGt: a <= b");
+    }
+
+    function assertGt(uint256 a, uint256 b, string memory reason) internal {
+        if (a <= b) {
+            emit TestFailure(reason);
+            assert(false);
+        }
+    }
+
     function assertTrue(bool a) internal {
         assertTrue(a, "assertTrue: !a");
     }
@@ -87,8 +128,20 @@ contract Utils {
             assert(false);
         }
     }
-}
 
-// when debugging using forge, comment the previous utils/uncomment this one for extra-comfort
-// contract Utils is Test {
-// }
+    function assertFalse(bool a) internal {
+        assertFalse(a, "assertFalse: a is true");
+    }
+
+    function assertFalse(bool a, string memory reason) internal {
+        if (a) {
+            emit TestFailure(reason);
+            assert(false);
+        }
+    }
+
+    function fail(string memory reason) internal {
+        emit TestFailure(reason);
+        assert(false);
+    }
+}

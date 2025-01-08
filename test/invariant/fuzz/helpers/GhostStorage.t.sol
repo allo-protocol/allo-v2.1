@@ -1,0 +1,21 @@
+pragma solidity ^0.8.19;
+
+contract GhostStorage {
+    uint256[] ghost_poolIds;
+    mapping(uint256 _poolId => address _poolAdmin) ghost_poolAdmins;
+    mapping(uint256 _poolId => address[] _managers) ghost_poolManagers;
+
+    uint256 numberOfActors = 10;
+    address[] _ghost_actors;
+
+    mapping(uint256 _poolId => address[] _recipients) ghost_recipients;
+
+    uint256 ghost_totalReceived; // only net amounts, after fee (which is directly transfered)
+    uint256 ghost_totalWithdrawn;
+
+    mapping(uint256 _poolId => mapping(address _owner => uint256 _amount)) ghost_allocations;
+
+    uint256 _ghost_nonce;
+    bytes32[] _ghost_pendingOwnershipChange;
+    mapping(bytes32 _profileId => address[] _members) _ghost_roleMembers;
+}

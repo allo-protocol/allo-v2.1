@@ -1,48 +1,28 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
-import {Setup} from "../Setup.t.sol";
+import {Setup, Actors} from "../Setup.t.sol";
 import {IRegistry} from "contracts/core/Registry.sol";
-import {IAllo, Metadata} from "contracts/core/Allo.sol";
+import {Allo, IAllo, Metadata, IBaseStrategy} from "contracts/core/Allo.sol";
+import {FuzzERC20} from "../helpers/FuzzERC20.sol";
 
 contract HandlerAllo is Setup {
-    uint256[] ghost_poolIds;
-
-    function handler_createPool(uint256 _msgValue) public {
-        // Get the profile ID
-        IRegistry.Profile memory profile = registry.getProfileByAnchor(_ghost_anchorOf[msg.sender]);
-
-        // Avoid EOA
-        if (profile.anchor == address(0)) return;
-
-        // Create a pool
-        (bool succ, bytes memory ret) = targetCall(
-            address(allo),
-            _msgValue,
-            abi.encodeWithSelector(
-                IAllo.createPool.selector,
-                profile.id,
-                address(strategy_directAllocation),
-                bytes(""),
-                address(token),
-                0,
-                profile.metadata,
-                new address[](0)
-            )
-        );
-
-        if (succ) ghost_poolIds.push(abi.decode(ret, (uint256)));
-    }
-
-    function handler_updatePoolMetadata(uint256 _idSeed, uint256 _metadataProtocol, string calldata _data) public {
+    function handler_updatePoolMetadata(
+        uint256 _idSeed,
+        uint256 _metadataProtocol,
+        string calldata _data
+    ) public {
         // Needs at least one pool
         if (ghost_poolIds.length == 0) return;
 
-        _idSeed = _idSeed % ghost_poolIds.length;
+        _idSeed = bound(_idSeed, 0, ghost_poolIds.length - 1);
+
         uint256 poolId = ghost_poolIds[_idSeed];
 
         // Get the profile ID
-        IRegistry.Profile memory profile = registry.getProfileByAnchor(_ghost_anchorOf[msg.sender]);
+        IRegistry.Profile memory profile = registry.getProfileByAnchor(
+            _currentActor().controlledAnchor()
+        );
 
         // Avoid EOA
         if (profile.anchor == address(0)) return;
@@ -50,18 +30,187 @@ contract HandlerAllo is Setup {
         Metadata memory metadata = Metadata({protocol: _metadataProtocol, pointer: _data});
 
         // Update the pool metadata - will revert on wrong anchor
-        targetCall(address(allo), 0, abi.encodeWithSelector(IAllo.updatePoolMetadata.selector, poolId, metadata));
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(allo.updatePoolMetadata, (poolId, metadata))
+        );
     }
 
     function handler_updatePercentFee(uint256 _newPercentFee) public {
         _newPercentFee = bound(_newPercentFee, 0, 1e18);
 
-        // Update the percent fee - will revert if wrong caller
-        targetCall(address(allo), 0, abi.encodeWithSelector(IAllo.updatePercentFee.selector, _newPercentFee));
+        // Update the percent fee - will revert if caller is not the owner
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(allo.updatePercentFee, (_newPercentFee))
+        );
     }
 
     function handler_updateBaseFee(uint256 _newBaseFee) public {
-        // Update the base fee - will revert if wrong caller
-        targetCall(address(allo), 0, abi.encodeWithSelector(IAllo.updateBaseFee.selector, _newBaseFee));
+        // Update the base fee - will revert if caller is not the owner
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(allo.updateBaseFee, (_newBaseFee))
+        );
+    }
+
+    function handler_updateRegistry(address _newRegistry) public {
+        // Update the registry - will revert if caller is not the owner or if the new registry is zero
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(allo.updateRegistry, (_newRegistry))
+        );
+    }
+
+    function handler_updateTreasury(address _newTreasury) public {
+        // Update the treasury - will revert if caller is not the owner or if the new treasury is zero
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(allo.updateTreasury, (payable(_newTreasury)))
+        );
+    }
+
+    function handler_updateTrustedForwarder(address _newForwarder) public {
+        // Update the trusted forwarder - will revert if caller is not the owner or if the new forwarder is zero
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(Allo.updateTrustedForwarder, (_newForwarder))
+        );
+    }
+
+    function handler_addPoolManagers(
+        uint256 _idSeed,
+        uint256 _numberOfManagers
+    ) public {
+        uint256 _poolId = _pickPoolId(_idSeed);
+        _numberOfManagers = bound(_numberOfManagers, 0, _ghost_actors.length);
+
+        // Gather the managers
+        address[] memory _managers = new address[](_numberOfManagers);
+        for (uint256 i; i < _numberOfManagers; i++) {
+            _managers[i] = _ghost_actors[i];
+        }
+
+        // Add pool managers - will revert if caller is not the pool admin of the pool id
+        Actors _actor = _currentActor();
+
+        (bool _succ, ) = _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(allo.addPoolManagers, (_poolId, _managers))
+        );
+
+        if (_succ) {
+            for (uint256 _i; _i < _managers.length; ++_i) {
+                ghost_poolManagers[_poolId].push(_managers[_i]);
+            }
+        }
+    }
+
+    function handler_removePoolManagers(uint256 _idSeed) public {
+        uint256 _poolId = _pickPoolId(_idSeed);
+        address[] memory _managers = ghost_poolManagers[_poolId];
+
+        // Remove pool managers - will revert if caller is not a pool admin of the pool id
+        Actors _actor = _currentActor();
+
+        (bool _succ, ) = _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(allo.removePoolManagers, (_poolId, _managers))
+        );
+
+        if (_succ) {
+            delete ghost_poolManagers[_poolId];
+        }
+    }
+
+    function handler_recoverFunds(address _recipient) public {
+        // Recover funds - will revert if caller is not the owner
+        Actors _actor = _currentActor();
+
+        _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(allo.recoverFunds, (address(token), _recipient))
+        );
+    }
+
+    function handler_registerRecipient(
+        uint256 _idSeed,
+        uint256 _numberOfRecipients,
+        bytes memory _data,
+        uint256 _msgValue
+    ) public {
+        uint256 _poolId = _pickPoolId(_idSeed);
+        _numberOfRecipients = bound(
+            _numberOfRecipients,
+            0,
+            _ghost_actors.length
+        );
+
+        // Gather the recipients
+        address[] memory _recipientAddresses = new address[](
+            _numberOfRecipients
+        );
+        for (uint256 i; i < _numberOfRecipients; i++) {
+            _recipientAddresses[i] = _ghost_actors[i];
+        }
+
+        // Register recipient
+        Actors _actor = _currentActor();
+
+        (bool _succ, ) = _actor.callThroughAnchor(
+            address(allo),
+            _msgValue,
+            abi.encodeCall(
+                allo.registerRecipient,
+                (_poolId, _recipientAddresses, _data)
+            )
+        );
+
+        if (_succ) {
+            for (uint256 i; i < _recipientAddresses.length; i++) {
+                ghost_recipients[_poolId].push(_recipientAddresses[i]);
+            }
+        }
+    }
+
+    function handler_changeAdmin(uint256 _seed, uint256 _seedAdmin) public {
+        uint256 _poolId = _pickPoolId(_seed);
+        address _newAdmin = _ghost_actors[_seedAdmin % _ghost_actors.length];
+
+        // Change admin - will revert if caller is not the pool admin
+        Actors _actor = _currentActor();
+        (bool success, ) = _actor.callThroughAnchor(
+            address(allo),
+            0,
+            abi.encodeCall(allo.changeAdmin, (_poolId, _newAdmin))
+        );
+        if (success) {
+            ghost_poolAdmins[_poolId] = _newAdmin;
+            assertTrue(
+                allo.isPoolAdmin(_poolId, _newAdmin),
+                "Admin not set handler_changeAdmin"
+            );
+        }
     }
 }
