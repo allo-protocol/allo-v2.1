@@ -20,9 +20,13 @@ import {FuzzBaseStrategy} from "../helpers/FuzzBaseStrategy.t.sol";
 import {Actors} from "../helpers/Actors.t.sol";
 
 contract PropertiesStrategies is HandlersParent {
+    event log(uint256);
+
     ///@custom:property-id ACC-1
     ///@custom:property There is no token which has left the protocol without being accounted for
     function property_checkNoTokenOutUnaccounted() public {
+        emit log(_aggregatePoolBalances());
+        emit log(ghost_totalWithdrawn);
         assertTrue(
             ghost_totalReceived == _aggregatePoolBalances() + ghost_totalWithdrawn,
             "Accounting: token out unaccounted for"
@@ -71,9 +75,11 @@ contract PropertiesStrategies is HandlersParent {
             ? abi.encode(token, new bytes(0))
             : abi.encode(_tokens);
 
-        // Needed for direct allocation
-        token.transfer(_allocator, _amount);
-        _actor.callThroughAnchor(address(token), 0, abi.encodeCall(ERC20.approve, (address(_strategy), _amount)));
+        // DirectAllocation distribute when allocate is called
+        if (_poolStrategy(_strategy) == PoolStrategies.DirectAllocation) {
+            token.transfer(_allocator, _amount);
+            _actor.callThroughAnchor(address(token), 0, abi.encodeCall(ERC20.approve, (address(_strategy), _amount)));
+        }
 
         (bool _success, bytes memory _ret) = _actor.callThroughAnchor(
             address(allo), 0, abi.encodeCall(allo.allocate, (_poolId, _recipients, _amounts, _data))
@@ -100,8 +106,7 @@ contract PropertiesStrategies is HandlersParent {
     function prop_poolManagerShouldBeAbleToDistributeToRecipient(
         uint256 _idSeed,
         uint256 _managerSeed,
-        uint256 _actorSeed,
-        uint256 _amount
+        uint256 _actorSeed
     ) public {
         address _recipient = address(_currentActor());
         address[] memory _recipients = new address[](1);
@@ -131,7 +136,7 @@ contract PropertiesStrategies is HandlersParent {
             // Allocation if there is one
             assertTrue(_hasAllocation, "property-id 3: Distribution succeeded without allocation");
 
-            ghost_totalWithdrawn += _amount;
+            ghost_totalWithdrawn += _recipientNewBalance - _recipientPreviousBalance;
         } else {
             // Revert if:
             // - There is no allocation
