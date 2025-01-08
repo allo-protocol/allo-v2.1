@@ -111,6 +111,7 @@ contract PropertiesAllo is HandlersParent {
             ghost_totalReceived += _amountAfterFee;
             ghost_availableToAllocate += _amountAfterFee;
         } else {
+            // Edge-case of some strategies: only allocation during a defined period
             (
                 bool _successAllocationEndtime,
                 bytes memory _allocationEndTimedata
@@ -124,6 +125,11 @@ contract PropertiesAllo is HandlersParent {
                     (uint64)
                 );
             }
+
+            // Revert if:
+            // - 0 allocated
+            // - outside the allocation period
+            // - amount is less than the fee
             assertTrue(
                 _amount == 0 ||
                     (_successAllocationEndtime &&
