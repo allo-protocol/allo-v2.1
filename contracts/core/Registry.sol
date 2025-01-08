@@ -300,7 +300,7 @@ contract Registry is IRegistry, Initializable, AccessControlUpgradeable, Errors 
     }
 
     /// @notice Removes members from the profile
-    /// @dev 'msg.sender' must be the pending owner of the profile.
+    /// @dev 'msg.sender' must be the owner of the profile.
     /// @param _profileId The ID of the profile
     /// @param _members The members to remove
     function removeMembers(bytes32 _profileId, address[] memory _members) external onlyProfileOwner(_profileId) {
@@ -377,7 +377,7 @@ contract Registry is IRegistry, Initializable, AccessControlUpgradeable, Errors 
         return hasRole(_profileId, _member);
     }
 
-    /// @notice Transfers any fund balance in Allo to the recipient
+    /// @notice Transfers any fund balance in Registry to the recipient
     /// @dev 'msg.sender' must be the Allo owner
     /// @param _token The address of the token to transfer
     /// @param _recipient The address of the recipient

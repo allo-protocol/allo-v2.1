@@ -168,17 +168,18 @@ sequenceDiagram
 
 * **License:** The contract is licensed under the AGPL-3.0-only license.
 * **Solidity Version:** The contract supports Solidity versions ^0.8.19, but is developed in Solidity version 0.8.22.
-* **Inheritance:** The contract inherits from several other contracts: `Initializable`, `Ownable`, `AccessControl`, `IAllo`, `Native`, and `Transfer`.
+* **Inheritance:** The contract inherits from several other contracts: `Initializable`, `Ownable`, `AccessControl`, and `IAllo`.
 
 ### Storage Variables
 
-1. `percentFee` (Private): This variable holds the fee percentage applied to transactions within pools. It's represented as a fraction of 1e18, where 1e18 equals 100%.
-2. `baseFee` (Internal): An internal variable storing the base fee for transactions.
+1. `_percentFee` (Internal): This variable holds the fee percentage applied to transactions within pools. It's represented as a fraction of 1e18, where 1e18 equals 100%.
+2. `_baseFee` (Internal): An internal variable storing the base fee for transactions.
 3. `_poolIndex` (Private): This variable tracks the incremental index for newly created pools.
-4. `treasury` (Payable Address): This is the address where fees are sent and stored.
-5. `registry` (Interface): An interface to the registry of pool creators.
+4. `_treasury` (Payable Address): This is the address where fees are sent and stored.
+5. `_registry` (Interface): An interface to the registry of pool creators.
 6. `_nonces` (Mapping): A mapping from addresses to nonces, used for cloning strategies.
-7. `pools` (Mapping): Maps pool IDs to `Pool` struct instances containing pool-specific information.
+7. `_pools` (Mapping): Maps pool IDs to `Pool` struct instances containing pool-specific information.
+8. `_trustedForwarder` (Internal): The trusted forwarder that is used for meta-txs.
 
 ### Modifiers
 
@@ -187,19 +188,21 @@ sequenceDiagram
 
 ### Functions and Actors
 
-1. **Initializer** (`initialize`) This function initializes the contract after deployment or an upgrade. It sets the owner and initializes key contract variables such as the registry address, treasury address, fee parameters, and permissions.
+1. **Initializer** (`initialize`) This function initializes the contract after deployment or an upgrade. It sets the owner and initializes key contract variables such as the registry address, treasury address, fee parameters, trusted forwarder and permissions.
     
 2. **Pool Creation Functions** (`createPoolWithCustomStrategy` and `createPool`) These functions allow users to create new pools. The first function creates a pool with a custom strategy, while the second creates a pool by cloning an existing strategy. The provided metadata, strategy details, and other parameters are used to create and configure the new pool.
     
-3. **Update Functions** (`updatePoolMetadata`, `updateRegistry`, `updateTreasury`, `updatePercentFee`, `updateBaseFee`) These functions allow the contract owner to update various parameters. For example, they can change pool metadata, the registry address, treasury address, fee percentage and the base fee.
+3. **Update Functions** (`updatePoolMetadata`, `updateRegistry`, `updateTreasury`, `updatePercentFee`, `updateBaseFee`, `updateTrustedForwarder`) These functions allow the contract owner to update various parameters. For example, they can change pool metadata, the registry address, treasury address, fee percentage, trusted forwarder and the base fee.
     
-4. **Pool Manager Functions** (`addPoolManager` and `removePoolManager`) These functions allow pool administrators to manage pool managers. Pool managers can perform actions like fund allocation and distribution within their assigned pool.
+4. **Pool Manager Functions** (`addPoolManagers`, `removePoolManagers`, `addPoolManagersInMultiplePools` and `removePoolManagersInMultiplePools`) These functions allow pool administrators to manage pool managers. Pool managers can perform actions like fund allocation and distribution within their assigned pool.
     
 5. **Funds Recovery Function** (`recoverFunds`) This function enables the contract owner to recover funds from the contract. It can be used to retrieve native tokens or ERC20 tokens held in the contract.
     
 6. **Strategy Interaction Functions** (`registerRecipient`, `batchRegisterRecipient`, `fundPool`, `allocate`, `batchAllocate`, and `distribute`) These functions interact with pool strategies to manage fund allocation and distribution. Users can register recipients, allocate funds, and distribute funds according to specific strategies.
+
+7. **Pool Admin Function** (`changeAdmin`) This function allows the existing admin of a pool to revoke their role and transfer it to a new address.
     
-7. **View Functions** (`isPoolAdmin`, `isPoolManager`, `getStrategy`, `getPercentFee`, `getBaseFee`, `getTreasury`, `getRegistry` and `getPool`) These functions provide information about the contract, pool administrators and managers, strategies, fees, treasury address, and pool details.
+8. **View Functions** (`isPoolAdmin`, `isPoolManager`, `getStrategy`, `getPercentFee`, `getBaseFee`, `getTreasury`, `getRegistry` and `getPool`) These functions provide information about the contract, pool administrators and managers, strategies, fees, treasury address, and pool details.
     
 
 ### Actors
@@ -222,7 +225,7 @@ In summary, the "Allo" smart contract provides a framework for creating and mana
 ### Initializer
     
  * The contract has an `initialize` function that initializes the contract after an upgrade.
- * The function takes `_registry`, `_treasury`, `_percentFee`, and `_baseFee` as parameters and sets various contract parameters, such as treasury, registry, percentage fee, and base fee.
+ * The function takes `_owner`, `_registry`, `_treasury`, `_percentFee`, `_baseFee`, and `_trustedForwarder` as parameters and sets various contract parameters, such as owner, treasury, registry, percentage fee, base fee and trusted forwarder.
  * This function can only be called by the contract owner.
 ### Create a Pool with Custom Strategy
     
@@ -255,6 +258,9 @@ In summary, the "Allo" smart contract provides a framework for creating and mana
     
  * The contract owner can update the base fee by calling the `updateBaseFee` function.
  * The function requires the new `_baseFee` as a parameter, and it updates the base fee accordingly.
+### Update Trusted Forwarder
+ * The contract owner can update the trusted forwarder address by calling the `updateTrustedForwarder` function.
+ * The function requires the new _trustedForwarder` as a parameter, and it update the trusted forwarder accordingly.
 ### Add Pool Managers
 
  * Pool admins can add multiple pool managers to a pool by calling the `addPoolManagers` function.
@@ -263,10 +269,14 @@ In summary, the "Allo" smart contract provides a framework for creating and mana
 
  * Pool admins can remove multiple pool managers from a pool by calling the `removePoolManagers` function.
  * The function requires the `_poolId` and an array of `_managers` addresses as parameters, and it revokes the pool manager role from each address.
-### Change Pool Admin
+### Add Pool Managers In Multiple Pools
 
- * Pool admins can change the pool admin of a pool by calling the `changePoolAdmin` function.
- * The function requires the `_poolId` and `_newAdmin` address as parameters, and it changes the pool admin to the new address, revoking the access to the caller.
+ * Pool admins can add multiple pool managers to different pools by calling the `addPoolManagersInMultiplePools` function.
+ * The function requires an array of `_poolIds` and an array of `_managers` addresses as parameters, and it grants the pool manager role to each address for every pool.
+### Remove Pool Managers In Multiple Pools
+
+ * Pool admins can remove multiple pool managers from different pools by calling the `removePoolManagersInMultiplePools` function.
+ * The function requires an array of `_poolIds` and an array of `_managers` addresses as parameters, and it revokes the pool manager role from each address for every pool.
 ### Recover Funds
     
  * The contract owner can recover funds from the contract by calling the `recoverFunds` function.
@@ -275,11 +285,11 @@ In summary, the "Allo" smart contract provides a framework for creating and mana
 ### Register Recipient
     
  * Users can register a recipient by calling the `registerRecipient` function.
- * The function requires the `_poolId` and `_data` as parameters, and it passes the data to the strategy for registration.
+ * The function requires the `_poolId`, an array of `_recipientAddresses` addresses and `_data` as parameters, and it passes the data to the strategy for registration.
 ### Batch Register Recipients
     
  * Users can register multiple recipients to multiple pools simultaneously by calling the `batchRegisterRecipient` function.
- * The function requires arrays of `_poolIds` and `_data` as parameters, and it registers recipients for each pool.
+ * The function requires arrays of `_poolIds`, an array of `_recipientAddresses` addresses, and `_data` as parameters, and it registers recipients for each pool.
 ### Fund a Pool
     
  * Users can fund a pool by calling the `fundPool` function.
@@ -287,12 +297,16 @@ In summary, the "Allo" smart contract provides a framework for creating and mana
 ### Allocate Funds to Strategy
     
  * Users can allocate funds to a pool's strategy by calling the `allocate` function.
- * The function requires the `_poolId` and `_data` as parameters, and it passes the data to the strategy for allocation.
+ * The function requires the `_poolId`, an array of `_recipients` addresses, an array of `_amounts` and `_data` as parameters, and it passes the data to the strategy for allocation.
 ### Batch Allocate Funds to Strategies
     
  * Users can allocate funds to strategies of multiple pools by calling the `batchAllocate` function.
- * The function requires arrays of `_poolIds`, `_values` and `_datas` as parameters, and it allocates funds to strategies for each pool.
+ * The function requires arrays of `_poolIds`, an array of `_recipients` for each pool, an array of `_amounts` for each pool, `_values` and `_datas` as parameters, and it allocates funds to strategies for each pool.
 ### Distribute Funds to Recipients
     
  * Users can distribute funds to recipients using a pool's distribution strategy by calling the `distribute` function.
  * The function requires the `_poolId`, `_recipientIds`, and `_data` as parameters, and it passes the data to the strategy for distribution.
+### Change Pool Admin
+
+ * Pool admins can change the pool admin of a pool by calling the `changePoolAdmin` function.
+ * The function requires the `_poolId` and `_newAdmin` address as parameters, and it changes the pool admin to the new address, revoking the access to the caller.

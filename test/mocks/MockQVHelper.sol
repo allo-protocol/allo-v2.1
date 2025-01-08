@@ -14,8 +14,16 @@ contract MockQVHelper {
         _votingState.vote(_recipients, _votes);
     }
 
+    function voteSingle(address _recipient, uint256 _votes) public {
+        _votingState.voteSingle(_recipient, _votes);
+    }
+
     function voteWithCredits(address[] memory _recipients, uint256[] memory _voiceCredits) public {
         _votingState.voteWithVoiceCredits(_recipients, _voiceCredits);
+    }
+
+    function voteSingleWithCredits(address _recipient, uint256 _voiceCredits) public {
+        _votingState.voteSingleWithVoiceCredits(_recipient, _voiceCredits);
     }
 
     function getPayoutAmount(address[] memory _recipients, uint256 _poolAmount)

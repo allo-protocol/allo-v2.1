@@ -27,10 +27,7 @@ contract HandlerAllo is Setup {
         // Avoid EOA
         if (profile.anchor == address(0)) return;
 
-        Metadata memory metadata = Metadata({
-            protocol: _metadataProtocol,
-            pointer: _data
-        });
+        Metadata memory metadata = Metadata({protocol: _metadataProtocol, pointer: _data});
 
         // Update the pool metadata - will revert on wrong anchor
         Actors _actor = _currentActor();
@@ -190,96 +187,12 @@ contract HandlerAllo is Setup {
             )
         );
 
-        // todo: double-check there is no way a recipient is registered twice
         if (_succ) {
             for (uint256 i; i < _recipientAddresses.length; i++) {
                 ghost_recipients[_poolId].push(_recipientAddresses[i]);
             }
         }
     }
-
-    // function handler_fundPool(
-    //     uint256 _idSeed,
-    //     uint256 _amount,
-    //     uint256 _msgValue
-    // ) public {
-    //     uint256 _poolId = _pickPoolId(_idSeed);
-    //     uint256 _previousBalance = token.balanceOf(address(msg.sender));
-
-    //     if (_previousBalance > 0) {
-    //         _amount = bound(_amount, 0, type(uint256).max - _previousBalance);
-    //     }
-
-    //     if (_amount > 0) {
-    //         FuzzERC20(address(token)).mint(address(msg.sender), _amount);
-    //     }
-
-    //     // Fund pool - will revert if the amount is zero or if pool token is native and message value is != amount
-    //     Actors _actor = _currentActor();
-
-    //     _actor.callThroughAnchor(
-    //         address(allo),
-    //         _msgValue,
-    //         abi.encodeCall(allo.fundPool, (_poolId, _amount))
-    //     );
-    // }
-
-    // // _seedAmounts at 50 as it is not likely we'll handle 50 actors at the same time (update if so)
-    // function handler_allocate(
-    //     uint256 _idSeed,
-    //     uint256[50] memory _seedAmounts,
-    //     bytes memory _data,
-    //     uint256 _msgValue
-    // ) public {
-    //     uint256 _poolId = _pickPoolId(_idSeed);
-
-    //     address[] memory _recipients = ghost_recipients[_poolId];
-    //     uint256[] memory _amounts = new uint256[](_recipients.length);
-
-    //     // Fund the allocator/sender
-    //     for (uint256 i; i < _recipients.length; i++) {
-    //         _amounts[i] = _seedAmounts[i];
-
-    //         if (_amounts[i] > 0) {
-    //             FuzzERC20(address(token)).mint(
-    //                 address(msg.sender),
-    //                 _amounts[i]
-    //             );
-    //         }
-    //     }
-
-    //     // Allocate - allocate to a recipient or multiple recipients
-    //     Actors _actor = _currentActor();
-
-    //     _actor.callThroughAnchor(
-    //         address(allo),
-    //         _msgValue,
-    //         abi.encodeCall(
-    //             allo.allocate,
-    //             (_poolId, _recipients, _amounts, _data)
-    //         )
-    //     );
-    // }
-
-    // function handler_distribute(
-    //     uint256 _idSeed,
-    //     address[] memory _recipientIds,
-    //     bytes memory _data
-    // ) public {
-    //     uint256 _poolId = _pickPoolId(_idSeed);
-
-    //     // Distribute - distribute to a recipient or multiple recipients
-    //     Actors _actor = _currentActor();
-
-    //     _actor.callThroughAnchor(
-    //         address(allo),
-    //         0,
-    //         abi.encodeCall(
-    //             allo.distribute,
-    //             (_poolId, ghost_recipients[_idSeed], _data)
-    //         )
-    //     );
-    // }
 
     function handler_changeAdmin(uint256 _seed, uint256 _seedAdmin) public {
         uint256 _poolId = _pickPoolId(_seed);
@@ -299,9 +212,5 @@ contract HandlerAllo is Setup {
                 "Admin not set handler_changeAdmin"
             );
         }
-    }
-
-    function handler_createPoolWithCustomStrategy(uint256 _msgValue) internal {
-        // Skipped for now
     }
 }

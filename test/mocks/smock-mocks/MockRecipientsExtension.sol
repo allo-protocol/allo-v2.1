@@ -8,10 +8,11 @@ import {Metadata} from "contracts/core/libraries/Metadata.sol";
 
 contract MockRecipientsExtension is BaseStrategy, RecipientsExtension {
     constructor(address _allo, string memory _strategyName, bool _reviewEachStatus)
-        RecipientsExtension(_allo, _strategyName, _reviewEachStatus)
+        RecipientsExtension(_reviewEachStatus)
+        BaseStrategy(_allo, _strategyName)
     {}
 
-    function initialize(uint256 _poolId, bytes memory _data) external {
+    function initialize(uint256 _poolId, bytes memory _data) external override {
         __BaseStrategy_init(_poolId);
 
         RecipientInitializeData memory _initializeData = abi.decode(_data, (RecipientInitializeData));

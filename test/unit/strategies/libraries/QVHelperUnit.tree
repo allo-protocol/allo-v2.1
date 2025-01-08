@@ -1,0 +1,26 @@
+QVHelper::voteWithVoiceCredits
+├── when input arrays missmatch
+│   └── it should revert
+└── when input arrays match
+    └── it should call voteSingleWithVoiceCredits
+
+QVHelper::voteSingleWithVoiceCredits
+├── it should aupdate the recipients voice credits
+├── it should update the recipients votes
+├── it should update the total voice credits
+└── it should update the total votes
+
+QVHelper::vote
+├── when input arrays missmatch
+│   └── it should revert
+└── when input arrays match
+    └── it should call voteSingle
+
+QVHelper::voteSingle
+├── it should update the recipients voice credits
+├── it should update the recipients votes
+├── it should update the total voice credits
+└── it should update the total votes
+
+QVHelper::getPayout
+└── it should return the payout for each recipient

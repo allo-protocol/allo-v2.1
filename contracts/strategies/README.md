@@ -19,15 +19,14 @@ The `BaseStrategy` contract serves as a foundational building block within the A
 * **License:** The `BaseStrategy` contract adheres to the AGPL-3.0-only License, promoting open-source usage with specific terms.
 * **Solidity Version:** Supports Solidity versions ^0.8.19, but developed using Solidity version 0.8.22, leveraging the latest Ethereum smart contract advancements.
 * **External Libraries:** Imports `Transfer` library from the Allo core for optimized token transfers.
-* **Interfaces:** Implements the `IStrategy` interface, facilitating interaction with external components.
+* **Interfaces:** Implements the `IBaseStrategy` interface, facilitating interaction with external components.
 
 ### Storage Variables
 
-1. `allo`: An immutable reference to the `IAllo` contract, enabling communication with the Allo ecosystem.
-2. `poolId`: Identifies the pool to which this strategy is associated.
-3. `strategyId`: A hash identifying the strategy instance.
-4. `poolAmount`: The current amount of tokens in the pool.
-5. `poolActive`: A flag indicating whether the pool is active.
+1. `_ALLO`: An immutable reference to the `IAllo` contract, enabling communication with the Allo ecosystem.
+2. `_STRATEGY_ID`: A hash identifying the strategy instance.
+3. `_poolId`: Identifies the pool to which this strategy is associated.
+4. `_poolAmount`: The current amount of tokens in the pool.
 
 ### Constructor
 
@@ -37,38 +36,29 @@ The constructor initializes the strategy by accepting the address of the `IAllo`
 
 * `onlyAllo`: Validates that the caller is the Allo contract.
 * `onlyPoolManager`: Ensures that the caller is a pool manager.
-* `onlyActivePool`: Allows actions only when the pool is active.
-* `onlyInactivePool`: Permits actions only when the pool is inactive.
-* `onlyInitialized`: Requires that the strategy is initialized.
 
 ### Views and Queries
 
 1. `getAllo`: Retrieves the `IAllo` contract reference.
-2. `getPoolId`: Retrieves the pool's ID.
-3. `getStrategyId`: Retrieves the strategy's ID.
+2. `getStrategyId`: Retrieves the strategy's ID.
+3. `getPoolId`: Retrieves the pool's ID.
 4. `getPoolAmount`: Retrieves the current pool amount.
-5. `isPoolActive`: Checks if the pool is active.
-6. `getRecipientStatus`: Retrieves the status of a recipient.
 
 ### Functions
 
 1. `increasePoolAmount`: Allows the Allo contract to increase the pool's amount.
-2. `registerRecipient`: Registers a recipient's application and updates their status.
-3. `allocate`: Allocates tokens to recipients based on provided data.
-4. `distribute`: Distributes tokens to recipients based on provided data.
-5. `getPayouts`: Retrieves payout summaries for recipients and data pairs.
-6. `isValidAllocator`: Validates whether an address is a valid allocator.
+2. `withdraw`: Allows the Pool Manager to withdraw tokens from the pool that are not targetted for distribution.
+3. `register`: Registers multiple recipients' applications and updates their status.
+4. `allocate`: Allocates tokens to recipients based on provided data.
+5. `distribute`: Distributes tokens to recipients based on provided data.
 
 ### Internal Functions
 
-1. `_setPoolActive`: Sets the pool's activity status.
-2. `_isPoolActive`: Checks if the pool is currently active.
-3. `_isValidAllocator`: Validates an address as a valid allocator.
-4. `_registerRecipient`: Registers a recipient's application and updates their status.
+1. `_checkOnlyAllo`: Checks if the caller is the Allo address.
+2. `_checkOnlyPoolManager`: Checks if the address is a pool manager.
+4. `_register`: Registers recipients' applications and updates their status.
 5. `_allocate`: Allocates tokens to recipients based on provided data.
 6. `_distribute`: Distributes tokens to recipients based on provided data.
-7. `_getPayout`: Retrieves the payout summary for a recipient and data pair.
-8. `_getRecipientStatus`: Retrieves the status of a recipient. The strategy can choose to have it's status as long it returns IStrategy.Status
 
 In essence, the `BaseStrategy` contract establishes a standardized blueprint for various allocation strategies within the Allo ecosystem. It integrates critical functions, modifiers, and data structures, promoting consistency and coherence across different strategies.
 
@@ -82,21 +72,25 @@ In the context of `BaseStrategy.sol`, the concept of hooks is utilized to offer 
 
 Here's a breakdown of how the hooks work:
 
-1. `_beforeFundPool`: This hook is triggered before the pool amount is increased. It allows a strategy to perform specific actions or checks before contributing to the pool.
+1. `_beforeIncreasePoolAmount`: This hook is triggered before the pool amount is increased. It allows a strategy to perform specific actions or checks before contributing to the pool.
     
 2. `_afterIncreasePoolAmount`: Following the increase in the pool amount, this hook is executed. It enables a strategy to carry out any necessary actions that should occur after the pool amount has been augmented.
+
+3. `_beforeWithdraw`: Before a pool manager withdraws funds from the pool, this hook is executed. A strategy can make use of this to add their custom logic before executing the withdraw.
+
+4. `_afterWithdraw`: After the funds have been withdrawn, this hook is executed. A strategy can override this to add their custom logic.
     
-3. `_beforeRegisterRecipient`: Before a recipient is registered, this hook is called. It provides an opportunity for a strategy to implement its own logic before adding a recipient.
+5. `_beforeRegisterRecipient`: Before a recipient is registered, this hook is called. It provides an opportunity for a strategy to implement its own logic before adding a recipient.
     
-4. `_afterRegisterRecipient`: Similar to the previous hook, this is executed after a recipient has been registered. A strategy can utilize this to perform tasks after recipient registration.
+6. `_afterRegisterRecipient`: Similar to the previous hook, this is executed after a recipient has been registered. A strategy can utilize this to perform tasks after recipient registration.
     
-5. `_beforeAllocate`: Prior to allocating funds to a recipient, this hook is triggered. A strategy can define its own pre-allocation actions here.
+7. `_beforeAllocate`: Prior to allocating funds to a recipient, this hook is triggered. A strategy can define its own pre-allocation actions here.
     
-6. `_afterAllocate`: Once the allocation to a recipient is completed, this hook is called. It allows a strategy to execute actions post-allocation.
+8. `_afterAllocate`: Once the allocation to a recipient is completed, this hook is called. It allows a strategy to execute actions post-allocation.
     
-7. `_beforeDistribute`: This hook occurs before the distribution of funds (or tokens) to recipients. Strategies can customize their behavior before the distribution takes place.
+9. `_beforeDistribute`: This hook occurs before the distribution of funds (or tokens) to recipients. Strategies can customize their behavior before the distribution takes place.
     
-8. `_afterDistribute`: Following the distribution of funds to recipients, this hook is executed. Strategies can perform tasks after the distribution process concludes.
+10. `_afterDistribute`: Following the distribution of funds to recipients, this hook is executed. Strategies can perform tasks after the distribution process concludes.
     
 
 The significance of these hooks is that they facilitate the extension and customization of a base strategy's operations without the need to modify the core logic. Strategies can implement their unique functionalities at these specific points, ensuring seamless integration into the existing strategy's workflow.

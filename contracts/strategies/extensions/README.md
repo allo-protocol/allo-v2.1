@@ -30,8 +30,10 @@ The `register` folder contains extensions that manage the registration of recipi
 - **IRecipientsExtension.sol**: Interface for the recipient registration process, allowing strategies to implement their own customized registration logic.
 
 ### Allocate
+The `allocate` folder includes extensions for managing allocation periods and controlling allocator access.
 
-TODO
+- **AllocationExtension.sol**: Manages core allocation periods with storage and access control, allowing developers to implement custom allocation logic by overriding internal functions.
+- **AllocatorsAllowlistExtension.sol**: Enables an allowlist for allocators, allowing only approved addresses to allocate funds, with management controlled by the pool manager.
 
 ### Milestones
 The `milestones` folder contains extensions that enable milestone-based funding.

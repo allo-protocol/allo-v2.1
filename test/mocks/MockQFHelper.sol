@@ -14,8 +14,16 @@ contract MockQFHelper {
         _state.fund(_recipients, _amounts);
     }
 
+    function fundSingle(address _recipient, uint256 _amount) public {
+        _state.fundSingle(_recipient, _amount);
+    }
+
     function getTotalContributions() public view returns (uint256 _totalContributions) {
         return _state.totalContributions;
+    }
+
+    function getSqrtDonationsSum(address _recipient) public view returns (uint256 _sqrtDonationsSum) {
+        return _state.sqrtDonationsSum[_recipient];
     }
 
     function getCalcuateMatchingAmount(uint256 _matchingAmount, address _recipient) public returns (uint256 _amount) {

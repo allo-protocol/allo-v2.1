@@ -11,30 +11,20 @@ import {IStdCheats} from "./IStdCheats.sol";
 // - makeAddr, bypassing the limitation of non-existing label cheatcode
 // etc
 contract Utils {
-    IStdCheats internal vm =
-        IStdCheats(address(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D));
+    IStdCheats internal vm = IStdCheats(address(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D));
 
     event TestFailure(string reason);
     event AddressMade(string label, address addressGenerated);
 
     function makeAddr(string memory label) internal returns (address) {
-        address genAddress = address(
-            uint160(uint256(keccak256(abi.encodePacked(label))))
-        );
+        address genAddress = address(uint160(uint256(keccak256(abi.encodePacked(label)))));
         emit AddressMade(label, genAddress);
         return genAddress;
     }
 
     // same as forge-std
-    function bound(
-        uint256 x,
-        uint256 min,
-        uint256 max
-    ) internal pure returns (uint256 result) {
-        require(
-            min <= max,
-            "StdUtils bound(uint256,uint256,uint256): Max is less than min."
-        );
+    function bound(uint256 x, uint256 min, uint256 max) internal pure returns (uint256 result) {
+        require(min <= max, "StdUtils bound(uint256,uint256,uint256): Max is less than min.");
 
         uint256 UINT256_MAX = 2 ** 256 - 1;
 

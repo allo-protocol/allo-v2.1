@@ -124,8 +124,6 @@ AlloUnit::batchRegisterRecipient
 AlloUnit::fundPool
 ├── when amount is zero
 │   └── it should revert
-├── when token is native and value does not match amount
-│   └── it should revert
 └── when called with proper params
     └── it should call _fundPool
 

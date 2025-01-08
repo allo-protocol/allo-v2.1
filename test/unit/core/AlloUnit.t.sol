@@ -711,19 +711,6 @@ contract AlloUnit is Test {
         allo.fundPool(_poolId, 0);
     }
 
-    function test_FundPoolRevertWhen_TokenIsNativeAndValueDoesNotMatchAmount(uint256 _poolId, uint256 _amount)
-        external
-    {
-        vm.assume(_amount > 0);
-
-        fakePool.token = NATIVE;
-
-        allo.setPool(_poolId, fakePool);
-        // it should revert
-        vm.expectRevert(Errors.ETH_MISMATCH.selector);
-        allo.fundPool(_poolId, _amount);
-    }
-
     function test_FundPoolWhenCalledWithProperParams(address _caller, uint256 _poolId, uint256 _amount) external {
         vm.assume(_amount > 0);
         fakePool.token = makeAddr("token");
@@ -1351,6 +1338,7 @@ contract AlloUnit is Test {
         );
         vm.mockCall(_strategy, abi.encodeWithSelector(IBaseStrategy.getPoolId.selector), abi.encode(poolId));
         vm.mockCall(_strategy, abi.encodeWithSelector(IBaseStrategy.getAllo.selector), abi.encode(address(allo)));
+        allo.mock_call__fundPool(_amount, address(this), poolId, IBaseStrategy(_strategy));
         for (uint256 i = 0; i < _managers.length; i++) {
             allo.mock_call__addPoolManager(poolId, _managers[i]);
         }

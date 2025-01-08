@@ -12,7 +12,7 @@ contract MockMilestonesExtension is BaseStrategy, IMilestonesExtension, Mileston
 
     constructor(address _allo, string memory _strategyName) BaseStrategy(_allo, _strategyName) {}
 
-    function initialize(uint256 _poolId, bytes memory _data) external {
+    function initialize(uint256 _poolId, bytes memory _data) external override {
         __BaseStrategy_init(_poolId);
 
         uint256 _maxBid = abi.decode(_data, (uint256));

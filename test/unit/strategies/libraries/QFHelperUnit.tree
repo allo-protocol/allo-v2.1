@@ -1,0 +1,12 @@
+QFHelper::fund
+├── when input arrays missmatch
+│   └── it should revert
+└── when input arrays match
+    └── it should call fundSingle
+
+QFHelper::fundSingle
+├── it should update the sqrtDonationsSum of the recipient
+└── it should update the total contributions
+
+QFHelper::calculateMatching
+└── it should return the matching amount for the recipient

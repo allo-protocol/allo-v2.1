@@ -30,21 +30,30 @@ library QFHelper {
     /// @param _amounts The amounts to donate to each recipient
     function fund(State storage _state, address[] memory _recipients, uint256[] memory _amounts) internal {
         uint256 _recipientsLength = _recipients.length;
-        /// Check if the number of recipients and amounts are equal
+        // Check if the number of recipients and amounts are equal
         if (_recipientsLength != _amounts.length) revert QFHelper_LengthMissmatch();
 
-        uint256 _totalContributionsDelta;
-        for (uint256 i; i < _recipientsLength; i++) {
-            /// Calculate the square root of the donation amount and add it to the sum of donations
-            uint256 _sqrtDonationsSum = _state.sqrtDonationsSum[_recipients[i]];
-            _sqrtDonationsSum += FixedPointMathLib.sqrt(_amounts[i]);
-
-            /// Calculate the total contributions delta
-            _totalContributionsDelta += _sqrtDonationsSum ** 2 - _state.sqrtDonationsSum[_recipients[i]] ** 2;
-
-            _state.sqrtDonationsSum[_recipients[i]] = _sqrtDonationsSum;
+        for (uint256 i = 0; i < _recipientsLength; i++) {
+            // Call fundSingle for each recipient and amount pair
+            fundSingle(_state, _recipients[i], _amounts[i]);
         }
-        _state.totalContributions += _totalContributionsDelta;
+    }
+
+    /// @notice Votes for a single recipient by donating
+    /// @param _state The state of the donations
+    /// @param _recipient The recipient to donate to
+    /// @param _amount The amount to donate to the recipient
+    function fundSingle(State storage _state, address _recipient, uint256 _amount) internal {
+        // Calculate the square root of the donation amount and add it to the sum of donations
+        uint256 _sqrtDonationsSum = _state.sqrtDonationsSum[_recipient];
+        _sqrtDonationsSum += FixedPointMathLib.sqrt(_amount);
+
+        // Calculate the contribution delta for this single recipient
+        uint256 _contributionDelta = _sqrtDonationsSum ** 2 - _state.sqrtDonationsSum[_recipient] ** 2;
+
+        // Update the state
+        _state.sqrtDonationsSum[_recipient] = _sqrtDonationsSum;
+        _state.totalContributions += _contributionDelta;
     }
 
     /// @notice Calculates the matching amount for a recipient using the Quadratic Funding formula

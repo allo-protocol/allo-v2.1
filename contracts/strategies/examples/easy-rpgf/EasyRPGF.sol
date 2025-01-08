@@ -34,19 +34,6 @@ contract EasyRPGF is BaseStrategy, Errors {
 
     constructor(address _allo) BaseStrategy(_allo, "EasyRPGF") {}
 
-    /// ===============================
-    /// ========= Initialize ==========
-    /// ===============================
-
-    /// @notice Initialize the strategy
-    /// @param _poolId The pool id
-    /// @param _data Not used
-    function initialize(uint256 _poolId, bytes memory _data) external override {
-        __BaseStrategy_init(_poolId);
-
-        emit Initialized(_poolId, "");
-    }
-
     /// ====================================
     /// ============ Internal ==============
     /// ====================================
