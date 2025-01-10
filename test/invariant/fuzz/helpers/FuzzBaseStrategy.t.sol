@@ -35,7 +35,7 @@ contract FuzzBaseStrategy is BaseStrategy {
         override
     {
         for (uint256 i = 0; i < _recipients.length; i++) {
-            allocated[_recipients[i]] = _amounts[i];
+            allocated[_recipients[i]] += _amounts[i];
         }
     }
 

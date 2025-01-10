@@ -71,9 +71,11 @@ contract PropertiesStrategies is HandlersParent {
             ? abi.encode(token, new bytes(0))
             : abi.encode(_tokens);
 
-        // Needed for direct allocation
-        token.transfer(_allocator, _amount);
-        _actor.callThroughAnchor(address(token), 0, abi.encodeCall(ERC20.approve, (address(_strategy), _amount)));
+        // DirectAllocation distribute when allocate is called
+        if (_poolStrategy(_strategy) == PoolStrategies.DirectAllocation) {
+            token.transfer(_allocator, _amount);
+            _actor.callThroughAnchor(address(token), 0, abi.encodeCall(ERC20.approve, (address(_strategy), _amount)));
+        }
 
         (bool _success, bytes memory _ret) = _actor.callThroughAnchor(
             address(allo), 0, abi.encodeCall(allo.allocate, (_poolId, _recipients, _amounts, _data))
@@ -81,7 +83,7 @@ contract PropertiesStrategies is HandlersParent {
 
         if (_success) {
             // Check strategy specific post-conditions
-            _assertValidAllocate(payable(_strategy), _allocator, _recipient, _amount);
+            _assertValidAllocate(_poolId, _allocator, _recipient, _amount);
 
             if (_poolStrategy(_strategy) == PoolStrategies.DirectAllocation) {
                 // allocation is directly distributed
@@ -100,8 +102,7 @@ contract PropertiesStrategies is HandlersParent {
     function prop_poolManagerShouldBeAbleToDistributeToRecipient(
         uint256 _idSeed,
         uint256 _managerSeed,
-        uint256 _actorSeed,
-        uint256 _amount
+        uint256 _actorSeed
     ) public {
         address _recipient = address(_currentActor());
         address[] memory _recipients = new address[](1);
@@ -131,7 +132,7 @@ contract PropertiesStrategies is HandlersParent {
             // Allocation if there is one
             assertTrue(_hasAllocation, "property-id 3: Distribution succeeded without allocation");
 
-            ghost_totalWithdrawn += _amount;
+            ghost_totalWithdrawn += _recipientNewBalance - _recipientPreviousBalance;
         } else {
             // Revert if:
             // - There is no allocation
@@ -176,9 +177,9 @@ contract PropertiesStrategies is HandlersParent {
     //
 
     // Check strategy dependent post-conditions if a call to allocate is successful
-    function _assertValidAllocate(address payable _strategy, address _allocator, address _recipient, uint256 _amount)
-        internal
-    {
+    function _assertValidAllocate(uint256 _poolId, address _allocator, address _recipient, uint256 _amount) internal {
+        address _strategy = address(allo.getPool(_poolId).strategy);
+
         if (
             _poolStrategy(_strategy) == PoolStrategies.QuadraticVoting
                 || _poolStrategy(_strategy) == PoolStrategies.ImpactStream
@@ -195,7 +196,8 @@ contract PropertiesStrategies is HandlersParent {
             );
         } else if (_poolStrategy(_strategy) == PoolStrategies.FuzzBaseStrategy) {
             assertTrue(
-                FuzzBaseStrategy(_strategy).allocated(_recipient) == _amount,
+                FuzzBaseStrategy(payable(_strategy)).allocated(_recipient)
+                    == ghost_allocations[_poolId][address(_recipient)] + _amount,
                 "property-id 1 Fuzz: wrong amount allocated"
             );
         } else if (_poolStrategy(_strategy) == PoolStrategies.DirectAllocation) {
