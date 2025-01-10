@@ -19,9 +19,7 @@ contract FoundryReproducer is FuzzTest {
         );
         vm.prank(0x0000000000000000000000000000000000010000);
         this.prop_userShouldBeAbleToAllocateForRecipient(
-            15399640836418672336170156801852452249328667064094080731578185228974333700948,
-            0,
-            0
+            15399640836418672336170156801852452249328667064094080731578185228974333700948, 0, 0
         );
         vm.prank(0x0000000000000000000000000000000000080000);
         this.prop_poolManagerShouldBeAbleToDistributeToRecipient(
