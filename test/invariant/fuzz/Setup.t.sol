@@ -41,21 +41,29 @@ contract Setup is HandlerActors, Pools {
 
     constructor() {
         // Deploy Allo
-        vm.prank(protocolDeployer);
         address implementation = address(new Allo());
 
         // Deploy the registry
-        vm.prank(protocolDeployer);
         registry = new Registry();
 
         // Deploy the proxy, pointing to the implementation
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(implementation, proxyOwner, "");
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+            implementation,
+            proxyOwner,
+            ""
+        );
 
         allo = Allo(payable(address(proxy)));
 
         // Initialize
-        vm.prank(protocolDeployer);
-        allo.initialize(protocolDeployer, address(registry), payable(treasury), percentFee, baseFee, forwarder);
+        allo.initialize(
+            protocolDeployer,
+            address(registry),
+            payable(treasury),
+            percentFee,
+            baseFee,
+            forwarder
+        );
 
         // Deploy strategies implementations
         _initImplementations(address(allo));
