@@ -25,9 +25,9 @@ contract Actors is Utils {
         uint256 msgValue,
         bytes memory payload
     ) public returns (bool, bytes memory) {
-        emit ActorsLog(
-            string.concat("call using anchor of ", vm.toString(address(this)))
-        );
+        //emit ActorsLog(
+        //    string.concat("call using anchor of ", vm.toString(address(this)))
+        //);
 
         vm.deal(payable(address(this)), msgValue);
 
@@ -36,7 +36,7 @@ contract Actors is Utils {
         );
 
         if (!succ) {
-            emit ActorsLog(vm.toString(ret));
+            //emit ActorsLog(vm.toString(ret));
             return (succ, ret);
         }
 
@@ -52,9 +52,9 @@ contract Actors is Utils {
         uint256 msgValue,
         bytes memory payload
     ) public returns (bool success, bytes memory returnData) {
-        emit ActorsLog(
-            string.concat("call using actor ", vm.toString(address(this)))
-        );
+        // emit ActorsLog(
+        //     string.concat("call using actor ", vm.toString(address(this)))
+        // );
 
         vm.deal(payable(address(this)), msgValue);
 

@@ -11,6 +11,8 @@
     "compile": "forge compile",
     "build": "forge build",
     "test": "forge test",
+    "test:unit": "forge test --no-match-contract 'Integration'",
+    "test:integration": "forge test --match-contract 'Integration'",
     "fmt": "forge fmt contracts/**/*.sol && forge fmt test/**/*.sol",
     "lint:sol": "solhint -c .solhint.json 'contracts/**/*.sol'",
     "lint:natspec": "npx @defi-wonderland/natspec-smells --config natspec-smells.config.js",
