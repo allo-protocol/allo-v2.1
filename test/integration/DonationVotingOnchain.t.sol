@@ -99,7 +99,7 @@ contract IntegrationDonationVotingOnchainBase is IntegrationBase {
 
         // NOTE: removing all the ETH from the strategy before testing
         vm.prank(address(strategy));
-        (bool success, ) = address(0).call{value: address(strategy).balance}("");
+        (bool success,) = address(0).call{value: address(strategy).balance}("");
         require(success, "Failed to send ETH");
     }
 }

@@ -187,13 +187,12 @@ contract RecipientSuperApp is ISuperApp {
     /// ================================
 
     /// @dev This callback is called before the flow is created
-    function beforeAgreementCreated(
-        ISuperToken,
-        address,
-        bytes32,
-        bytes calldata,
-        bytes calldata
-    ) external pure override returns (bytes memory beforeData) {
+    function beforeAgreementCreated(ISuperToken, address, bytes32, bytes calldata, bytes calldata)
+        external
+        pure
+        override
+        returns (bytes memory beforeData)
+    {
         return "0x";
     }
 
@@ -236,7 +235,7 @@ contract RecipientSuperApp is ISuperApp {
     function beforeAgreementUpdated(
         ISuperToken superToken,
         address agreementClass,
-        bytes32 ,
+        bytes32,
         bytes calldata agreementData,
         bytes calldata
     ) external view override returns (bytes memory) {

@@ -388,12 +388,11 @@ contract SQFSuperfluid is
     /// @param _recipientsAddresses The addresses of the recipients to allocate to
     /// @param _data The data to use to allocate to the recipient
     /// @param _sender The address of the sender
-    function _allocate(
-        address[] memory _recipientsAddresses,
-        uint256[] memory,
-        bytes memory _data,
-        address _sender
-    ) internal override onlyActiveAllocation {
+    function _allocate(address[] memory _recipientsAddresses, uint256[] memory, bytes memory _data, address _sender)
+        internal
+        override
+        onlyActiveAllocation
+    {
         if (!_isValidAllocator(_sender)) revert UNAUTHORIZED();
 
         int96[] memory flowRates = abi.decode(_data, (int96[]));
