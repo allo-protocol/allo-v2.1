@@ -88,6 +88,11 @@ interface IRegistry {
     /// @param pendingOwner The address of the pending owner
     event ProfilePendingOwnerUpdated(bytes32 indexed profileId, address pendingOwner);
 
+    /// @dev Emitted when funds are recovered
+    /// @param token The token recovered
+    /// @param recipient The recipient of the funds
+    event FundsRecovered(address token, address recipient);
+
     /// =========================
     /// ==== View Functions =====
     /// =========================

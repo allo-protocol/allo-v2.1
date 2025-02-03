@@ -561,6 +561,14 @@ contract AlloUnit is Test {
         allo.recoverFunds(NATIVE, _recipient);
     }
 
+    function test_RecoverFundsWhenSenderIsOwner(address _recipient) external whenSenderIsOwner {
+        // it should emit FundsRecovered event
+        vm.expectEmit();
+        emit IAllo.FundsRecovered(NATIVE, _recipient);
+
+        allo.recoverFunds(NATIVE, _recipient);
+    }
+
     function test_RecoverFundsWhenTokenIsNative(address _recipient) external whenSenderIsOwner {
         vm.assume(_recipient != address(0));
         vm.assume(_recipient.code.length == 0);
