@@ -290,7 +290,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
         if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert INVALID();
     }
 
-    /// @notice Hook called after increasing the pool amount.
+    /// @notice Hook called before increasing the pool amount.
     /// @param _amount The amount to increase the pool by
     function _beforeIncreasePoolAmount(uint256 _amount) internal virtual override {
         if (block.timestamp > allocationEndTime) revert AllocationExtension_ALLOCATION_HAS_ENDED();
