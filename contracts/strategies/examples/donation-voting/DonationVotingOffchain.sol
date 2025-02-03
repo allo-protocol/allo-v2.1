@@ -122,7 +122,6 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     /// ===============================
 
     // @notice Initialize the strategy
-    /// @param _poolId ID of the pool
     /// @param _data The data to be decoded
     /// @custom:data (
     ///        RecipientInitializeData _recipientExtensionInitializeData,
@@ -132,7 +131,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     ///        address[] _allowedTokens,
     ///        bool _isUsingAllocationMetadata
     ///    )
-    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal override {
+    function _initializeStrategy(uint256, bytes memory _data) internal override {
         // Decode _data and initialize the specific strategy data
         (
             RecipientInitializeData memory _recipientExtensionInitializeData,
@@ -257,9 +256,8 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
 
     /// @notice Distributes funds (tokens) to recipients.
     /// @param _recipientIds The IDs of the recipients
-    /// @param _data NOT USED
     /// @param _sender The address of the sender
-    function _distribute(address[] memory _recipientIds, bytes memory _data, address _sender)
+    function _distribute(address[] memory _recipientIds, bytes memory, address _sender)
         internal
         virtual
         override
@@ -283,16 +281,12 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     }
 
     /// @notice Hook called before withdrawing tokens from the pool.
-    /// @param _token The address of the token
-    /// @param _amount The amount to withdraw
-    /// @param _recipient The address to withdraw to
-    function _beforeWithdraw(address _token, uint256 _amount, address _recipient) internal virtual override {
+    function _beforeWithdraw(address, uint256, address) internal virtual override {
         if (block.timestamp <= allocationEndTime + withdrawalCooldown) revert INVALID();
     }
 
     /// @notice Hook called after increasing the pool amount.
-    /// @param _amount The amount to increase the pool by
-    function _beforeIncreasePoolAmount(uint256 _amount) internal virtual override {
+    function _beforeIncreasePoolAmount(uint256) internal virtual override {
         if (block.timestamp > allocationEndTime) revert AllocationExtension_ALLOCATION_HAS_ENDED();
     }
 
@@ -304,9 +298,8 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
     }
 
     /// @notice Returns always true as all addresses are valid allocators
-    /// @param _allocator NOT USED
     /// @return Returns always true
-    function _isValidAllocator(address _allocator) internal view override returns (bool) {
+    function _isValidAllocator(address) internal view override returns (bool) {
         return true;
     }
 }

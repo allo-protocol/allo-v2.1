@@ -52,10 +52,9 @@ contract RFPSimple is BaseStrategy, MilestonesExtension, RecipientsExtension {
     /// ===============================
 
     // @notice Initialize the strategy
-    /// @param _poolId ID of the pool
     /// @param _data The data to be decoded
     /// @custom:data (RecipientInitializeData _recipientExtensionInitializeData, uint256 _maxBid)
-    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal virtual override {
+    function _initializeStrategy(uint256, bytes memory _data) internal virtual override {
         (RecipientInitializeData memory _recipientExtensionInitializeData, uint256 _maxBid) =
             abi.decode(_data, (RecipientInitializeData, uint256));
         __RecipientsExtension_init(_recipientExtensionInitializeData);

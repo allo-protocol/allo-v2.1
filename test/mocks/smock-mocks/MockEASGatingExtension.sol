@@ -7,9 +7,9 @@ import {BaseStrategy} from "contracts/strategies/BaseStrategy.sol";
 contract MockEASGatingExtension is BaseStrategy, EASGatingExtension {
     constructor(address _allo, string memory _strategyName) BaseStrategy(_allo, _strategyName) {}
 
-    function initialize(uint256 _poolId, bytes memory _data) external virtual override {
+    function initialize(uint256 _poolId, bytes memory __data) external virtual override {
         __BaseStrategy_init(_poolId);
-        __EASGatingExtension_init(abi.decode(_data, (address)));
+        __EASGatingExtension_init(abi.decode(__data, (address)));
     }
 
     function __EASGatingExtension_init(address _eas) internal virtual override {

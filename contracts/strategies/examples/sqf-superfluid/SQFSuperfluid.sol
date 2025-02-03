@@ -311,9 +311,7 @@ contract SQFSuperfluid is
 
     /// @dev prevent the pool token from being withdrawn
     /// @param _token The token address
-    /// @param _amount The amount to withdraw
-    /// @param _recipient The address to withdraw to
-    function _beforeWithdraw(address _token, uint256 _amount, address _recipient) internal override {
+    function _beforeWithdraw(address _token, uint256, address) internal override {
         if (_token == address(poolSuperToken)) {
             revert INVALID();
         }
@@ -340,10 +338,9 @@ contract SQFSuperfluid is
 
     /// @dev If the recipient is accepted, create a super app for the recipient
     /// @param _newStatus The new status
-    /// @param _oldStatus The old status
     /// @param _recipientIndex The index of the recipient
     /// @return _reviewedStatus The reviewed status
-    function _reviewRecipientStatus(Status _newStatus, Status _oldStatus, uint256 _recipientIndex)
+    function _reviewRecipientStatus(Status _newStatus, Status, uint256 _recipientIndex)
         internal
         override
         nonReentrant
@@ -371,10 +368,9 @@ contract SQFSuperfluid is
     /// @notice This will distribute funds (tokens) to recipients.
     /// @dev most strategies will track a TOTAL amount per recipient, and a PAID amount, and pay the difference
     /// this contract will need to track the amount paid already, so that it doesn't double pay.
-    /// @param _recipientsAddresses NOT USED
     /// @param _data Data required will depend on the strategy implementation
     /// @param _sender The address of the sender
-    function _distribute(address[] memory _recipientsAddresses, bytes memory _data, address _sender)
+    function _distribute(address[] memory, bytes memory _data, address _sender)
         internal
         override
         onlyPoolManager(_sender)
@@ -390,12 +386,11 @@ contract SQFSuperfluid is
     /// @notice This will allocate to recipients.
     /// @dev The encoded '_data' will be determined by the strategy implementation.
     /// @param _recipientsAddresses The addresses of the recipients to allocate to
-    /// @param _amounts The amounts to allocate to each recipient
     /// @param _data The data to use to allocate to the recipient
     /// @param _sender The address of the sender
     function _allocate(
         address[] memory _recipientsAddresses,
-        uint256[] memory _amounts,
+        uint256[] memory,
         bytes memory _data,
         address _sender
     ) internal override onlyActiveAllocation {
