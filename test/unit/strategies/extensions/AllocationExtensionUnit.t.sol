@@ -14,11 +14,18 @@ contract AllocationExtension is Test {
         extension = new MockMockAllocationExtension(address(0), "MockAllocationExtension");
     }
 
+    function test___AllocationExtension_initRevertWhen_AllowedTokensArrayIncludesZeroAddress() external {
+        // It should revert
+        vm.expectRevert(IAllocationExtension.AllocationExtension_ZERO_ADDRESS_NOT_ALLOWED.selector);
+
+        extension.call___AllocationExtension_init(new address[](1), 0, 0, false);
+    }
+
     function test___AllocationExtension_initWhenAllowedTokensArrayIsEmpty() external {
         extension.call___AllocationExtension_init(new address[](0), 0, 0, false);
 
-        // It should mark address zero as true
-        assertTrue(extension.allowedTokens(address(0)));
+        // It should mark address of all tokens allowed as true
+        assertTrue(extension.allowedTokens(extension.ALL_TOKENS_ALLOWED()));
     }
 
     function test___AllocationExtension_initWhenAllowedTokensArrayIsNotEmpty(address[] memory _tokens) external {
@@ -82,6 +89,7 @@ contract AllocationExtension is Test {
         vm.assume(_allowedTokens.length > 0);
         for (uint256 i; i < _allowedTokens.length; i++) {
             vm.assume(_allowedTokens[i] != address(0));
+            vm.assume(_allowedTokens[i] != extension.ALL_TOKENS_ALLOWED());
             vm.assume(_allowedTokens[i] != _tokenToCheck);
         }
 

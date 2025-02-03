@@ -233,7 +233,7 @@ contract DonationVotingOffchain is BaseStrategy, RecipientsExtension, Allocation
         for (uint256 i; i < __recipients.length; i++) {
             if (!_isAcceptedRecipient(__recipients[i])) revert RecipientsExtension_RecipientNotAccepted();
 
-            if (!allowedTokens[_tokens[i]] && !allowedTokens[address(0)]) {
+            if (!allowedTokens[_tokens[i]] && !allowedTokens[ALL_TOKENS_ALLOWED]) {
                 revert DonationVotingOffchain_TokenNotAllowed();
             }
 
