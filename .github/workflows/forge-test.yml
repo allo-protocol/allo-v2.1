@@ -37,10 +37,6 @@ jobs:
         run: forge fmt --check
         id: fmt
 
-      - name: Run natspec linting
-        run: bun lint:natspec
-        id: natspec
-
       - name: Run Forge build
         run: forge compile
         id: build

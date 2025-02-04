@@ -65,9 +65,8 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
     /// ===============================
 
     /// @notice Initialize the strategy
-    /// @param _poolId The pool id
     /// @param _data The data to initialize the strategy (Must include RecipientInitializeData and QVSimpleInitializeData)
-    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal virtual override {
+    function _initializeStrategy(uint256, bytes memory _data) internal virtual override {
         (
             IRecipientsExtension.RecipientInitializeData memory _recipientInitializeData,
             QVSimpleInitializeData memory _qvSimpleInitializeData
@@ -103,9 +102,8 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
     /// @notice Distribute the tokens to the recipients
     /// @dev The '_sender' must be a pool manager and the allocation must have ended
     /// @param _recipientIds The recipient ids
-    /// @param _data NOT USED
     /// @param _sender The sender of the transaction
-    function _distribute(address[] memory _recipientIds, bytes memory _data, address _sender)
+    function _distribute(address[] memory _recipientIds, bytes memory, address _sender)
         internal
         virtual
         override
@@ -194,8 +192,7 @@ contract QVSimple is BaseStrategy, RecipientsExtension, AllocatorsAllowlistExten
     }
 
     /// @notice Ensure no increase in pool amount is allowed after the distribution starts
-    /// @param _amount The amount to increase the pool by
-    function _beforeIncreasePoolAmount(uint256 _amount) internal virtual override {
+    function _beforeIncreasePoolAmount(uint256) internal virtual override {
         if (totalPayoutAmount != 0) {
             revert INVALID();
         }
