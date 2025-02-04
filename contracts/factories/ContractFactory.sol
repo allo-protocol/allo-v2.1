@@ -104,7 +104,7 @@ contract ContractFactory {
 
         usedSalts[salt] = true;
 
-        deployedContract = CREATE3.deploy(salt, creationCode, msg.value);
+        deployedContract = CREATE3.deployDeterministic(msg.value, creationCode, salt);
 
         emit Deployed(deployedContract, salt);
     }
