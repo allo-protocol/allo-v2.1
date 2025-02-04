@@ -98,4 +98,5 @@ Registry::recoverFunds
     │   └── it should revert
     └── when recipient is not zero address
         ├── it should call getBalance
-        └── it should call transfer
+        ├── it should call transfer
+        └── it should emit FundsRecovered event

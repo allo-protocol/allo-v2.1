@@ -322,6 +322,8 @@ contract Allo is IAllo, Initializable, Ownable, AccessControlUpgradeable, Reentr
 
         // Transfer the amount to the recipient (pool owner)
         _token.transferAmount(_recipient, _amount);
+
+        emit FundsRecovered(_token, _recipient);
     }
 
     // ====================================

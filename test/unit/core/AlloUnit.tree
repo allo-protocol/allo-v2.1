@@ -105,8 +105,9 @@ AlloUnit::recoverFunds
 └── when sender is owner
     ├── when token is native
     │   └── it should transfer the whole balance of native token
-    └── when token is not native
-        └── it should transfer the whole balance of token
+    ├── when token is not native
+    │   └── it should transfer the whole balance of token
+    └── it should emit FundsRecovered event
 
 AlloUnit::registerRecipient
 ├── it should transfer the msg.value received
