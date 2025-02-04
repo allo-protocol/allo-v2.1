@@ -6,6 +6,12 @@
 git clone https://github.com/allo-protocol/allo-v2.1
 ```
 
+### Install submodules
+
+```bash
+git submodule update --init --recursive
+```
+
 ### Install bun
 
 ```bash
