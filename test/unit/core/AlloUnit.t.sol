@@ -562,6 +562,11 @@ contract AlloUnit is Test {
     }
 
     function test_RecoverFundsWhenSenderIsOwner(address _recipient) external whenSenderIsOwner {
+        vm.assume(_recipient != address(0));
+        vm.assume(_recipient.code.length == 0);
+        vm.assume(_recipient.balance == 0);
+        assumeNotPrecompile(_recipient);
+
         // it should emit FundsRecovered event
         vm.expectEmit();
         emit IAllo.FundsRecovered(NATIVE, _recipient);
