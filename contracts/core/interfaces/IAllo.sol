@@ -103,6 +103,11 @@ interface IAllo {
     /// @param trustedForwarder Address of the new trusted forwarder
     event TrustedForwarderUpdated(address trustedForwarder);
 
+    /// @notice Emitted when funds are recovered
+    /// @param token The token recovered
+    /// @param recipient The recipient of the funds
+    event FundsRecovered(address token, address recipient);
+
     /// ====================================
     /// ==== External/Public Functions =====
     /// ====================================

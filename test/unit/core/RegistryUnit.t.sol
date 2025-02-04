@@ -406,6 +406,10 @@ contract RegistryUnit is Test {
         vm.mockCall(_token, abi.encodeWithSignature("balanceOf(address)", address(registry)), abi.encode(_amount));
         vm.mockCall(_token, abi.encodeWithSignature("transfer(address,uint256)", _recipient, _amount), abi.encode(true));
 
+        // it should emit FundsRecovered event
+        vm.expectEmit();
+        emit IRegistry.FundsRecovered(_token, _recipient);
+
         // it should call getBalance
         vm.expectCall(_token, abi.encodeWithSignature("balanceOf(address)", address(registry)));
 
