@@ -200,7 +200,7 @@ contract DonationVotingOnchain is BaseStrategy, RecipientsExtension, AllocationE
 
     /// @notice Returns always true as all addresses are valid allocators
     /// @return Returns always true
-    function _isValidAllocator(address) internal view override returns (bool) {
+    function _isValidAllocator(address) internal pure override returns (bool) {
         return true;
     }
 }
