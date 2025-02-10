@@ -5,6 +5,8 @@ AllocationExtension::__AllocationExtension_init
 │   └── It should mark address of all tokens allowed as true
 ├── When allowedTokens array is not empty
 │   └── It should mark the tokens in the array as true
+├── When allowedTokens array includes ALL_TOKENS_ALLOWED
+│   └── It should revert
 ├── It should set isUsingAllocationMetadata
 └── It should call _updateAllocationTimestamps
 

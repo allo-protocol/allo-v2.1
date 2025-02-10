@@ -20,6 +20,9 @@ interface IAllocationExtension {
     /// @dev Error thrown when sending the zero address as a token
     error AllocationExtension_ZERO_ADDRESS_NOT_ALLOWED();
 
+    /// @dev Error thrown when sending the ALL_TOKENS_ALLOWED address as a token
+    error AllocationExtension_ADDRESS_NOT_ALLOWED();
+
     /// @notice Emitted when the allocation timestamps are updated
     /// @param allocationStartTime The start time for the allocation period
     /// @param allocationEndTime The end time for the allocation period

@@ -11,7 +11,7 @@ abstract contract AllocationExtension is BaseStrategy, IAllocationExtension {
     /// ================================
 
     /// @notice The address sent when all tokens are allowed
-    address public constant ALL_TOKENS_ALLOWED = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+    address public constant ALL_TOKENS_ALLOWED = address(0xeeeEEeEEEEEeeEEEeEeE00000000000000000000);
 
     /// @notice The start time for allocations
     uint64 public allocationStartTime;
@@ -46,6 +46,7 @@ abstract contract AllocationExtension is BaseStrategy, IAllocationExtension {
         } else {
             for (uint256 i; i < _allowedTokens.length; i++) {
                 if (_allowedTokens[i] == address(0)) revert AllocationExtension_ZERO_ADDRESS_NOT_ALLOWED();
+                if (_allowedTokens[i] == ALL_TOKENS_ALLOWED) revert AllocationExtension_ADDRESS_NOT_ALLOWED();
                 allowedTokens[_allowedTokens[i]] = true;
             }
         }
