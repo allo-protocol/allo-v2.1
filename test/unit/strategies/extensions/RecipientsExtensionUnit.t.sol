@@ -689,7 +689,6 @@ contract RecipientsExtensionUnit is Test {
     }
 
     function test__extractRecipientAndMetadataRevertWhen_IsNotAProfileMember(
-        address _recipientIdOrRegistryAnchor,
         address _sender,
         Metadata memory _metadata,
         _extractRecipientAndMetadataParam memory _param
@@ -865,7 +864,6 @@ contract RecipientsExtensionUnit is Test {
         for (uint256 col = 0; col < 64; col++) {
             uint256 colIndex = col << 2; // col * 4
             uint8 newStatus = uint8((reviewedFullRow >> colIndex) & 0xF);
-            uint8 proposedStatus = uint8((_fullRow >> colIndex) & 0xF);
             assertEq(newStatus, _reviewedStatus);
         }
     }

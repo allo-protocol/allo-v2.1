@@ -10,6 +10,9 @@ abstract contract AllocationExtension is BaseStrategy, IAllocationExtension {
     /// ========== Storage =============
     /// ================================
 
+    /// @notice The address sent when all tokens are allowed
+    address public constant ALL_TOKENS_ALLOWED = address(0xeeeEEeEEEEEeeEEEeEeE00000000000000000000);
+
     /// @notice The start time for allocations
     uint64 public allocationStartTime;
     /// @notice The end time for allocations
@@ -39,9 +42,11 @@ abstract contract AllocationExtension is BaseStrategy, IAllocationExtension {
     ) internal virtual {
         if (_allowedTokens.length == 0) {
             // all tokens
-            allowedTokens[address(0)] = true;
+            allowedTokens[ALL_TOKENS_ALLOWED] = true;
         } else {
             for (uint256 i; i < _allowedTokens.length; i++) {
+                if (_allowedTokens[i] == address(0)) revert AllocationExtension_ZERO_ADDRESS_NOT_ALLOWED();
+                if (_allowedTokens[i] == ALL_TOKENS_ALLOWED) revert AllocationExtension_ADDRESS_NOT_ALLOWED();
                 allowedTokens[_allowedTokens[i]] = true;
             }
         }
@@ -90,7 +95,7 @@ abstract contract AllocationExtension is BaseStrategy, IAllocationExtension {
     /// @return 'true' if the token is allowed, otherwise 'false'
     function _isAllowedToken(address _token) internal view virtual returns (bool) {
         // all tokens allowed
-        if (allowedTokens[address(0)]) return true;
+        if (allowedTokens[ALL_TOKENS_ALLOWED]) return true;
 
         if (allowedTokens[_token]) return true;
 

@@ -97,14 +97,14 @@ contract ContractFactory {
         returns (address deployedContract)
     {
         // hash salt with the contract name and version
-        bytes32 salt = keccak256(abi.encodePacked(_contractName, _version));
+        bytes32 salt = keccak256(abi.encode(_contractName, _version));
 
         // ensure salt has not been used
         if (usedSalts[salt]) revert SALT_USED();
 
         usedSalts[salt] = true;
 
-        deployedContract = CREATE3.deploy(salt, creationCode, msg.value);
+        deployedContract = CREATE3.deployDeterministic(msg.value, creationCode, salt);
 
         emit Deployed(deployedContract, salt);
     }

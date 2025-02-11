@@ -12,19 +12,19 @@ contract MockRecipientsExtension is BaseStrategy, RecipientsExtension {
         BaseStrategy(_allo, _strategyName)
     {}
 
-    function initialize(uint256 _poolId, bytes memory _data) external override {
+    function initialize(uint256 _poolId, bytes memory __data) external override {
         __BaseStrategy_init(_poolId);
 
-        RecipientInitializeData memory _initializeData = abi.decode(_data, (RecipientInitializeData));
+        RecipientInitializeData memory _initializeData = abi.decode(__data, (RecipientInitializeData));
         __RecipientsExtension_init(_initializeData);
     }
 
-    function _allocate(address[] memory _recipients, uint256[] memory _amounts, bytes memory _data, address _sender)
+    function _allocate(address[] memory _recipients, uint256[] memory _amounts, bytes memory __data, address _sender)
         internal
         override
     {}
 
-    function _distribute(address[] memory _recipientIds, bytes memory _data, address _sender) internal override {}
+    function _distribute(address[] memory _recipientIds, bytes memory __data, address _sender) internal override {}
 
     function __RecipientsExtension_init(IRecipientsExtension.RecipientInitializeData memory _initializeData)
         internal

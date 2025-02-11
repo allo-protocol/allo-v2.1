@@ -386,5 +386,7 @@ contract Registry is IRegistry, Initializable, AccessControlUpgradeable, Errors 
 
         uint256 amount = _token.getBalance(address(this));
         _token.transferAmount(_recipient, amount);
+
+        emit FundsRecovered(_token, _recipient);
     }
 }

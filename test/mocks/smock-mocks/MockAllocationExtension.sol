@@ -8,14 +8,14 @@ import {BaseStrategy} from "contracts/strategies/BaseStrategy.sol";
 contract MockAllocationExtension is BaseStrategy, AllocationExtension {
     constructor(address _allo, string memory _strategyName) BaseStrategy(_allo, _strategyName) {}
 
-    function initialize(uint256 _poolId, bytes memory _data) external override {
+    function initialize(uint256 _poolId, bytes memory __data) external override {
         __BaseStrategy_init(_poolId);
         (
             address[] memory _allowedTokens,
             uint64 _allocationStartTime,
             uint64 _allocationEndTime,
             bool _isUsingAllocationMetadata
-        ) = abi.decode(_data, (address[], uint64, uint64, bool));
+        ) = abi.decode(__data, (address[], uint64, uint64, bool));
         __AllocationExtension_init(_allowedTokens, _allocationStartTime, _allocationEndTime, _isUsingAllocationMetadata);
     }
 

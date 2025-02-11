@@ -14,16 +14,24 @@ contract AllocationExtension is Test {
         extension = new MockMockAllocationExtension(address(0), "MockAllocationExtension");
     }
 
+    function test___AllocationExtension_initRevertWhen_AllowedTokensArrayIncludesZeroAddress() external {
+        // It should revert
+        vm.expectRevert(IAllocationExtension.AllocationExtension_ZERO_ADDRESS_NOT_ALLOWED.selector);
+
+        extension.call___AllocationExtension_init(new address[](1), 0, 0, false);
+    }
+
     function test___AllocationExtension_initWhenAllowedTokensArrayIsEmpty() external {
         extension.call___AllocationExtension_init(new address[](0), 0, 0, false);
 
-        // It should mark address zero as true
-        assertTrue(extension.allowedTokens(address(0)));
+        // It should mark address of all tokens allowed as true
+        assertTrue(extension.allowedTokens(extension.ALL_TOKENS_ALLOWED()));
     }
 
     function test___AllocationExtension_initWhenAllowedTokensArrayIsNotEmpty(address[] memory _tokens) external {
         for (uint256 i; i < _tokens.length; i++) {
             vm.assume(_tokens[i] != address(0));
+            vm.assume(_tokens[i] != extension.ALL_TOKENS_ALLOWED());
         }
 
         extension.call___AllocationExtension_init(_tokens, 0, 0, false);
@@ -32,6 +40,16 @@ contract AllocationExtension is Test {
         for (uint256 i; i < _tokens.length; i++) {
             assertTrue(extension.allowedTokens(_tokens[i]));
         }
+    }
+
+    function test___AllocationExtension_initRevertWhen_AllowedTokensArrayIncludesALL_TOKENS_ALLOWED() external {
+        address[] memory _tokens = new address[](1);
+        _tokens[0] = extension.ALL_TOKENS_ALLOWED();
+
+        // It should revert
+        vm.expectRevert(IAllocationExtension.AllocationExtension_ADDRESS_NOT_ALLOWED.selector);
+
+        extension.call___AllocationExtension_init(_tokens, 0, 0, false);
     }
 
     function test___AllocationExtension_initShouldSetIsUsingAllocationMetadata(bool _isUsingAllocationMetadata)
@@ -65,6 +83,7 @@ contract AllocationExtension is Test {
 
     function test__isAllowedTokenWhenTheTokenSentIsAllowed(address _tokenToCheck) external {
         vm.assume(_tokenToCheck != address(0));
+        vm.assume(_tokenToCheck != extension.ALL_TOKENS_ALLOWED());
 
         // Send array with only that token
         address[] memory tokens = new address[](1);
@@ -82,6 +101,7 @@ contract AllocationExtension is Test {
         vm.assume(_allowedTokens.length > 0);
         for (uint256 i; i < _allowedTokens.length; i++) {
             vm.assume(_allowedTokens[i] != address(0));
+            vm.assume(_allowedTokens[i] != extension.ALL_TOKENS_ALLOWED());
             vm.assume(_allowedTokens[i] != _tokenToCheck);
         }
 

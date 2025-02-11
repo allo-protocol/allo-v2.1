@@ -18,20 +18,20 @@ contract MockBaseStrategy is BaseStrategy {
         super._checkOnlyPoolManager(_sender);
     }
 
-    function _register(address[] memory _recipients, bytes memory _data, address _sender)
+    function _register(address[] memory _recipients, bytes memory __data, address _sender)
         internal
         virtual
         override
         returns (address[] memory _recipientIds)
     {}
 
-    function _allocate(address[] memory _recipients, uint256[] memory _amounts, bytes memory _data, address _sender)
+    function _allocate(address[] memory _recipients, uint256[] memory _amounts, bytes memory __data, address _sender)
         internal
         virtual
         override
     {}
 
-    function _distribute(address[] memory _recipientIds, bytes memory _data, address _sender)
+    function _distribute(address[] memory _recipientIds, bytes memory __data, address _sender)
         internal
         virtual
         override
@@ -45,37 +45,37 @@ contract MockBaseStrategy is BaseStrategy {
 
     function _afterWithdraw(address _token, uint256 _amount, address _recipient) internal virtual override {}
 
-    function _beforeRegisterRecipient(address[] memory _recipients, bytes memory _data, address _sender)
+    function _beforeRegisterRecipient(address[] memory _recipients, bytes memory __data, address _sender)
         internal
         virtual
         override
     {}
 
-    function _afterRegisterRecipient(address[] memory _recipients, bytes memory _data, address _sender)
+    function _afterRegisterRecipient(address[] memory _recipients, bytes memory __data, address _sender)
         internal
         virtual
         override
     {}
 
-    function _beforeAllocate(address[] memory _recipients, bytes memory _data, address _sender)
+    function _beforeAllocate(address[] memory _recipients, bytes memory __data, address _sender)
         internal
         virtual
         override
     {}
 
-    function _afterAllocate(address[] memory _recipients, bytes memory _data, address _sender)
+    function _afterAllocate(address[] memory _recipients, bytes memory __data, address _sender)
         internal
         virtual
         override
     {}
 
-    function _beforeDistribute(address[] memory _recipientIds, bytes memory _data, address _sender)
+    function _beforeDistribute(address[] memory _recipientIds, bytes memory __data, address _sender)
         internal
         virtual
         override
     {}
 
-    function _afterDistribute(address[] memory _recipientIds, bytes memory _data, address _sender)
+    function _afterDistribute(address[] memory _recipientIds, bytes memory __data, address _sender)
         internal
         virtual
         override

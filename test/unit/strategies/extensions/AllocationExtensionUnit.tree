@@ -1,8 +1,12 @@
 AllocationExtension::__AllocationExtension_init
+├── When allowedTokens array includes zero address
+│   └── It should revert
 ├── When allowedTokens array is empty
-│   └── It should mark address zero as true
+│   └── It should mark address of all tokens allowed as true
 ├── When allowedTokens array is not empty
 │   └── It should mark the tokens in the array as true
+├── When allowedTokens array includes ALL_TOKENS_ALLOWED
+│   └── It should revert
 ├── It should set isUsingAllocationMetadata
 └── It should call _updateAllocationTimestamps
 

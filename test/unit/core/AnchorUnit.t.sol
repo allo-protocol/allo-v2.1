@@ -124,13 +124,14 @@ contract AnchorUnit is Test {
 
     function test_ReceiveShouldReceiveNativeTokens(uint256 _value) external {
         // it should receive native tokens
-        (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
+        (Anchor _anchor,,) = _initAnchor();
 
         assertEq(address(_anchor).balance, 0); // Check if the balance of the contract has been updated
 
         hoax(makeAddr("funder"), _value);
 
-        address(_anchor).call{value: _value}("");
+        (bool success,) = address(_anchor).call{value: _value}("");
+        require(success, "Failed to send ETH");
 
         assertEq(address(_anchor).balance, _value); // Check if the balance of the contract has been updated
     }
@@ -142,7 +143,7 @@ contract AnchorUnit is Test {
         bytes memory _data
     ) external {
         // it should return the onERC721Received selector
-        (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
+        (Anchor _anchor,,) = _initAnchor();
 
         bytes4 retval = _anchor.onERC721Received(_operator, _from, _tokenId, _data);
         assertEq(retval, IERC721Receiver.onERC721Received.selector);
@@ -156,7 +157,7 @@ contract AnchorUnit is Test {
         bytes memory _data
     ) external {
         // it should return the onERC1155Received selector
-        (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
+        (Anchor _anchor,,) = _initAnchor();
 
         bytes4 retval = _anchor.onERC1155Received(_operator, _from, _tokenId, _value, _data);
         assertEq(retval, IERC1155Receiver.onERC1155Received.selector);
@@ -170,7 +171,7 @@ contract AnchorUnit is Test {
         bytes memory _data
     ) external {
         // it should return the onERC1155BatchReceived selector
-        (Anchor _anchor, address _registry, bytes32 _profileId) = _initAnchor();
+        (Anchor _anchor,,) = _initAnchor();
 
         bytes4 retval = _anchor.onERC1155BatchReceived(_operator, _from, _tokenIds, _values, _data);
         assertEq(retval, IERC1155Receiver.onERC1155BatchReceived.selector);

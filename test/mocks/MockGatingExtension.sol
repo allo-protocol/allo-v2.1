@@ -9,7 +9,7 @@ import {TokenGatingExtension} from "strategies/extensions/gating/TokenGatingExte
 contract MockGatingExtension is EASGatingExtension, NFTGatingExtension, TokenGatingExtension {
     constructor(address _allo, string memory _strategyName) BaseStrategy(_allo, _strategyName) {}
 
-    function _initializeStrategy(uint256 _poolId, bytes memory _data) internal override {
+    function _initializeStrategy(uint256, bytes memory _data) internal override {
         address _eas = abi.decode(_data, (address));
 
         __EASGatingExtension_init(_eas);

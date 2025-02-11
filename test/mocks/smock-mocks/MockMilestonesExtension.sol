@@ -12,26 +12,26 @@ contract MockMilestonesExtension is BaseStrategy, IMilestonesExtension, Mileston
 
     constructor(address _allo, string memory _strategyName) BaseStrategy(_allo, _strategyName) {}
 
-    function initialize(uint256 _poolId, bytes memory _data) external override {
+    function initialize(uint256 _poolId, bytes memory __data) external override {
         __BaseStrategy_init(_poolId);
 
-        uint256 _maxBid = abi.decode(_data, (uint256));
+        uint256 _maxBid = abi.decode(__data, (uint256));
         __MilestonesExtension_init(_maxBid);
     }
 
-    function _allocate(address[] memory _recipients, uint256[] memory _amounts, bytes memory _data, address _sender)
+    function _allocate(address[] memory _recipients, uint256[] memory _amounts, bytes memory __data, address _sender)
         internal
         virtual
         override
     {}
 
-    function _distribute(address[] memory _recipientIds, bytes memory _data, address _sender)
+    function _distribute(address[] memory _recipientIds, bytes memory __data, address _sender)
         internal
         virtual
         override
     {}
 
-    function _register(address[] memory __recipients, bytes memory _data, address _sender)
+    function _register(address[] memory __recipients, bytes memory __data, address _sender)
         internal
         virtual
         override
