@@ -311,7 +311,7 @@ contract SQFSuperfluid is
 
     /// @dev prevent the pool token from being withdrawn
     /// @param _token The token address
-    function _beforeWithdraw(address _token, uint256, address) internal override {
+    function _beforeWithdraw(address _token, uint256, address) internal view override {
         if (_token == address(poolSuperToken)) {
             revert INVALID();
         }
